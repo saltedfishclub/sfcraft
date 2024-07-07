@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "id": "sfcraft",
+  "version": "${version}",
+  "name": "sfcraft",
+  "description": "",
+  "authors": [],
+  "contact": {
+    "repo": "https://github.com/icebear67/sfcraft"
+  },
+  "license": "GPL-3.0",
+  "icon": "assets/sfcraft/icon.png",
+  "environment": "server",
+  "entrypoints": {
+    "main": [
+      "io.ib67.sfcraft.SFCraft"
+    ]
+  },
+  "mixins": [
+    "sfcraft.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=${loader_version}",
+    "fabric": "*",
+    "minecraft": "${minecraft_version}"
+  }
+}
