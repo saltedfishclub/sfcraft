@@ -8,7 +8,7 @@ import com.mojang.brigadier.builder.RequiredArgumentBuilder;
 import io.ib67.sfcraft.config.SFConfig;
 import io.ib67.sfcraft.geoip.GeoIPService;
 import io.ib67.sfcraft.registry.event.RandomEventRegistry;
-import io.ib67.sfcraft.registry.event.SFRandomEventRegistry;
+import io.ib67.sfcraft.event.SFRandomEventRegistry;
 import lombok.Getter;
 import lombok.SneakyThrows;
 import net.fabricmc.api.ModInitializer;

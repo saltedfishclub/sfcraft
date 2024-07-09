@@ -1,11 +1,14 @@
 package io.ib67.sfcraft;
 
 import com.maxmind.geoip2.exception.GeoIp2Exception;
+import com.mojang.datafixers.util.Either;
+import io.ib67.sfcraft.event.longnight.LongNightEvent;
 import lombok.SneakyThrows;
 import net.fabricmc.fabric.api.networking.v1.PacketSender;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.WrittenBookContentComponent;
 import net.minecraft.entity.damage.DamageSource;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.network.ClientConnection;
@@ -15,10 +18,11 @@ import net.minecraft.server.network.ServerPlayNetworkHandler;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.RawFilteredPair;
 import net.minecraft.text.Text;
+import net.minecraft.util.Unit;
 import net.minecraft.util.Uuids;
+import net.minecraft.util.math.BlockPos;
 
 import java.net.InetSocketAddress;
-import java.nio.file.Files;
 import java.time.Clock;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
@@ -132,5 +136,12 @@ public class Listener {
         } else {
             return originalMetadata;
         }
+    }
+
+    public Either<PlayerEntity.SleepFailureReason, Unit> onPlayerSleep(BlockPos pos) {
+        if (LongNightEvent.isRunning()) {
+            return Either.left(PlayerEntity.SleepFailureReason.NOT_POSSIBLE_HERE);
+        }
+        return Either.right(Unit.INSTANCE);
     }
 }

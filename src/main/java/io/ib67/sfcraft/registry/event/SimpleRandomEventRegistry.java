@@ -4,6 +4,8 @@ import io.ib67.sfcraft.event.RandomEvent;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
+import net.minecraft.registry.RegistryKey;
+import net.minecraft.registry.RegistryKeys;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.world.World;
 
@@ -22,9 +24,13 @@ public class SimpleRandomEventRegistry implements RandomEventRegistry {
 
     private void afterWorldTick(ServerWorld serverWorld) {
         for (RegisteredEntry entry : entries) {
-            if (!entry.started && entry.worldTickPredicate.test(serverWorld)) {
+            if (entry.world == serverWorld.getRegistryKey()
+                    && !entry.started && entry.worldTickPredicate.test(serverWorld)) {
                 var event = entry.event.apply(serverWorld);
-                activeEvents.add(new StartedEntry(event, () -> entry.started = false, event.start()));
+                var ticks = event.start();
+                if (ticks > 0) {
+                    activeEvents.add(new StartedEntry(event, () -> entry.started = false, ticks));
+                }
             }
         }
         var it = activeEvents.iterator();
@@ -46,8 +52,8 @@ public class SimpleRandomEventRegistry implements RandomEventRegistry {
     }
 
     @Override
-    public void registerEvent(Function<World, RandomEvent> event, Predicate<World> worldTickPredicate) {
-        entries.add(new RegisteredEntry(event, worldTickPredicate));
+    public void registerEvent(Function<World, RandomEvent> event, RegistryKey<World> world, Predicate<World> worldTickPredicate) {
+        entries.add(new RegisteredEntry(world, event, worldTickPredicate));
     }
 
     @RequiredArgsConstructor
@@ -66,6 +72,7 @@ public class SimpleRandomEventRegistry implements RandomEventRegistry {
 
     @RequiredArgsConstructor
     private static final class RegisteredEntry {
+        private final RegistryKey<World> world;
         private final Function<World, RandomEvent> event;
         private final Predicate<World> worldTickPredicate;
         private boolean started;
