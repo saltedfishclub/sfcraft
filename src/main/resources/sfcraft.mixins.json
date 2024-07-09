@@ -8,6 +8,9 @@
   "client": [
   ],
   "server": [
+    "server.ServerHandshakeNetworkHandlerMixin",
+    "server.LegacyQueryHandlerMixin",
+    "server.PlayerEntityMixin",
     "server.ServerLoginNetworkHandlerMixin"
   ],
   "injectors": {

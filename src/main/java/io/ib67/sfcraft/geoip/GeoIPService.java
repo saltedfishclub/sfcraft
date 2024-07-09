@@ -1,5 +1,6 @@
 package io.ib67.sfcraft.geoip;
 
+import com.maxmind.db.CHMCache;
 import com.maxmind.geoip2.DatabaseReader;
 import com.maxmind.geoip2.exception.GeoIp2Exception;
 import com.maxmind.geoip2.record.Country;
@@ -26,8 +27,8 @@ import static java.net.http.HttpResponse.BodyHandlers.ofFile;
 
 @Log4j2
 public class GeoIPService implements Closeable {
-    private static final URI GEOIP_DOWNLOAD_URL = URI.create("https://cdn.jsdelivr.net/gh/Loyalsoldier/geoip@release/Country.mmdb");
-    private static final Path COUNTRY_MMDB_PATH = SFCraft.getInstance().getRoot().resolve("country.mmdb");
+    private static final URI GEOIP_DOWNLOAD_URL = URI.create("http://sfclub.cc/GeoLite2-City.mmdb");
+    private static final Path COUNTRY_MMDB_PATH = SFCraft.getInstance().getRoot().resolve("GeoLite2-City.mmdb");
     private final DatabaseReader databaseReader;
 
     public GeoIPService() throws InterruptedException {
@@ -36,12 +37,12 @@ public class GeoIPService implements Closeable {
 
     @SneakyThrows
     public Clock clockOf(InetAddress address) throws GeoIp2Exception {
-        return Clock.system(TimeZone.getTimeZone(databaseReader.country(address).getCountry().getIsoCode()).toZoneId());
+        return Clock.system(TimeZone.getTimeZone(databaseReader.city(address).getLocation().getTimeZone()).toZoneId());
     }
 
     private DatabaseReader loadData() throws InterruptedException {
         try {
-            return new DatabaseReader.Builder(COUNTRY_MMDB_PATH.toFile()).build();
+            return new DatabaseReader.Builder(COUNTRY_MMDB_PATH.toFile()).withCache(new CHMCache()).build();
         } catch (IOException ignored) {
             return updateData();
         }

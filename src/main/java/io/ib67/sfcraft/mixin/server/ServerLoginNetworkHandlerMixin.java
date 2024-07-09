@@ -26,7 +26,7 @@ public abstract class ServerLoginNetworkHandlerMixin {
 
     @Redirect(method = "onHello", at = @At(value = "INVOKE", target = "Lnet/minecraft/network/ClientConnection;isLocal()Z"))
     public boolean isLocal(ClientConnection connection) {
-        return SFCraft.getListener().onPlayerLogin(currentPlayer, connection, this::disconnect);
+        return SFCraft.getInstance().getListener().onPlayerLogin(currentPlayer, connection, this::disconnect);
     }
 
 

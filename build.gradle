@@ -2,6 +2,7 @@ plugins {
     id 'fabric-loom' version '1.6-SNAPSHOT'
     id 'maven-publish'
     id("io.freefair.lombok") version "8.6"
+    id("com.github.johnrengelman.shadow") version "8.1.1"
 }
 
 version = project.mod_version
@@ -28,7 +29,21 @@ dependencies {
 
     // Fabric API. This is technically optional, but you probably want it anyway.
     modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
-    implementation 'com.maxmind.geoip2:geoip2:4.2.0'
+    shadow('com.maxmind.geoip2:geoip2:4.2.0')
+}
+configurations.implementation.extendsFrom(configurations.shadow)
+
+shadowJar {
+    configurations = [ project.configurations.shadow ]
+    exclude("META-INF")
+}
+
+remapJar {
+    // wait until the shadowJar is done
+    dependsOn(shadowJar)
+    mustRunAfter(shadowJar)
+    // Set the input jar for the task. Here use the shadow Jar that include the .class of the transitive dependency
+    inputFile = file(shadowJar.archivePath)
 }
 
 processResources {
