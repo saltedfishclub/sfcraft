@@ -7,6 +7,8 @@ import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.builder.RequiredArgumentBuilder;
 import io.ib67.sfcraft.config.SFConfig;
 import io.ib67.sfcraft.geoip.GeoIPService;
+import io.ib67.sfcraft.registry.event.RandomEventRegistry;
+import io.ib67.sfcraft.registry.event.SFRandomEventRegistry;
 import lombok.Getter;
 import lombok.SneakyThrows;
 import net.fabricmc.api.ModInitializer;
@@ -38,6 +40,8 @@ public class SFCraft implements ModInitializer {
     private String motd;
     @Getter
     private String updateLog;
+    @Getter
+    private RandomEventRegistry randomEventRegistry;
 
     @Override
     @SneakyThrows
@@ -52,10 +56,15 @@ public class SFCraft implements ModInitializer {
         motd = loadMotd();
         updateLog = loadUpdateLog();
         geoIPService = new GeoIPService();
+        this.setupRandomEvents();
 
         ServerPlayConnectionEvents.JOIN.register(listener::onPlayerJoin);
         CommandRegistrationCallback.EVENT.register(this::registerCommands);
         ServerLifecycleEvents.SERVER_STARTED.register(this::onServerStarted);
+    }
+
+    private void setupRandomEvents() {
+        randomEventRegistry = new SFRandomEventRegistry();
     }
 
     private void onServerStarted(MinecraftServer minecraftServer) {
