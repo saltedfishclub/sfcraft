@@ -18,6 +18,7 @@ import net.minecraft.server.network.ServerPlayNetworkHandler;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.RawFilteredPair;
 import net.minecraft.text.Text;
+import net.minecraft.util.Colors;
 import net.minecraft.util.Unit;
 import net.minecraft.util.Uuids;
 import net.minecraft.util.math.BlockPos;
@@ -138,8 +139,10 @@ public class Listener {
         }
     }
 
-    public Either<PlayerEntity.SleepFailureReason, Unit> onPlayerSleep(BlockPos pos) {
+    public Either<PlayerEntity.SleepFailureReason, Unit> onPlayerSleep(PlayerEntity player, BlockPos pos) {
         if (LongNightEvent.isRunning()) {
+            player.sendMessage(Text.literal("你感到焦躁不安！").withColor(Colors.LIGHT_RED)
+                    .append(Text.literal(" (永夜事件期间无法睡觉）").withColor(Colors.LIGHT_GRAY)));
             return Either.left(PlayerEntity.SleepFailureReason.NOT_POSSIBLE_HERE);
         }
         return Either.right(Unit.INSTANCE);
