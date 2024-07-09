@@ -66,9 +66,7 @@ public class Listener {
             player.sendMessage(Text.of("欢迎加入 SaltedFish Club Server!"));
             player.sendMessage(Text.of("您受本服务器成员邀请并第一次加入本服务器，以下是一些注意事项："));
             player.sendMessage(Text.of(" 1. 服务器内有 base，但我们也鼓励您自立门户"));
-            player.sendMessage(Text.of(" 2. 服务器 QQ 群: (qq)"));
-            player.sendMessage(Text.of(" 3. 下午 " + SFCraft.getInstance().getConfig().maintainceStartHour + " ~ " + SFCraft.getInstance().getConfig().maintainceEndHour + " 为服务器维护时间(防沉迷)，在这段时间内无法加入服务器。"));
-            player.sendMessage(Text.of("该时间由您 IP 属地的时区决定。我们不希望您的下午仅仅荒废在服务器上。"));
+            player.sendMessage(Text.of(" 2. 下午 " + SFCraft.getInstance().getConfig().maintainceStartHour + " ~ " + SFCraft.getInstance().getConfig().maintainceEndHour + " 为服务器维护时间(防沉迷)，在这段时间内无法加入服务器。"));
             player.sendMessage(Text.of("如果您想邀请朋友加入服务器，可以向管理员提出申请。本服务器为正版服，但是离线玩家也可以加入（需备注）。"));
             player.sendMessage(Text.of("为了账号安全起见，请尽量使用正版账号登录后加入。此外，正/盗同名将会被视为两个不同的玩家存档，数据不互通。"));
             player.giveItemStack(generateHelperBook(core.getUpdateLog(), player));
