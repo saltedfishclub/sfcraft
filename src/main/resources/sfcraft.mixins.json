@@ -8,6 +8,7 @@
   "client": [
   ],
   "server": [
+    "server.AbstractFurnaceBlockMixin",
     "server.ServerHandshakeNetworkHandlerMixin",
     "server.LegacyQueryHandlerMixin",
     "server.PlayerEntityMixin",

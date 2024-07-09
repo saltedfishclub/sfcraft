@@ -34,7 +34,7 @@ dependencies {
 configurations.implementation.extendsFrom(configurations.shadow)
 
 shadowJar {
-    configurations = [ project.configurations.shadow ]
+    configurations = [project.configurations.shadow]
     exclude("META-INF")
 }
 
