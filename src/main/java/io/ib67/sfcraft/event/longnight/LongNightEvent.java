@@ -11,12 +11,14 @@ import net.minecraft.world.World;
 @RequiredArgsConstructor
 public class LongNightEvent extends RandomEvent {
     static boolean justExpirencedLongNight;
+    static boolean isAtLongNight;
     private final World world;
     private boolean doDaylightCycle;
     private boolean doTraderSpawning;
 
     @Override
     public int start() {
+        isAtLongNight = true;
         world.getServer().getPlayerManager().broadcast(Text.literal("月亮停滞在空中...").withColor(Colors.BLUE), false);
         this.doDaylightCycle = world.getGameRules().getBoolean(GameRules.DO_DAYLIGHT_CYCLE);
         this.doTraderSpawning = world.getGameRules().getBoolean(GameRules.DO_TRADER_SPAWNING);
@@ -31,13 +33,13 @@ public class LongNightEvent extends RandomEvent {
 
     @Override
     public void end() {
+        isAtLongNight = false;
         justExpirencedLongNight = true;
         world.getGameRules().get(GameRules.DO_DAYLIGHT_CYCLE).set(doDaylightCycle, world.getServer());
         world.getGameRules().get(GameRules.DO_TRADER_SPAWNING).set(doTraderSpawning, world.getServer());
     }
 
     public static boolean isRunning() {
-        return LongNightEvent.justExpirencedLongNight || SFCraft.getInstance().getRandomEventRegistry()
-                .getActiveEvents().stream().anyMatch(it -> it.getEvent().getClass() == LongNightEvent.class); // faster than instanceof
+        return isAtLongNight;
     }
 }
