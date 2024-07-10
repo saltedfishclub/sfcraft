@@ -8,6 +8,7 @@
   "client": [
   ],
   "server": [
+    "server.ServerPlayNetworkHandlerMixin",
     "server.bridge.ServerWorldBridge",
     "server.SleepManagerMixin",
     "server.ServerWorldMixin",

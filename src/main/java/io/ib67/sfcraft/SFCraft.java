@@ -7,6 +7,7 @@ import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.builder.RequiredArgumentBuilder;
 import io.ib67.sfcraft.config.SFConfig;
 import io.ib67.sfcraft.geoip.GeoIPService;
+import io.ib67.sfcraft.message.SFMessageDecorator;
 import io.ib67.sfcraft.registry.event.RandomEventRegistry;
 import io.ib67.sfcraft.event.SFRandomEventRegistry;
 import lombok.Getter;
@@ -16,6 +17,7 @@ import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.minecraft.command.CommandRegistryAccess;
+import net.minecraft.network.message.MessageDecorator;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
@@ -42,6 +44,8 @@ public class SFCraft implements ModInitializer {
     private String updateLog;
     @Getter
     private RandomEventRegistry randomEventRegistry;
+    @Getter
+    private MessageDecorator messageDecorator;
 
     @Override
     @SneakyThrows
@@ -56,15 +60,22 @@ public class SFCraft implements ModInitializer {
         motd = loadMotd();
         updateLog = loadUpdateLog();
         geoIPService = new GeoIPService();
-        this.setupRandomEvents();
+
+        randomEventRegistry = setupRandomEvents();
+        messageDecorator = setupMessageDecorator();
 
         ServerPlayConnectionEvents.JOIN.register(listener::onPlayerJoin);
         CommandRegistrationCallback.EVENT.register(this::registerCommands);
         ServerLifecycleEvents.SERVER_STARTED.register(this::onServerStarted);
+
     }
 
-    private void setupRandomEvents() {
-        randomEventRegistry = new SFRandomEventRegistry();
+    private MessageDecorator setupMessageDecorator() {
+        return new SFMessageDecorator();
+    }
+
+    private SFRandomEventRegistry setupRandomEvents() {
+        return new SFRandomEventRegistry();
     }
 
     private void onServerStarted(MinecraftServer minecraftServer) {
@@ -135,5 +146,4 @@ public class SFCraft implements ModInitializer {
                 .executes(handler::listOffline)
         );
     }
-
 }

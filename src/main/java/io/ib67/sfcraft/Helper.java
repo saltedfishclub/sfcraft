@@ -28,4 +28,8 @@ public class Helper {
         }
         return null;
     }
+
+    public static int fromRgb(int r, int g, int b) {
+        return ((r & 0x0ff) << 16) | ((g & 0x0ff) << 8) | (b & 0x0ff);
+    }
 }
