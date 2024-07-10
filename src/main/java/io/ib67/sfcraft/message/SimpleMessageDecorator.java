@@ -21,9 +21,21 @@ public class SimpleMessageDecorator implements MessageDecorator {
 
     @Override
     public Text decorate(@Nullable ServerPlayerEntity sender, Text message) {
+        var targets = new ArrayList<Text>();
+        targets.add(message);
         for (MessageDecorator decorator : decorators) {
-            message = decorator.decorate(sender, message);
+            var newRd = new ArrayList<Text>();
+            for (Text target : targets) {
+                var r = decorator.decorate(sender, target);
+                var copy = r.copy();
+                copy.getSiblings().clear();
+                newRd.add(copy);
+                newRd.addAll(r.getSiblings());
+            }
+            targets = newRd;
         }
-        return message;
+        var result = Text.empty();
+        targets.forEach(result::append);
+        return result;
     }
 }

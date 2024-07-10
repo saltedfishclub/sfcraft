@@ -1,6 +1,7 @@
 package io.ib67.sfcraft.message.feature;
 
 import io.ib67.sfcraft.Helper;
+import io.ib67.sfcraft.SFConsts;
 import net.minecraft.network.message.MessageDecorator;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -12,24 +13,12 @@ import org.jetbrains.annotations.Nullable;
 public class SendLocationFeature implements MessageDecorator {
     @Override
     public Text decorate(@Nullable ServerPlayerEntity sender, Text message) {
-        var text = message.getLiteralString().trim();
-        if (text == null) {
-            return message;
+        if (sender != null) {
+            if (!SFConsts.USE_BROADCAST_LOCATION.hasPermission(sender)) {
+                return message;
+            }
         }
-        if (text.trim().equals(".xyz")) {
-            return generateLocText(sender);
-        }
-        var result = Text.literal("");
-        var head = 0;
-        var i = text.indexOf(".xyz");
-        while (i != -1) {
-            result.append(text.substring(0, i).trim());
-            result.append(generateLocText(sender));
-            head = i + 4;
-            i = text.indexOf(".xyz", head + 1);
-        }
-        result.append(text.substring(head).trim());
-        return result;
+        return ReplaceHelper.replace(sender, message, ".xyz", SendLocationFeature::generateLocText);
     }
 
     private static Text generateLocText(ServerPlayerEntity sender) {
