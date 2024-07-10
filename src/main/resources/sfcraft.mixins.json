@@ -8,6 +8,9 @@
   "client": [
   ],
   "server": [
+    "server.bridge.ServerWorldBridge",
+    "server.SleepManagerMixin",
+    "server.ServerWorldMixin",
     "server.AbstractFurnaceBlockMixin",
     "server.ServerHandshakeNetworkHandlerMixin",
     "server.LegacyQueryHandlerMixin",

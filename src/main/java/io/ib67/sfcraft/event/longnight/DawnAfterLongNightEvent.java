@@ -17,7 +17,7 @@ public class DawnAfterLongNightEvent extends RandomEvent {
         if (LongNightEvent.justExpirencedLongNight) {
             LongNightEvent.justExpirencedLongNight = false;
             world.getServer().getPlayerManager().broadcast(
-                    Text.literal("珍惜太阳正是永夜的意义。")
+                    Text.literal("\"月亮\"离开了。")
                             .withColor(new Color(235, 91, 0).getRGB())
                             .append(Text.literal("（永夜事件结束）").withColor(Colors.LIGHT_GRAY))
                     , false);

@@ -22,7 +22,9 @@ public class PlayerEntityMixin {
 
     @Inject(method = "trySleep", at = @At("HEAD"), cancellable = true)
     public void onSleep(BlockPos pos, CallbackInfoReturnable<Either<PlayerEntity.SleepFailureReason, Unit>> cir) {
-        if (cir.isCancellable())
-            cir.setReturnValue(SFCraft.getInstance().getListener().onPlayerSleep((ServerPlayerEntity) (Object) this, pos));
+        var result = SFCraft.getInstance().getListener().onPlayerSleep((ServerPlayerEntity) (Object) this, pos);
+        if(result.left().isPresent()){
+            cir.setReturnValue(result);
+        }
     }
 }
