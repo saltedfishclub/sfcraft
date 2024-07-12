@@ -1,9 +1,7 @@
 package io.ib67.sfcraft.event.longnight;
 
-import io.ib67.sfcraft.SFCraft;
 import io.ib67.sfcraft.event.RandomEvent;
 import lombok.RequiredArgsConstructor;
-import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
 import net.minecraft.util.Colors;
 import net.minecraft.world.GameRules;

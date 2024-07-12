@@ -60,7 +60,7 @@ public final class Commands {
             player.teleport(wld, _pos.getX(), _pos.getY(), _pos.getZ(), 0, 0);
         } else {
             if (SFConsts.UNLIMITED_COMMAND_BACK.hasPermission(player)) {
-                player.teleport(wld, pos.pos().getX(), pos.pos().getY(), pos.pos().getZ(), 0, 0);
+                player.teleport(wld, _pos.getX(), _pos.getY(), _pos.getZ(), 0, 0);
                 return 0;
             }
             player.sendMessage(Text.of("周围没有玩家。").copy().withColor(Colors.RED));
