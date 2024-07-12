@@ -6,6 +6,6 @@ public interface Lifecycle {
     void onStateChange(State state);
 
     enum State {
-        ENABLED, DISABLED,ERROR;
+        ENABLED, DISABLED,ERROR
     }
 }

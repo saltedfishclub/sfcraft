@@ -10,6 +10,7 @@ import io.ib67.sfcraft.module.manager.ModuleManager;
 import io.ib67.sfcraft.module.manager.SimpleModuleManager;
 import lombok.AccessLevel;
 import lombok.Getter;
+import lombok.extern.log4j.Log4j2;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
@@ -20,6 +21,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+@Log4j2
 public abstract class GuiceModInitializer extends AbstractModule implements ModInitializer {
     public static AtomicBoolean initialized = new AtomicBoolean(false);
     @Getter(AccessLevel.PROTECTED)
@@ -33,15 +35,20 @@ public abstract class GuiceModInitializer extends AbstractModule implements ModI
         ServerPlayConnectionEvents.JOIN.register(handler::defend);
         ServerLifecycleEvents.SERVER_STARTED.register(this::onServerStarted);
         injector = onInit();
-    }
-
-    private void onServerStarted(MinecraftServer server) {
         var map = new HashMap<String, ServerModule>();
         for (Class<? extends ServerModule> registeredFeature : registeredFeatures) {
             var module = injector.getInstance(registeredFeature);
-            map.put(module.getName(), module);
+            try {
+                module.onInitialize();
+                map.put(module.getName(), module);
+            } catch (Exception e) {
+                log.error("Cannot initialize module " + module.getName(), e);
+            }
         }
         moduleManager = new SimpleModuleManager(ImmutableMap.copyOf(map));
+    }
+
+    private void onServerStarted(MinecraftServer server) {
         onReady(server);
         initialized.set(true);
     }
@@ -57,5 +64,6 @@ public abstract class GuiceModInitializer extends AbstractModule implements ModI
 
     protected void registerFeature(Class<? extends ServerModule> featureClass) {
         binder().bind(featureClass).in(Singleton.class);
+        registeredFeatures.add(featureClass);
     }
 }

@@ -18,7 +18,7 @@ public abstract class ServerModule extends AbstractModule implements Lifecycle {
             }
             this.state = state;
         } catch (Exception exception) {
-            log.error("An error occurred when " + getName() + " is changing its state into " + state);
+            log.error("An error occurred when " + getName() + " is changing its state into " + state,exception);
             this.state = State.ERROR;
         }
     }

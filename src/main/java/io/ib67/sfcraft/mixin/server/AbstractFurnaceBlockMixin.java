@@ -14,6 +14,7 @@ import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
+import org.spongepowered.asm.mixin.Unique;
 
 @Mixin(AbstractFurnaceBlock.class)
 public abstract class AbstractFurnaceBlockMixin extends BlockWithEntity {
@@ -32,6 +33,7 @@ public abstract class AbstractFurnaceBlockMixin extends BlockWithEntity {
         return world.isClient ? null : BlockWithEntity.validateTicker(givenType, expectedType, AbstractFurnaceBlockMixin::tickMultiple);
     }
 
+    @Unique
     private static void tickMultiple(World world, BlockPos pos, BlockState state, AbstractFurnaceBlockEntity blockEntity) {
         AbstractFurnaceBlockEntity.tick(world, pos, state, blockEntity);
         int i = world.getGameRules().getInt(GameRules.PLAYERS_SLEEPING_PERCENTAGE);

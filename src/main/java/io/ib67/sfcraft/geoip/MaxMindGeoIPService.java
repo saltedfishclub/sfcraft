@@ -27,13 +27,11 @@ import static java.net.http.HttpResponse.BodyHandlers.ofFile;
 @Singleton
 public class MaxMindGeoIPService implements Module, GeoIPService {
     private static final URI GEOIP_DOWNLOAD_URL = URI.create("http://sfclub.cc/GeoLite2-City.mmdb");
-    @Inject
-    @ConfigRoot
-    private Path configRoot;
     private Path mmdbPath;
     private final DatabaseReader databaseReader;
 
-    public MaxMindGeoIPService() throws InterruptedException {
+    @Inject
+    public MaxMindGeoIPService(@ConfigRoot Path configRoot) throws InterruptedException {
         mmdbPath = configRoot.resolve("GeoLite2-City.mmdb");
         databaseReader = loadData();
     }

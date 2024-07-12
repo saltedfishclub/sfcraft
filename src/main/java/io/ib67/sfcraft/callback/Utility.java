@@ -36,7 +36,7 @@ class Utility {
     }
 
     static <T, A> Optional<A> anyMatch(T[] ts, Function<T, A> function, Predicate<A> failurePredicate) {
-        A r = null;
+        A r;
         for (T handler : ts) {
             r = function.apply(handler);
             if (failurePredicate.test(r)) {

@@ -8,6 +8,7 @@
   "client": [
   ],
   "server": [
+    "server.MinecraftServerMixin",
     "server.ServerPlayNetworkHandlerMixin",
     "server.bridge.ServerWorldBridge",
     "server.SleepManagerMixin",

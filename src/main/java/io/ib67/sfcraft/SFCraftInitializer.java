@@ -3,6 +3,9 @@ package io.ib67.sfcraft;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.inject.*;
+import io.ib67.sfcraft.module.chat.ChatPingModule;
+import io.ib67.sfcraft.module.chat.ChatSendLocModule;
+import io.ib67.sfcraft.module.randomevt.LongNightModule;
 import io.ib67.sfcraft.registry.chat.SimpleMessageDecorator;
 import io.ib67.sfcraft.registry.event.SFRandomEventRegistry;
 import io.ib67.sfcraft.init.GuiceModInitializer;
@@ -43,6 +46,10 @@ public class SFCraftInitializer extends GuiceModInitializer {
         registerFeature(PlayLimitModule.class);
         registerFeature(BackModule.class);
         registerFeature(ManagementModule.class);
+
+        registerFeature(ChatPingModule.class);
+        registerFeature(ChatSendLocModule.class);
+        registerFeature(LongNightModule.class);
     }
 
     @Override
@@ -52,13 +59,14 @@ public class SFCraftInitializer extends GuiceModInitializer {
         SFCraft.server = minecraftServer;
         SFCraft.injector = getInjector();
         getModuleManager().switchGlobalState(Lifecycle.State.ENABLED);
+        log.info("Load completed! "+getModuleManager().getModules().size()+" modules were loaded.");
     }
 
     @Override
     protected Injector onInit() {
         return Guice.createInjector(
-                this,
-                new SFCraft()
+                new SFCraft(),
+                this
         );
     }
 }

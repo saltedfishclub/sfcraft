@@ -17,7 +17,7 @@ public abstract class SleepManagerMixin {
             cir.setReturnValue(false);
             return;
         }
-        var world = players.get(0).getServerWorld();
+        var world = players.getFirst().getServerWorld();
         if (world.getTimeOfDay() % 24000 >= 12544) {
             if(!world.isRaining()){
                 cir.setReturnValue(false);
