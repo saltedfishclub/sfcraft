@@ -1,6 +1,5 @@
-package io.ib67.sfcraft;
+package io.ib67.sfcraft.util;
 
-import lombok.Getter;
 import net.minecraft.entity.Entity;
 
 import java.util.Objects;

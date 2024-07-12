@@ -1,6 +1,4 @@
-package io.ib67.sfcraft.registry.event;
-
-import io.ib67.sfcraft.event.RandomEvent;
+package io.ib67.sfcraft.module.randomevt;
 
 public interface ActiveEvent {
     RandomEvent getEvent();

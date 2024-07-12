@@ -1,4 +1,4 @@
-package io.ib67.sfcraft.message;
+package io.ib67.sfcraft.registry.chat;
 
 import net.minecraft.network.message.MessageDecorator;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -15,7 +15,7 @@ public class SimpleMessageDecorator implements MessageDecorator {
 
     }
 
-    protected void registerDecorator(MessageDecorator decorator) {
+    public void registerDecorator(MessageDecorator decorator) {
         decorators.add(decorator);
     }
 

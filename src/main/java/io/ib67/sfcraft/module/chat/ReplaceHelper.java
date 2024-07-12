@@ -1,4 +1,4 @@
-package io.ib67.sfcraft.message.feature;
+package io.ib67.sfcraft.module.chat;
 
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;

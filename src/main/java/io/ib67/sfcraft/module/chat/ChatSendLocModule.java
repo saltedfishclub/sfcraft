@@ -1,7 +1,10 @@
-package io.ib67.sfcraft.message.feature;
+package io.ib67.sfcraft.module.chat;
 
-import io.ib67.sfcraft.Helper;
-import io.ib67.sfcraft.SFConsts;
+import com.google.inject.Inject;
+import io.ib67.sfcraft.ServerModule;
+import io.ib67.sfcraft.registry.chat.SimpleMessageDecorator;
+import io.ib67.sfcraft.util.Helper;
+import io.ib67.sfcraft.util.SFConsts;
 import net.minecraft.network.message.MessageDecorator;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -10,15 +13,24 @@ import net.minecraft.text.Text;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 
-public class SendLocationFeature implements MessageDecorator {
+public class ChatSendLocModule extends ServerModule implements MessageDecorator {
+    @Inject
+    SimpleMessageDecorator messageDecorator;
+
+    @Override
+    public void onInitialize() {
+        messageDecorator.registerDecorator(this);
+    }
+
     @Override
     public Text decorate(@Nullable ServerPlayerEntity sender, Text message) {
+        if (!isEnabled()) return message;
         if (sender != null) {
             if (!SFConsts.USE_BROADCAST_LOCATION.hasPermission(sender)) {
                 return message;
             }
         }
-        return ReplaceHelper.replace(sender, message, ".xyz", SendLocationFeature::generateLocText);
+        return ReplaceHelper.replace(sender, message, ".xyz", ChatSendLocModule::generateLocText);
     }
 
     private static Text generateLocText(ServerPlayerEntity sender) {

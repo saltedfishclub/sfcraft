@@ -1,8 +1,8 @@
-package io.ib67.sfcraft;
+package io.ib67.sfcraft.util;
 
+import io.ib67.sfcraft.util.Permission;
 import lombok.experimental.UtilityClass;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.server.network.ServerPlayerEntity;
 
 @UtilityClass
 public class SFConsts {

@@ -1,7 +1,4 @@
-package io.ib67.sfcraft.event;
-
-import net.minecraft.registry.RegistryKey;
-import net.minecraft.world.World;
+package io.ib67.sfcraft.module.randomevt;
 
 public abstract class RandomEvent {
     /**

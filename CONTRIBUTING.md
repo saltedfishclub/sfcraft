@@ -29,7 +29,7 @@ SFCraft 是一个 Fabric Mod，他的所有内容都是放在一起的，下列�
    在此类定义的字段将会自动作为配置文件的一部分生成。你可以通过调用 `SFCraft.getInstance().getConfig()` 得到配置对象。
  - `io.ib67.sfcraft.Listener` 是事件监听器。大多数回调/事件的处理代码放在这里。
  - `io.ib67.sfcraft.Commands` 是处理命令逻辑的地方，而命令在 `SFCraft#registerCommands` 方法注册。
- - `io.ib67.sfcraft.SFConsts` 存放一些频繁使用的常量，例如权限。
+ - `io.ib67.sfcraft.util.SFConsts` 存放一些频繁使用的常量，例如权限。
  - `io.ib67.sfcraft.mixin.server` 下是一些 `Mixin` 类，接下来会讲。
 
 最后，`io.ib67.sfcraft.SFCraft` 是整个 Mod 的入口，也是核心部分。你可以从 `SFCraft.getInstance()` 返回的对象得到 Mod 里的大多数组件。
@@ -152,10 +152,10 @@ public class DawnAfterLongNightEvent extends RandomEvent {
 
 ## 聊天修改
 
-类似 `.xyz`, `@xx` 的功能都位于 `message.feature` 包下，且在 `SFMessageDecorator` 的构造方法中被注册。  
+类似 `.xyz`, `@xx` 的功能都位于 `message.feature` 包下，且在 `SimpleMessageDecorator` 的构造方法中被注册。  
 它们实际上是 Minecraft 提供的 `MessageDecorator` 接口的实现。
 
-通常，一条消息进入服务器后会轮流经过许多 decorator 的处理。因此为了避免 siblings 嵌套问题，`SimpleMessageDecorator` (也就是 `SFMessageDecorator` 的超类) 会自动将 decorator 返回的 Text 展开——
+通常，一条消息进入服务器后会轮流经过许多 decorator 的处理。因此为了避免 siblings 嵌套问题，`SimpleMessageDecorator` (也就是 `SimpleMessageDecorator` 的超类) 会自动将 decorator 返回的 Text 展开——
 具体的说，将返回的结果 copy,去除 siblings，然后将 siblings 逐个加入一个缓存队列中，下一个 Decorator 将会逐个处理队列中的 `Text`，且每次处理完后都会清理掉原本的缓存队列。因此，在没有特殊需求的情况下，请总是返回你 Decorator 不关注的信息。
 
 一个简单的例子：

@@ -1,6 +1,7 @@
 package io.ib67.sfcraft.mixin.server;
 
 import io.ib67.sfcraft.SFCraft;
+import io.ib67.sfcraft.callback.SFCallbacks;
 import net.minecraft.network.ClientConnection;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.ServerMetadata;
@@ -19,6 +20,6 @@ public abstract class ServerHandshakeNetworkHandlerMixin {
 
     @Redirect(method = "onHandshake", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/MinecraftServer;getServerMetadata()Lnet/minecraft/server/ServerMetadata;"))
     public ServerMetadata getMetadata(MinecraftServer instance) {
-        return SFCraft.getInstance().getListener().onMotdPing(instance,connection);
+        return SFCallbacks.MOTD.invoker().onMotd(instance,connection);
     }
 }

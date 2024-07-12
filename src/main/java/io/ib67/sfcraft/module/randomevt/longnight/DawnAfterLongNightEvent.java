@@ -1,6 +1,6 @@
-package io.ib67.sfcraft.event.longnight;
+package io.ib67.sfcraft.module.randomevt.longnight;
 
-import io.ib67.sfcraft.event.RandomEvent;
+import io.ib67.sfcraft.module.randomevt.RandomEvent;
 import lombok.RequiredArgsConstructor;
 import net.minecraft.text.Text;
 import net.minecraft.util.Colors;

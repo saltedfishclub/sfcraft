@@ -1,6 +1,6 @@
 package io.ib67.sfcraft.mixin.server;
 
-import io.ib67.sfcraft.Helper;
+import io.ib67.sfcraft.util.Helper;
 import io.netty.channel.ChannelHandlerContext;
 import net.minecraft.network.QueryableServer;
 import net.minecraft.network.handler.LegacyQueryHandler;

@@ -1,11 +1,11 @@
 package io.ib67.sfcraft.registry.event;
 
-import io.ib67.sfcraft.event.RandomEvent;
+import io.ib67.sfcraft.module.randomevt.ActiveEvent;
+import io.ib67.sfcraft.module.randomevt.RandomEvent;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.minecraft.registry.RegistryKey;
-import net.minecraft.registry.RegistryKeys;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.world.World;
 

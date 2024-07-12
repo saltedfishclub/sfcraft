@@ -5,6 +5,7 @@ import java.time.ZonedDateTime;
 import java.util.List;
 
 public class SFConfig {
+    public boolean enableOfflineExempt = true;
     public int maintainceStartHour = 13;
     public int maintainceEndHour = 17;
     public boolean disableTemporarily;

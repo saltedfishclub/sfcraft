@@ -1,10 +1,12 @@
-package io.ib67.sfcraft.message.feature;
+package io.ib67.sfcraft.module.chat;
 
-import io.ib67.sfcraft.SFConsts;
-import io.ib67.sfcraft.SFCraft;
+import com.google.inject.Inject;
+import io.ib67.sfcraft.ServerModule;
+import io.ib67.sfcraft.registry.chat.SimpleMessageDecorator;
+import io.ib67.sfcraft.inject.MinecraftServerSupplier;
+import io.ib67.sfcraft.util.SFConsts;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.network.message.MessageDecorator;
-import net.minecraft.registry.RegistryKeys;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvent;
@@ -13,18 +15,29 @@ import net.minecraft.text.Text;
 import net.minecraft.util.Colors;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.regex.MatchResult;
 import java.util.regex.Pattern;
 
-public class PingPlayerFeature implements MessageDecorator {
+public class ChatPingModule extends ServerModule implements MessageDecorator {
     private static final Pattern PING = Pattern.compile("(@[\\w]+)?");
+    @Inject
+    MinecraftServerSupplier serverSupplier;
+    @Inject
+    SimpleMessageDecorator messageDecorator;
+
+    @Override
+    public void onInitialize() {
+        messageDecorator.registerDecorator(this);
+    }
 
     @Override
     public Text decorate(@Nullable ServerPlayerEntity sender, Text message) {
+        if (!isEnabled()) {
+            return message;
+        }
         if (sender != null) {
             if (!SFConsts.USE_AT.hasPermission(sender)) {
                 return message;
@@ -35,7 +48,7 @@ public class PingPlayerFeature implements MessageDecorator {
         var match = PING.matcher(text);
         if (!match.find()) return message;
         var foundPlayers = new HashSet<PlayerEntity>();
-        var names = List.of(SFCraft.getInstance().getServer().getPlayerNames());
+        var names = List.of(serverSupplier.get().getPlayerNames());
         var r = Text.literal(match.replaceAll(it -> this.matchPlayer(it, names, foundPlayers)));
         for (PlayerEntity foundPlayer : foundPlayers) {
             if (sender != null) {
@@ -58,7 +71,7 @@ public class PingPlayerFeature implements MessageDecorator {
             final var d = r.substring(1);
             return playerNames.stream()
                     .filter(it -> it.toLowerCase().startsWith(d))
-                    .peek(it -> foundPlayers.add(SFCraft.getInstance().getServer().getPlayerManager().getPlayer(it)))
+                    .peek(it -> foundPlayers.add(serverSupplier.get().getPlayerManager().getPlayer(it)))
                     .findFirst()
                     .orElse(r);
         }

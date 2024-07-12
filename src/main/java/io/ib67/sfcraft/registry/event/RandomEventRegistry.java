@@ -1,6 +1,7 @@
 package io.ib67.sfcraft.registry.event;
 
-import io.ib67.sfcraft.event.RandomEvent;
+import io.ib67.sfcraft.module.randomevt.ActiveEvent;
+import io.ib67.sfcraft.module.randomevt.RandomEvent;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.world.World;
 

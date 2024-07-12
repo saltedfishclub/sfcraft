@@ -13,7 +13,7 @@
   "environment": "server",
   "entrypoints": {
     "main": [
-      "io.ib67.sfcraft.SFCraft"
+      "io.ib67.sfcraft.SFCraftInitializer"
     ]
   },
   "mixins": [
