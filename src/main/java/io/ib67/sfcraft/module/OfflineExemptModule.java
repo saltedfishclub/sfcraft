@@ -10,6 +10,7 @@ import io.ib67.sfcraft.util.SFConsts;
 import io.ib67.sfcraft.ServerModule;
 import io.ib67.sfcraft.callback.SFCallbacks;
 import io.ib67.sfcraft.config.SFConfig;
+import lombok.Setter;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.minecraft.command.CommandRegistryAccess;
 import net.minecraft.network.ClientConnection;
@@ -29,6 +30,8 @@ public class OfflineExemptModule extends ServerModule {
     @Inject
     private SFConfig config;
     private boolean state;
+    @Setter
+    private boolean temporallyState;
 
     @Override
     public void onInitialize() {
@@ -63,6 +66,8 @@ public class OfflineExemptModule extends ServerModule {
         }
         var profile = Uuids.getOfflinePlayerProfile(player);
         wl.add(new WhitelistEntry(profile));
+        var uc = source.getServer().getUserCache();
+        if (uc != null) uc.add(profile);
         source.sendMessage(Text.of("[" + profile.getName() + "/" + profile.getId() + "]" + " is added!"));
         return 0;
     }
@@ -85,10 +90,12 @@ public class OfflineExemptModule extends ServerModule {
 
     @Override
     public void onEnable() {
-        state = true;
+        state = temporallyState || config.enableOfflineExempt;
     }
 
-    private boolean onPreLogin(String s, ClientConnection connection, Consumer<Text> textConsumer) {
-        return state;
+    private void onPreLogin(String s, ClientConnection connection, Consumer<Text> textConsumer, boolean offline) {
+        if (!state && offline) {
+            textConsumer.accept(Text.of("盗版赦免现已关闭"));
+        }
     }
 }

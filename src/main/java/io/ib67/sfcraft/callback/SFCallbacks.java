@@ -19,7 +19,7 @@ import static io.ib67.sfcraft.callback.Utility.*;
 public interface SFCallbacks {
 
     Event<PlayerPreLoginCallback> PRE_LOGIN = EventFactory.createArrayBacked(PlayerPreLoginCallback.class,
-            (listeners) -> (s, c, d) -> anyMatch(listeners, i -> i.onPlayerPreLogin(s, c, d)));
+            (listeners) -> (s, c, d, o) -> forEach(listeners, i -> i.onPlayerPreLogin(s, c, d, o)));
     Event<PlayerSleepCallback> PLAYER_SLEEP = EventFactory.createArrayBacked(PlayerSleepCallback.class,
             l -> (pl, pos) -> anyMatch(l, i -> i.onPlayerSleep(pl, pos), a -> a.left().isPresent())
                     .orElse(getEitherUnitR()));
@@ -38,10 +38,7 @@ public interface SFCallbacks {
     }
 
     interface PlayerPreLoginCallback {
-        /**
-         * @return if let in
-         */
-        boolean onPlayerPreLogin(String currentPlayer, ClientConnection connection, Consumer<Text> disconnect);
+        void onPlayerPreLogin(String currentPlayer, ClientConnection connection, Consumer<Text> disconnect, boolean offline);
     }
 
     interface PlayerSleepCallback {

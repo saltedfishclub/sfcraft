@@ -79,7 +79,7 @@ public class PlayLimitModule extends ServerModule {
 
     }
 
-    private boolean onPreLogin(String currentPlayer, ClientConnection connection, Consumer<Text> disconnect) {
+    private void onPreLogin(String currentPlayer, ClientConnection connection, Consumer<Text> disconnect, boolean offline) {
         if (isEnabled() && connection.getAddress() instanceof InetSocketAddress address) {
             try {
                 var clock = geoIPService.clockOf(address.getAddress());
@@ -91,6 +91,5 @@ public class PlayLimitModule extends ServerModule {
                 System.err.println("Failed to locate " + address.getAddress());
             }
         }
-        return true;
     }
 }

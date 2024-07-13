@@ -44,19 +44,14 @@ public abstract class ServerLoginNetworkHandlerMixin {
         }
         var offlineProfile = Uuids.getOfflinePlayerProfile(currentPlayer);
         boolean _r;
-        if (server.getUserCache() == null) {
-            // falling back to whitelist
+        if (server.getUserCache() != null) {
+            _r = server.getUserCache().getByUuid(offlineProfile.getId()).isPresent();
+        }else{
             var wl = server.getPlayerManager().getWhitelist();
             _r = wl.isAllowed(offlineProfile);
-        } else {
-            var profile = server.getUserCache().getByUuid(offlineProfile.getId());
-            _r = profile.isPresent();
         }
-        var result = SFCallbacks.PRE_LOGIN.invoker().onPlayerPreLogin(currentPlayer, connection, this::disconnect);
-        if (result) {
-            return _r; // (is offline -> !true -> startVerify)
-        }
-        return !_r;
+        SFCallbacks.PRE_LOGIN.invoker().onPlayerPreLogin(currentPlayer, connection, this::disconnect, _r);
+        return _r;
     }
 
 
