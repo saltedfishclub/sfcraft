@@ -42,10 +42,10 @@ public class BackModule extends ServerModule {
         var nearby = wld.getClosestPlayer(_pos.getX(), _pos.getY(), _pos.getZ(), 20, true);
         if (nearby != null) {
             _pos = nearby.getBlockPos();
-            player.teleport(wld, _pos.getX(), _pos.getY(), _pos.getZ(), 0, 0);
+            Helper.teleportSafely(player, wld, _pos.getX(), _pos.getY(), _pos.getZ());
         } else {
             if (SFConsts.UNLIMITED_COMMAND_BACK.hasPermission(player)) {
-                player.teleport(wld, _pos.getX(), _pos.getY(), _pos.getZ(), 0, 0);
+                Helper.teleportSafely(player, wld, _pos.getX(), _pos.getY(), _pos.getZ());
                 return 0;
             }
             player.sendMessage(Text.of("周围没有玩家。").copy().withColor(Colors.RED));
