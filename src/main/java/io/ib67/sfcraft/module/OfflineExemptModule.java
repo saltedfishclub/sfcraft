@@ -95,7 +95,7 @@ public class OfflineExemptModule extends ServerModule {
 
     private void onPreLogin(String s, ClientConnection connection, Consumer<Text> textConsumer, boolean offline) {
         if (!state && offline) {
-            textConsumer.accept(Text.of("盗版赦免现已关闭"));
+            textConsumer.accept(Text.of("§c盗版赦免现已关闭"));
         }
     }
 }

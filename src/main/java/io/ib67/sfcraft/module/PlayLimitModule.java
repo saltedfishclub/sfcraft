@@ -18,6 +18,7 @@ import net.minecraft.server.ServerMetadata;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.text.Text;
+import net.minecraft.util.Colors;
 
 import java.net.InetSocketAddress;
 import java.util.HashSet;
@@ -31,6 +32,7 @@ public class PlayLimitModule extends ServerModule {
     GeoIPService geoIPService;
     @Inject
     SFConfig config;
+
 
     @Override
     public void onInitialize() {
@@ -84,7 +86,7 @@ public class PlayLimitModule extends ServerModule {
             try {
                 var clock = geoIPService.clockOf(address.getAddress());
                 if (config.isClosed(clock) && !"iceBear67".equals(currentPlayer)) {
-                    final var msg = "服务器尚未开放\n服务器维护时间： %1$d~%2$d\n你的下午不值得浪费在游戏上，晚点再来吧！";
+                    final var msg = "§c§l服务器尚未开放\n\n§f服务器维护时间： §l%1$d~%2$d\n§c你的下午不值得浪费在游戏上，晚点再来吧！";
                     disconnect.accept(Text.of(String.format(msg, config.maintainceStartHour, config.maintainceEndHour)));
                 }
             } catch (Exception ignored) {

@@ -59,7 +59,7 @@ public class SFCraftInitializer extends GuiceModInitializer {
         SFCraft.server = minecraftServer;
         SFCraft.injector = getInjector();
         getModuleManager().switchGlobalState(Lifecycle.State.ENABLED);
-        log.info("Load completed! "+getModuleManager().getModules().size()+" modules were loaded.");
+        log.info("Load completed! " + getModuleManager().getModules().size() + " modules were loaded.");
     }
 
     @Override

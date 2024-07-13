@@ -58,12 +58,13 @@ public class WelcomeModule extends ServerModule {
         var player = serverPlayNetworkHandler.getPlayer();
         if (!player.getCommandTags().contains("has_joined_before") && isEnabled()) {
             player.addCommandTag("has_joined_before");
-            player.sendMessage(Text.of("欢迎加入 SaltedFish Club Server!"));
-            player.sendMessage(Text.of("您受本服务器成员邀请并第一次加入本服务器，以下是一些注意事项："));
-            player.sendMessage(Text.of(" 1. 服务器内有 base，但我们也鼓励您自立门户"));
-            player.sendMessage(Text.of(" 2. 下午 " + config.maintainceStartHour + " ~ " + config.maintainceEndHour + " 为服务器维护时间(防沉迷)，在这段时间内无法加入服务器。"));
-            player.sendMessage(Text.of("如果您想邀请朋友加入服务器，可以向管理员提出申请。本服务器为正版服，但是离线玩家也可以加入（需备注）。"));
-            player.sendMessage(Text.of("为了账号安全起见，请尽量使用正版账号登录后加入。此外，正/盗同名将会被视为两个不同的玩家存档，数据不互通。"));
+            player.sendMessage(Text.of("§a§l欢迎加入 SaltedFish Club Server!"));
+            player.sendMessage(Text.of("§a您受本服务器成员邀请加入本服务器，以下是一些注意事项："));
+            player.sendMessage(Text.of(" - 服务器内已有的设施均为其他玩家的财产，(如可以)使用时请注意礼貌"));
+            player.sendMessage(Text.of(" - 工作日下午 " + config.maintainceStartHour + " 至 " + config.maintainceEndHour + "点 为服务器维护时间 (防沉迷)"));
+            player.sendMessage(Text.of("§c - 邀请新成员即等同为其作担保"));
+            player.sendMessage(Text.of("§7如果您想邀请朋友加入服务器, 可以向管理员提出申请§7 (需备注正/盗版/小号)"));
+            player.sendMessage(Text.of("§7此外, 本服务器无密码登录，盗版账号安全责任自负"));
             player.giveItemStack(generateHelperBook(updateLog, player));
             unlockRecipe(player);
         }
@@ -81,11 +82,12 @@ public class WelcomeModule extends ServerModule {
         var book = new ItemStack(Items.WRITTEN_BOOK);
         var updLog = new ArrayList<String>();
         updLog.add("本书修订截至至您加入服务器的那一刻 (" + FMT.format(ZonedDateTime.now(clock)) + ")\n" + "更多内容请查阅群公告");
-        var pages = updateLog.length() / 100;
+        final var pageLen = 100;
+        var pages = updateLog.length() / pageLen;
         for (int i = 0; i < pages; i++) {
-            updLog.add(updateLog.substring(i * 100, (i + 1) * 100));
+            updLog.add(updateLog.substring(i * pageLen, (i + 1) * pageLen));
         }
-        updLog.add(updateLog.substring(pages * 100));
+        updLog.add(updateLog.substring(pages * pageLen));
         var component = new WrittenBookContentComponent(
                 RawFilteredPair.of("特性列表"),
                 "icybear & You",
