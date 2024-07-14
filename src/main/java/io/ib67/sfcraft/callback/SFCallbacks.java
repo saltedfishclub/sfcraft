@@ -33,6 +33,12 @@ public interface SFCallbacks {
             l -> (p, a) -> forEach(l, i -> i.onSwitchIdle(p, a)));
     Event<PlayerSneakingCallback> PLAYER_SNEAKING = EventFactory.createArrayBacked(PlayerSneakingCallback.class,
             l -> (p, a) -> forEach(l, i -> i.onSneaking(p, a)));
+    Event<PlayerFlyingCallback> PLAYER_FLYING = EventFactory.createArrayBacked(PlayerFlyingCallback.class,
+            l -> (p, t, f) -> forEach(l, i -> i.onFlyingTick(p, t, f)));
+
+    interface PlayerFlyingCallback {
+        void onFlyingTick(PlayerEntity player, long flyingTick, boolean flying);
+    }
 
     interface PlayerSneakingCallback {
         void onSneaking(PlayerEntity player, boolean sneak);

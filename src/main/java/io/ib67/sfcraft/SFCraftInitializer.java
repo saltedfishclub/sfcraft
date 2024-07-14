@@ -40,6 +40,7 @@ public class SFCraftInitializer extends GuiceModInitializer {
         registerFeature(MotdModule.class);
         registerFeature(WelcomeModule.class);
         registerFeature(OfflineExemptModule.class);
+        registerFeature(ElytraSpeedMeterModule.class);
         registerFeature(PlayLimitModule.class);
         registerFeature(BackModule.class);
         registerFeature(ManagementModule.class);

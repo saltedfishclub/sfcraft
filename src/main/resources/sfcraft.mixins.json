@@ -11,6 +11,7 @@
     "server.fixes.EndermanEntityMixin$ChaseGoalMixin",
     "server.bridge.ServerWorldBridge",
     "server.bridge.ServerPlayerBridge",
+    "server.bridge.EntityBridge",
     "server.MinecraftServerMixin",
     "server.ServerPlayNetworkHandlerMixin",
     "server.SleepManagerMixin",
@@ -19,6 +20,7 @@
     "server.AbstractFurnaceBlockMixin",
     "server.ServerHandshakeNetworkHandlerMixin",
     "server.LegacyQueryHandlerMixin",
+    "server.ServerPlayerEntityMixin",
     "server.PlayerEntityMixin",
     "server.ServerLoginNetworkHandlerMixin"
   ],
