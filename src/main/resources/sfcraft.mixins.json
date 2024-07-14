@@ -14,6 +14,7 @@
     "server.ServerPlayNetworkHandlerMixin",
     "server.SleepManagerMixin",
     "server.ServerWorldMixin",
+    "server.EntityMixin",
     "server.AbstractFurnaceBlockMixin",
     "server.ServerHandshakeNetworkHandlerMixin",
     "server.LegacyQueryHandlerMixin",

@@ -5,6 +5,10 @@ import io.ib67.sfcraft.SFCraft;
 import io.ib67.sfcraft.config.SFConfig;
 import io.ib67.sfcraft.geoip.GeoIPService;
 import lombok.SneakyThrows;
+import net.minecraft.block.Block;
+import net.minecraft.block.CropBlock;
+import net.minecraft.block.Fertilizable;
+import net.minecraft.block.SaplingBlock;
 import net.minecraft.fluid.EmptyFluid;
 import net.minecraft.fluid.LavaFluid;
 import net.minecraft.fluid.WaterFluid;
@@ -92,5 +96,10 @@ public class Helper {
 
     public static int fromRgb(int r, int g, int b) {
         return ((r & 0x0ff) << 16) | ((g & 0x0ff) << 8) | (b & 0x0ff);
+    }
+
+    public static boolean canFertilize(Block block) {
+        return block instanceof SaplingBlock
+                || block instanceof CropBlock;
     }
 }

@@ -44,6 +44,7 @@ public class SFCraftInitializer extends GuiceModInitializer {
         registerFeature(BackModule.class);
         registerFeature(ManagementModule.class);
         registerFeature(AFKModule.class);
+        registerFeature(FartFertilizerModule.class);
         registerFeature(ChatPingModule.class);
         registerFeature(ChatSendLocModule.class);
         registerFeature(LongNightModule.class);

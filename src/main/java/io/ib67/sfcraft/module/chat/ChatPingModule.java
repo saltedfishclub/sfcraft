@@ -55,7 +55,7 @@ public class ChatPingModule extends ServerModule implements MessageDecorator {
                 foundPlayer.sendMessage(Text.literal(sender.getName().getLiteralString() + " 正在叫你。").withColor(Colors.LIGHT_GRAY));
             }
             foundPlayer.playSoundToPlayer(
-                    SoundEvent.of(SoundEvents.ENTITY_ITEM_PICKUP.getId()),
+                    SoundEvents.ENTITY_ITEM_PICKUP,
                     SoundCategory.PLAYERS,
                     0.8f,
                     0.5f

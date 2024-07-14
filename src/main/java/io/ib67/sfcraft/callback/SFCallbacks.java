@@ -31,6 +31,12 @@ public interface SFCallbacks {
             l -> (s, c) -> first(l, t -> t.onMotd(s, c)));
     Event<PlayerIdlingCallback> PLAYER_IDLE = EventFactory.createArrayBacked(PlayerIdlingCallback.class,
             l -> (p, a) -> forEach(l, i -> i.onSwitchIdle(p, a)));
+    Event<PlayerSneakingCallback> PLAYER_SNEAKING = EventFactory.createArrayBacked(PlayerSneakingCallback.class,
+            l -> (p, a) -> forEach(l, i -> i.onSneaking(p, a)));
+
+    interface PlayerSneakingCallback {
+        void onSneaking(PlayerEntity player, boolean sneak);
+    }
 
     interface PlayerIdlingCallback {
         void onSwitchIdle(ServerPlayerEntity player, boolean afk);
