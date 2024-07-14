@@ -14,6 +14,7 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.Colors;
 import net.minecraft.util.math.BlockPos;
+import org.spongepowered.asm.mixin.Unique;
 
 import java.awt.*;
 import java.text.DecimalFormat;
@@ -21,8 +22,10 @@ import java.text.DecimalFormat;
 public class ElytraSpeedMeterModule extends ServerModule {
     private static final int BAR_LEN = 20;
     private static final int MAX_NORMAL_SPEED = 6;
+    private static final int THRESHLD_OF_ELYTRA_FLY = 8;
     private static final Color BAR_LEFT = new Color(85, 85, 255);
     private static final Color BAR_RIGHT = new Color(255, 87, 51);
+    private static final Text KEEP_FLYING = Text.literal("... 保持飞行以启动仪表盘 ...").withColor(Colors.LIGHT_GRAY);
     private static final Text[] ELYTRA_DURABILITY = new Text[100];
     private static final Text[] PROGRESS_BARS = new Text[BAR_LEN];
     private static final Text[] Y_METER = new Text[256];
@@ -57,6 +60,12 @@ public class ElytraSpeedMeterModule extends ServerModule {
     }
 
     private void onFlying(PlayerEntity player, long f, boolean b) {
+        if (f < THRESHLD_OF_ELYTRA_FLY * 20) {
+            if (f > THRESHLD_OF_ELYTRA_FLY * 15) {
+                player.sendMessage(KEEP_FLYING,true);
+            }
+            return;
+        }
         if (b) {
             var text = Text.literal("");
             text.append(generateYMeter(f, player));
@@ -65,6 +74,11 @@ public class ElytraSpeedMeterModule extends ServerModule {
             player.sendMessage(text, true);
         } else {
             clean((ServerPlayerEntity) player);
+            if (f > THRESHLD_OF_ELYTRA_FLY * 20) {
+                player.sendMessage(Text.literal("!! LANDED !!").withColor(Colors.GREEN), true);
+            }else{
+                player.sendMessage(Text.empty(),true);
+            }
         }
     }
 

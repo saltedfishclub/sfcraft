@@ -11,7 +11,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(PlayerEntity.class)
 public abstract class PlayerEntityMixin {
-    private static final int THRESHLD_OF_ELYTRA_FLY = 2;
     @Unique
     private long flyTime;
 
@@ -19,10 +18,7 @@ public abstract class PlayerEntityMixin {
     public void tickMovement(CallbackInfo ci) {
         var eb = ((EntityBridge) $this());
         if (eb.sfcraft$getFlag(EntityBridge.sfcraft$getFlyingFlagIndex())) {
-            flyTime++;
-            if (flyTime > 20 * THRESHLD_OF_ELYTRA_FLY) { // todo config
-                SFCallbacks.PLAYER_FLYING.invoker().onFlyingTick($this(), flyTime - 20*THRESHLD_OF_ELYTRA_FLY, true);
-            }
+            SFCallbacks.PLAYER_FLYING.invoker().onFlyingTick($this(), flyTime++, true);
         } else {
             if (flyTime != 0) {
                 SFCallbacks.PLAYER_FLYING.invoker().onFlyingTick($this(), flyTime, false);
