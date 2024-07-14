@@ -8,6 +8,7 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.network.ClientConnection;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.ServerMetadata;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.Unit;
 import net.minecraft.util.math.BlockPos;
@@ -28,6 +29,12 @@ public interface SFCallbacks {
             l -> (pl, damageSource) -> forEach(l, i -> i.onPlayerDeath(pl, damageSource)));
     Event<ServerMotdCallback> MOTD = EventFactory.createArrayBacked(ServerMotdCallback.class,
             l -> (s, c) -> first(l, t -> t.onMotd(s, c)));
+    Event<PlayerIdlingCallback> PLAYER_IDLE = EventFactory.createArrayBacked(PlayerIdlingCallback.class,
+            l -> (p, a) -> forEach(l, i -> i.onSwitchIdle(p, a)));
+
+    interface PlayerIdlingCallback {
+        void onSwitchIdle(ServerPlayerEntity player, boolean afk);
+    }
 
     interface ServerMotdCallback {
         ServerMetadata onMotd(MinecraftServer server, ClientConnection connection);

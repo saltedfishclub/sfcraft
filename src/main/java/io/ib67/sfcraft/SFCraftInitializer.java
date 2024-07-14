@@ -3,6 +3,7 @@ package io.ib67.sfcraft;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.inject.*;
+import io.ib67.sfcraft.module.*;
 import io.ib67.sfcraft.module.chat.ChatPingModule;
 import io.ib67.sfcraft.module.chat.ChatSendLocModule;
 import io.ib67.sfcraft.module.randomevt.LongNightModule;
@@ -12,10 +13,6 @@ import io.ib67.sfcraft.init.GuiceModInitializer;
 import io.ib67.sfcraft.geoip.GeoIPService;
 import io.ib67.sfcraft.geoip.MaxMindGeoIPService;
 import io.ib67.sfcraft.inject.MinecraftServerSupplier;
-import io.ib67.sfcraft.module.MotdModule;
-import io.ib67.sfcraft.module.OfflineExemptModule;
-import io.ib67.sfcraft.module.PlayLimitModule;
-import io.ib67.sfcraft.module.WelcomeModule;
 import io.ib67.sfcraft.registry.event.RandomEventRegistry;
 import io.ib67.sfcraft.module.command.BackModule;
 import io.ib67.sfcraft.module.command.ManagementModule;
@@ -46,7 +43,7 @@ public class SFCraftInitializer extends GuiceModInitializer {
         registerFeature(PlayLimitModule.class);
         registerFeature(BackModule.class);
         registerFeature(ManagementModule.class);
-
+        registerFeature(AFKModule.class);
         registerFeature(ChatPingModule.class);
         registerFeature(ChatSendLocModule.class);
         registerFeature(LongNightModule.class);
