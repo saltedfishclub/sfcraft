@@ -48,6 +48,7 @@ public class AFKModule extends ServerModule {
         } else {
             team.getPlayerList().remove(playerName);
             player.server.getPlayerManager().sendToAll(TeamS2CPacket.updateTeam(team, true));
+            player.server.getPlayerManager().sendToAll(TeamS2CPacket.changePlayerTeam(team, playerName, TeamS2CPacket.Operation.REMOVE));
             player.server.getPlayerManager().broadcast(
                     Text.literal(" * " + playerName + " 回来了.").withColor(Colors.LIGHT_GRAY),
                     false
