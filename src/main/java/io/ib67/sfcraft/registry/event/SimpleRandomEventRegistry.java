@@ -4,8 +4,10 @@ import io.ib67.sfcraft.module.randomevt.ActiveEvent;
 import io.ib67.sfcraft.module.randomevt.RandomEvent;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.minecraft.registry.RegistryKey;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.world.World;
 
@@ -17,12 +19,28 @@ import java.util.function.Predicate;
 public class SimpleRandomEventRegistry implements RandomEventRegistry {
     private final List<RegisteredEntry> entries = new ArrayList<>();
     private final List<StartedEntry> activeEvents = new ArrayList<>();
+    private boolean shutdown;
 
     protected SimpleRandomEventRegistry() {
         ServerTickEvents.END_WORLD_TICK.register(this::afterWorldTick);
+        ServerLifecycleEvents.SERVER_STOPPING.register(this::onShutdown);
+    }
+
+    private void onShutdown(MinecraftServer minecraftServer) {
+        shutdown = true;
+        for (StartedEntry activeEvent : activeEvents) {
+            activeEvent.getEvent().end();
+        }
+        activeEvents.clear();
     }
 
     private void afterWorldTick(ServerWorld serverWorld) {
+        if (shutdown) return;
+        triggerEvents(serverWorld);
+        clearActiveEvents();
+    }
+
+    private void triggerEvents(ServerWorld serverWorld) {
         for (RegisteredEntry entry : entries) {
             if (entry.world == serverWorld.getRegistryKey()
                     && !entry.started && entry.worldTickPredicate.test(serverWorld)) {
@@ -33,6 +51,9 @@ public class SimpleRandomEventRegistry implements RandomEventRegistry {
                 }
             }
         }
+    }
+
+    private void clearActiveEvents() {
         var it = activeEvents.iterator();
         while (it.hasNext()) {
             var entry = it.next();

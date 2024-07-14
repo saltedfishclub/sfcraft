@@ -34,6 +34,7 @@ public abstract class GuiceModInitializer extends AbstractModule implements ModI
         var handler = new PreInitHandler(initialized);
         ServerPlayConnectionEvents.JOIN.register(handler::defend);
         ServerLifecycleEvents.SERVER_STARTED.register(this::onServerStarted);
+        ServerLifecycleEvents.SERVER_STOPPING.register(this::onServerStopping);
         injector = onInit();
         var map = new HashMap<String, ServerModule>();
         for (Class<? extends ServerModule> registeredFeature : registeredFeatures) {
@@ -48,6 +49,10 @@ public abstract class GuiceModInitializer extends AbstractModule implements ModI
         moduleManager = new SimpleModuleManager(ImmutableMap.copyOf(map));
     }
 
+    private void onServerStopping(MinecraftServer minecraftServer) {
+        onStopping(minecraftServer);
+    }
+
     private void onServerStarted(MinecraftServer server) {
         onReady(server);
         initialized.set(true);
@@ -55,7 +60,11 @@ public abstract class GuiceModInitializer extends AbstractModule implements ModI
 
     protected abstract Injector onInit();
 
-    protected abstract void onReady(MinecraftServer minecraftServer);
+    protected void onReady(MinecraftServer minecraftServer) {
+    }
+
+    protected void onStopping(MinecraftServer minecraftServer) {
+    }
 
     @Provides
     protected ModuleManager getModuleManager() {
