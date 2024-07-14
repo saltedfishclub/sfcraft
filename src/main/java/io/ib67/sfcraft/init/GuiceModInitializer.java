@@ -19,6 +19,7 @@ import net.minecraft.server.MinecraftServer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 @Log4j2
@@ -46,7 +47,7 @@ public abstract class GuiceModInitializer extends AbstractModule implements ModI
                 log.error("Cannot initialize module " + module.getName(), e);
             }
         }
-        moduleManager = new SimpleModuleManager(ImmutableMap.copyOf(map));
+        moduleManager = new SimpleModuleManager(Map.copyOf(map));
     }
 
     private void onServerStopping(MinecraftServer minecraftServer) {
