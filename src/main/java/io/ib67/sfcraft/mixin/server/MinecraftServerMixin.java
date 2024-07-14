@@ -1,7 +1,6 @@
 package io.ib67.sfcraft.mixin.server;
 
-import io.ib67.sfcraft.module.randomevt.longnight.LongNightEvent;
-import io.ib67.sfcraft.util.Helper;
+import io.ib67.sfcraft.util.MixinHelper;
 import io.ib67.sfcraft.util.SFConsts;
 import net.minecraft.server.MinecraftServer;
 import org.spongepowered.asm.mixin.Mixin;
@@ -12,11 +11,12 @@ import org.spongepowered.asm.mixin.injection.ModifyConstant;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(MinecraftServer.class)
-public class MinecraftServerMixin {
+public abstract class MinecraftServerMixin {
+
     @ModifyConstant(method = "tickWorlds", constant = @Constant(intValue = 20))
     private int speedUpAtNight(int constant) {
-        if (LongNightEvent.isRunning()) {
-            return 5;
+        if (MixinHelper.spedUp) {
+            return 2;
         }
         return constant;
     }
