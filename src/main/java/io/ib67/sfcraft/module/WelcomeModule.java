@@ -35,23 +35,11 @@ public class WelcomeModule extends ServerModule {
     private static final DateTimeFormatter FMT = DateTimeFormatter.ofPattern("yyyy/MM/dd");
     @Inject
     private SFConfig config;
-    @Inject
-    @ConfigRoot
-    private Path root;
-    @Inject
-    private GeoIPService geoIPService;
-    private String updateLog;
+
 
     @Override
     public void onInitialize() {
-        updateLog = getConfigResource(root, ConfigResources.UPDATE_LOG).orElse("他没写呢");
         ServerPlayConnectionEvents.JOIN.register(this::onPlayerJoin);
-    }
-
-    @Provides
-    @ConfigResource(ConfigResources.UPDATE_LOG)
-    private String getUpdateLog() {
-        return updateLog;
     }
 
     public void onPlayerJoin(ServerPlayNetworkHandler serverPlayNetworkHandler, PacketSender

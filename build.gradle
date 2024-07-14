@@ -30,13 +30,18 @@ dependencies {
     // Fabric API. This is technically optional, but you probably want it anyway.
     modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
     shadow('com.maxmind.geoip2:geoip2:4.2.0')
-    shadow('com.google.inject:guice:7.0.0')
+    shadow('com.google.inject:guice:7.0.0') {
+        exclude group: 'com.google.guava', module: 'guava'
+        exclude group: 'com.google.guava', module: 'listenablefuture'
+        exclude group: 'com.google.guava', module: 'failureaccess'
+    }
 }
 configurations.implementation.extendsFrom(configurations.shadow)
 
 shadowJar {
     configurations = [project.configurations.shadow]
     exclude("META-INF")
+    //relocate 'com.google', 'sfcraft.relocation.google'
 }
 
 remapJar {

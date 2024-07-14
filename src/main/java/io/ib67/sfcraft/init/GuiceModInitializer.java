@@ -50,6 +50,7 @@ public abstract class GuiceModInitializer extends AbstractModule implements ModI
         moduleManager = new SimpleModuleManager(Map.copyOf(map));
     }
 
+
     private void onServerStopping(MinecraftServer minecraftServer) {
         onStopping(minecraftServer);
     }
