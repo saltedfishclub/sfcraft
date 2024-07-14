@@ -34,7 +34,7 @@ public class Helper {
         return nearby != null;
     }
 
-    public static boolean teleportSafely(ServerPlayerEntity player, ServerWorld world, int x, int y, int z) {
+    public static boolean teleportSafely(ServerPlayerEntity player, ServerWorld world, int x, int y, int z, float yaw, float pitch) {
         var pos = new BlockPos(x, y, z);
         var stand = world.getBlockState(pos);
         if (!stand.isAir() && !stand.isSolidBlock(world, pos)) {
@@ -55,7 +55,6 @@ public class Helper {
             var deltaY = 0.0;
             var deltaX = 0.5;
             var deltaZ = 0.5;
-            var fluid = stand.getFluidState().getFluid();
             if (!stand.isAir()) {
                 deltaY = stand.getCollisionShape(world, pos).getMax(Direction.Axis.Y);
                 deltaY = Double.isFinite(deltaY) ? deltaY + 0.1 : 0;
@@ -64,7 +63,7 @@ public class Helper {
                 deltaZ = stand.getCollisionShape(world, pos).getMax(Direction.Axis.X);
                 deltaZ = Double.isFinite(deltaZ) ? deltaZ / 2 : 0.5;
             }
-            player.teleport(world, x + deltaX, y + deltaY, z + deltaZ, 0, 0);
+            player.teleport(world, x + deltaX, y + deltaY, z + deltaZ, yaw, pitch);
         }
         return true;
     }
