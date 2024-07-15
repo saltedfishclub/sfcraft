@@ -24,7 +24,8 @@
     "server.bridge.ServerWorldBridge",
     "server.fixes.EndermanEntityMixin$ChaseGoalMixin",
     "server.hack.EntitySpawnS2CPacketMixin",
-    "server.hack.RegistryHandlerMixin"
+    "server.hack.RegistryHandlerMixin",
+    "server.hack.HoverEntityContentMixin"
   ],
   "injectors": {
     "defaultRequire": 1

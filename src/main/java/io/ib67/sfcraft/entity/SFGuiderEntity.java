@@ -1,22 +1,15 @@
 package io.ib67.sfcraft.entity;
 
-import io.ib67.sfcraft.SFCraftInitializer;
 import net.fabricmc.fabric.api.networking.v1.PlayerLookup;
-import net.fabricmc.fabric.api.object.builder.v1.entity.FabricEntityTypeBuilder;
-import net.minecraft.entity.EntityDimensions;
 import net.minecraft.entity.EntityType;
-import net.minecraft.entity.SpawnGroup;
 import net.minecraft.entity.passive.AllayEntity;
-import net.minecraft.registry.Registries;
-import net.minecraft.registry.Registry;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
-import net.minecraft.util.Identifier;
 import net.minecraft.world.World;
 
-public class SomeCustomAllayEntity extends AllayEntity {
-    public SomeCustomAllayEntity(EntityType<SomeCustomAllayEntity> entityEntityType, World world) {
+public class SFGuiderEntity extends AllayEntity {
+    public SFGuiderEntity(EntityType<SFGuiderEntity> entityEntityType, World world) {
         super(entityEntityType, world);
     }
 

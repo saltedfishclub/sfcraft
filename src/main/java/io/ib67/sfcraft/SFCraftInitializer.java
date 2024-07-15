@@ -3,7 +3,6 @@ package io.ib67.sfcraft;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.inject.*;
-import io.ib67.sfcraft.entity.SomeCustomAllayEntity;
 import io.ib67.sfcraft.module.*;
 import io.ib67.sfcraft.module.chat.ChatPingModule;
 import io.ib67.sfcraft.module.chat.ChatSendLocModule;
@@ -17,26 +16,11 @@ import io.ib67.sfcraft.inject.MinecraftServerSupplier;
 import io.ib67.sfcraft.registry.event.RandomEventRegistry;
 import io.ib67.sfcraft.module.command.BackModule;
 import io.ib67.sfcraft.module.command.ManagementModule;
-import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
-import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
-import net.fabricmc.fabric.api.object.builder.v1.entity.FabricDefaultAttributeRegistry;
-import net.fabricmc.fabric.api.object.builder.v1.entity.FabricEntityTypeBuilder;
-import net.fabricmc.loader.api.FabricLoader;
-import net.minecraft.entity.EntityType;
-import net.minecraft.entity.SpawnGroup;
-import net.minecraft.registry.Registries;
-import net.minecraft.registry.Registry;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.util.Identifier;
 
 @Log4j2
 public class SFCraftInitializer extends GuiceModInitializer {
-    public static final EntityType<SomeCustomAllayEntity> ALLAY = Registry.register(
-            Registries.ENTITY_TYPE,
-            Identifier.of("sfcraft", "allay"),
-            FabricEntityTypeBuilder.create(SpawnGroup.CREATURE, SomeCustomAllayEntity::new).build()
-    );
     @Override
     protected void configure() {
         super.configure();
@@ -72,19 +56,14 @@ public class SFCraftInitializer extends GuiceModInitializer {
     protected void onReady(MinecraftServer minecraftServer) {
         log.info("SFCraft is loading");
         SFCraft.server = minecraftServer;
-        SFCraft.injector = getInjector();
         getModuleManager().switchGlobalState(Lifecycle.State.ENABLED);
-        test();
         log.info("Load completed! " + getModuleManager().getModules().size() + " modules were loaded.");
-    }
-
-    private void test() {
-        FabricDefaultAttributeRegistry.register(ALLAY,SomeCustomAllayEntity.createAllayAttributes().build());
     }
 
     @Override
     protected Injector onInit() {
-        return Guice.createInjector(
+        SFEntityType.registerEntities();
+        return SFCraft.injector = Guice.createInjector(
                 new SFCraft(),
                 this
         );
