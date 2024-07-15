@@ -31,9 +31,11 @@ public class AFKModule extends ServerModule {
     private void onDisconnect(ServerPlayNetworkHandler serverPlayNetworkHandler, MinecraftServer server) {
         if (team != null) {
             var name = serverPlayNetworkHandler.getPlayer().getName().getLiteralString();
-            team.getPlayerList().remove(name);
-            server.getPlayerManager().sendToAll(TeamS2CPacket.updateTeam(team, true));
-            server.getPlayerManager().sendToAll(TeamS2CPacket.changePlayerTeam(team, name, TeamS2CPacket.Operation.REMOVE));
+            if (team.getPlayerList().contains(name)) {
+                team.getPlayerList().remove(name);
+                server.getPlayerManager().sendToAll(TeamS2CPacket.updateTeam(team, true));
+                server.getPlayerManager().sendToAll(TeamS2CPacket.changePlayerTeam(team, name, TeamS2CPacket.Operation.REMOVE));
+            }
         }
     }
 
