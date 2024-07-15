@@ -25,6 +25,16 @@ public class AFKModule extends ServerModule {
     public void onInitialize() {
         SFCallbacks.PLAYER_IDLE.register(this::onAFK);
         ServerPlayConnectionEvents.JOIN.register(this::onJoin);
+        ServerPlayConnectionEvents.DISCONNECT.register(this::onDisconnect);
+    }
+
+    private void onDisconnect(ServerPlayNetworkHandler serverPlayNetworkHandler, MinecraftServer server) {
+        if (team != null) {
+            var name = serverPlayNetworkHandler.getPlayer().getName().getLiteralString();
+            team.getPlayerList().remove(name);
+            server.getPlayerManager().sendToAll(TeamS2CPacket.updateTeam(team, true));
+            server.getPlayerManager().sendToAll(TeamS2CPacket.changePlayerTeam(team, name, TeamS2CPacket.Operation.REMOVE));
+        }
     }
 
     @Override
@@ -36,24 +46,32 @@ public class AFKModule extends ServerModule {
     }
 
     private void onAFK(ServerPlayerEntity player, boolean afk) {
-        String playerName = player.getName().getLiteralString();
-        Objects.requireNonNull(playerName);
         if (afk) {
-            team.getPlayerList().add(playerName);
-            player.server.getPlayerManager().sendToAll(TeamS2CPacket.updateTeam(team, true));
-            player.server.getPlayerManager().broadcast(
-                    Text.literal(" * " + playerName + " 正在挂机.").withColor(Colors.LIGHT_GRAY),
-                    false
-            );
+            enAFK(player);
         } else {
-            team.getPlayerList().remove(playerName);
-            player.server.getPlayerManager().sendToAll(TeamS2CPacket.updateTeam(team, true));
-            player.server.getPlayerManager().sendToAll(TeamS2CPacket.changePlayerTeam(team, playerName, TeamS2CPacket.Operation.REMOVE));
-            player.server.getPlayerManager().broadcast(
-                    Text.literal(" * " + playerName + " 回来了.").withColor(Colors.LIGHT_GRAY),
-                    false
-            );
+            deAFK(player);
         }
+    }
+
+    private void enAFK(ServerPlayerEntity player) {
+        String playerName = player.getName().getLiteralString();
+        team.getPlayerList().add(playerName);
+        player.server.getPlayerManager().sendToAll(TeamS2CPacket.updateTeam(team, true));
+        player.server.getPlayerManager().broadcast(
+                Text.literal(" * " + playerName + " 正在挂机.").withColor(Colors.LIGHT_GRAY),
+                false
+        );
+    }
+
+    public void deAFK(ServerPlayerEntity player) {
+        String playerName = player.getName().getLiteralString();
+        team.getPlayerList().remove(playerName);
+        player.server.getPlayerManager().sendToAll(TeamS2CPacket.updateTeam(team, true));
+        player.server.getPlayerManager().sendToAll(TeamS2CPacket.changePlayerTeam(team, playerName, TeamS2CPacket.Operation.REMOVE));
+        player.server.getPlayerManager().broadcast(
+                Text.literal(" * " + playerName + " 回来了.").withColor(Colors.LIGHT_GRAY),
+                false
+        );
     }
 
     private void onJoin(ServerPlayNetworkHandler serverPlayNetworkHandler, PacketSender packetSender, MinecraftServer minecraftServer) {
