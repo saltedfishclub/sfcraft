@@ -87,7 +87,7 @@ public class ElytraSpeedMeterModule extends ServerModule {
         if (stack.isDamageable() && stack.isDamaged()) {
             var remaining = stack.getMaxDamage() - stack.getDamage();
             var percent = (int) Math.ceil(((double) remaining / stack.getMaxDamage()) * 100);
-            return ELYTRA_DURABILITY[percent-1];
+            return ELYTRA_DURABILITY[Math.max(percent-1,0)];
         }
         return Text.literal(" ELYTRA: INFINITY").withColor(Colors.BLUE);
     }
