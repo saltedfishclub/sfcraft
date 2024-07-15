@@ -8,21 +8,24 @@
   "client": [
   ],
   "server": [
-    "server.fixes.EndermanEntityMixin$ChaseGoalMixin",
-    "server.bridge.ServerWorldBridge",
-    "server.bridge.ServerPlayerBridge",
-    "server.bridge.EntityBridge",
-    "server.MinecraftServerMixin",
-    "server.ServerPlayNetworkHandlerMixin",
-    "server.SleepManagerMixin",
-    "server.ServerWorldMixin",
-    "server.EntityMixin",
     "server.AbstractFurnaceBlockMixin",
-    "server.ServerHandshakeNetworkHandlerMixin",
+    "server.EntityMixin",
     "server.LegacyQueryHandlerMixin",
-    "server.ServerPlayerEntityMixin",
+    "server.MinecraftServerMixin",
     "server.PlayerEntityMixin",
-    "server.ServerLoginNetworkHandlerMixin"
+    "server.ServerHandshakeNetworkHandlerMixin",
+    "server.ServerLoginNetworkHandlerMixin",
+    "server.ServerPlayerEntityMixin",
+    "server.ServerPlayNetworkHandlerMixin",
+    "server.ServerWorldMixin",
+    "server.SleepManagerMixin",
+    "server.bridge.EntityBridge",
+    "server.bridge.ServerPlayerBridge",
+    "server.bridge.ServerWorldBridge",
+    "server.fixes.EndermanEntityMixin$ChaseGoalMixin",
+    "server.hack.EntitySpawnS2CPacketMixin",
+    "server.hack.RegistryHandlerMixin",
+    "server.hack.HoverEntityContentMixin"
   ],
   "injectors": {
     "defaultRequire": 1
