@@ -7,7 +7,8 @@ import com.google.inject.Singleton;
 import com.maxmind.db.CHMCache;
 import com.maxmind.geoip2.DatabaseReader;
 import com.maxmind.geoip2.exception.GeoIp2Exception;
-import io.ib67.sfcraft.SFCraft;
+import com.maxmind.geoip2.record.City;
+import com.maxmind.geoip2.record.Country;
 import io.ib67.sfcraft.inject.ConfigRoot;
 import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
@@ -42,6 +43,19 @@ public class MaxMindGeoIPService implements Module, GeoIPService {
         return Clock.system(TimeZone.getTimeZone(databaseReader.city(address).getLocation().getTimeZone()).toZoneId());
     }
 
+    @Override
+    @SneakyThrows
+    public City cityOf(InetAddress address) throws GeoIp2Exception {
+        return databaseReader.city(address).getCity();
+    }
+
+    @Override
+    @SneakyThrows
+    public Country countryOf(InetAddress address) throws GeoIp2Exception {
+        return databaseReader.country(address).getCountry();
+    }
+
+    @SneakyThrows
     private DatabaseReader loadData() throws InterruptedException {
         try {
             return new DatabaseReader.Builder(mmdbPath.toFile()).withCache(new CHMCache()).build();

@@ -20,6 +20,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.world.World;
 
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -101,5 +102,15 @@ public class Helper {
     public static boolean canFertilize(Block block) {
         return block instanceof SaplingBlock
                 || block instanceof CropBlock;
+    }
+
+    public static String hideIp(InetAddress addr) {
+        var _addr = addr.getHostAddress();
+        var q = _addr.split("\\.");
+        if (q.length == 0) {
+            // ipv6 is not supported
+            return _addr;
+        }
+        return q[0] + "." + q[1] + ".*.*";
     }
 }

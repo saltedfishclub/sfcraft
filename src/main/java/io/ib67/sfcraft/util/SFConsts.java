@@ -4,6 +4,7 @@ import io.ib67.sfcraft.util.Permission;
 import lombok.experimental.UtilityClass;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.server.network.ServerPlayerEntity;
 
 @UtilityClass
 public class SFConsts {
@@ -18,6 +19,7 @@ public class SFConsts {
     public static final Permission<PlayerEntity> COMMAND_UNBLOCKSERVER = ofSFCPermission("command.unblockserver", false);
     public static final Permission<PlayerEntity> COMMAND_LISTOFFLINE = ofSFCPermission("command.listoffline", false);
     public static final Permission<PlayerEntity> COMMAND_LISTPERM = ofSFCPermission("command.listperm", false);
+    public static final Permission<PlayerEntity> COMMAND_LISTGEO = ofSFCPermission("command.listgeo", false);
 
     public static Permission<PlayerEntity> ofSFCPermission(String key, boolean byDefault) {
         return new Permission<>("sfcraft." + key, byDefault);
