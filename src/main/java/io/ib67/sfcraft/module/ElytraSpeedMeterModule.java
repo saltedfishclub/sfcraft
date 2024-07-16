@@ -8,9 +8,14 @@ import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.ElytraItem;
+import net.minecraft.network.packet.Packet;
+import net.minecraft.network.packet.s2c.play.SubtitleS2CPacket;
+import net.minecraft.network.packet.s2c.play.TitleFadeS2CPacket;
+import net.minecraft.network.packet.s2c.play.TitleS2CPacket;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayNetworkHandler;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.util.Colors;
 import net.minecraft.util.math.BlockPos;
@@ -62,24 +67,47 @@ public class ElytraSpeedMeterModule extends ServerModule {
     private void onFlying(PlayerEntity player, long f, boolean b) {
         if (f < THRESHLD_OF_ELYTRA_FLY * 20) {
             if (f > THRESHLD_OF_ELYTRA_FLY * 15) {
-                player.sendMessage(KEEP_FLYING,true);
+                player.sendMessage(KEEP_FLYING, true);
             }
             return;
         }
         if (b) {
+            if (!lastMeasuredSpeed.containsKey(player)) {
+                ((ServerPlayerEntity) player).networkHandler.sendPacket(new TitleFadeS2CPacket(0, 20, 0));
+            }
             var text = Text.literal("");
             text.append(generateYMeter(f, player));
             text.append(generateSpeedMeter(f, player));
             text.append(generateDurabilityMeter(f, player));
             player.sendMessage(text, true);
+            ((ServerPlayerEntity) player).networkHandler.sendPacket(new TitleS2CPacket(Text.empty()));
+            ((ServerPlayerEntity) player).networkHandler.sendPacket(buildPitchMeter(player));
         } else {
             clean((ServerPlayerEntity) player);
+            ((ServerPlayerEntity) player).networkHandler.sendPacket(new TitleFadeS2CPacket(10, 20, 10));
             if (f > THRESHLD_OF_ELYTRA_FLY * 20) {
                 player.sendMessage(Text.literal("!! LANDED !!").withColor(Colors.GREEN), true);
-            }else{
-                player.sendMessage(Text.empty(),true);
+                ((ServerPlayerEntity) player).networkHandler.sendPacket(new SubtitleS2CPacket(Text.empty()));
+            } else {
+                player.sendMessage(Text.empty(), true);
+
             }
         }
+    }
+
+    private Packet<?> buildPitchMeter(PlayerEntity player) {
+        var pitch = player.getPitch();
+        MutableText text;
+        var display = (Math.ceil(Math.abs(pitch) * 100) / 100);
+        if (pitch < 0) { // 朝上
+            text = Text.literal("🡹 " + display + "°");
+        } else {
+            text = Text.literal("🡻 " + display + "°");
+        }
+        if (pitch > 75) {
+            text.withColor(Colors.LIGHT_RED);
+        }
+        return new SubtitleS2CPacket(text);
     }
 
     private Text generateDurabilityMeter(long f, PlayerEntity player) {
@@ -87,7 +115,7 @@ public class ElytraSpeedMeterModule extends ServerModule {
         if (stack.isDamageable() && stack.isDamaged()) {
             var remaining = stack.getMaxDamage() - stack.getDamage();
             var percent = (int) Math.ceil(((double) remaining / stack.getMaxDamage()) * 100);
-            return ELYTRA_DURABILITY[Math.max(percent-1,0)];
+            return ELYTRA_DURABILITY[Math.max(percent - 1, 0)];
         }
         return Text.literal(" ELYTRA: INFINITY").withColor(Colors.BLUE);
     }
