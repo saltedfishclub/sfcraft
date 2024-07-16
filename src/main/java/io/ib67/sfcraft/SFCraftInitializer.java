@@ -37,6 +37,7 @@ public class SFCraftInitializer extends GuiceModInitializer {
     }
 
     private void registerFeatures() {
+        registerFeature(HintModule.class);
         registerFeature(MotdModule.class);
         registerFeature(WelcomeModule.class);
         registerFeature(OfflineExemptModule.class);

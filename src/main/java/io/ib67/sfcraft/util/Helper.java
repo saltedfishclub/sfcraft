@@ -1,6 +1,7 @@
 package io.ib67.sfcraft.util;
 
 import com.maxmind.geoip2.exception.GeoIp2Exception;
+import com.mojang.authlib.GameProfile;
 import io.ib67.sfcraft.SFCraft;
 import io.ib67.sfcraft.config.SFConfig;
 import io.ib67.sfcraft.geoip.GeoIPService;
@@ -22,9 +23,11 @@ import net.minecraft.world.World;
 
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Optional;
+import java.util.UUID;
 
 public class Helper {
     public static final char COLOR = '§';
@@ -112,5 +115,13 @@ public class Helper {
             return _addr;
         }
         return q[0] + "." + q[1] + ".*.*";
+    }
+
+    public static GameProfile generateForRoomPlayer(String player) {
+        return new GameProfile(UUID.nameUUIDFromBytes(("sfcraft:room-" + player).getBytes(StandardCharsets.UTF_8)), player);
+    }
+
+    public static boolean isRoomPlayer(GameProfile profile) {
+        return profile.getId().equals(UUID.nameUUIDFromBytes(("sfcraft:room-" + profile.getName()).getBytes(StandardCharsets.UTF_8)));
     }
 }

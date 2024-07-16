@@ -25,7 +25,8 @@
     "server.fixes.EndermanEntityMixin$ChaseGoalMixin",
     "server.hack.EntitySpawnS2CPacketMixin",
     "server.hack.RegistryHandlerMixin",
-    "server.hack.HoverEntityContentMixin"
+    "server.hack.HoverEntityContentMixin",
+    "server.room.ServerLoginNetworkHandlerMixin"
   ],
   "injectors": {
     "defaultRequire": 1
