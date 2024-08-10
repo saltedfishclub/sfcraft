@@ -9,10 +9,10 @@
   ],
   "server": [
     "server.AbstractFurnaceBlockMixin",
-    "server.EntityMixin",
+    "common.EntityMixin",
     "server.LegacyQueryHandlerMixin",
     "server.MinecraftServerMixin",
-    "server.PlayerEntityMixin",
+    "common.PlayerEntityMixin",
     "server.ServerHandshakeNetworkHandlerMixin",
     "server.ServerLoginNetworkHandlerMixin",
     "server.ServerPlayerEntityMixin",
@@ -22,7 +22,8 @@
     "server.bridge.EntityBridge",
     "server.bridge.ServerPlayerBridge",
     "server.bridge.ServerWorldBridge",
-    "server.fixes.EndermanEntityMixin$ChaseGoalMixin",
+    "server.fixes.EndermanEntityMixin",
+    "common.MobEntityMixin",
     "server.hack.EntitySpawnS2CPacketMixin",
     "server.hack.RegistryHandlerMixin",
     "server.hack.HoverEntityContentMixin"

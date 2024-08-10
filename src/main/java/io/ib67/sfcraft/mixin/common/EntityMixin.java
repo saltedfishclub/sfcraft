@@ -1,4 +1,4 @@
-package io.ib67.sfcraft.mixin.server;
+package io.ib67.sfcraft.mixin.common;
 
 import io.ib67.sfcraft.callback.SFCallbacks;
 import net.minecraft.entity.Entity;

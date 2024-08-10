@@ -6,6 +6,7 @@ import com.google.inject.*;
 import io.ib67.sfcraft.module.*;
 import io.ib67.sfcraft.module.chat.ChatPingModule;
 import io.ib67.sfcraft.module.chat.ChatSendLocModule;
+import io.ib67.sfcraft.module.compat.ModCompatModule;
 import io.ib67.sfcraft.module.randomevt.LongNightModule;
 import io.ib67.sfcraft.registry.chat.SimpleMessageDecorator;
 import io.ib67.sfcraft.registry.event.SFRandomEventRegistry;
@@ -49,6 +50,7 @@ public class SFCraftInitializer extends GuiceModInitializer {
         registerFeature(ChatPingModule.class);
         registerFeature(ChatSendLocModule.class);
         registerFeature(LongNightModule.class);
+        registerFeature(ModCompatModule.class);
     }
 
     @Override

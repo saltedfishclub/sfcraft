@@ -5,6 +5,9 @@ import io.ib67.sfcraft.ServerModule;
 import io.ib67.sfcraft.registry.chat.SimpleMessageDecorator;
 import io.ib67.sfcraft.util.Helper;
 import io.ib67.sfcraft.util.SFConsts;
+import net.minecraft.entity.effect.StatusEffectInstance;
+import net.minecraft.entity.effect.StatusEffectUtil;
+import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.network.message.MessageDecorator;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -35,6 +38,7 @@ public class ChatSendLocModule extends ServerModule implements MessageDecorator 
 
     private static Text generateLocText(ServerPlayerEntity sender) {
         if (sender == null) return Text.of(" (invalid position) ");
+        sender.addStatusEffect(new StatusEffectInstance(StatusEffects.GLOWING));
         var x = sender.getBlockPos().getX();
         var y = sender.getBlockPos().getY();
         var z = sender.getBlockPos().getZ();

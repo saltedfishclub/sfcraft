@@ -19,7 +19,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 @Log4j2
 public class SFEntityType {
-    public final EntityType<SFGuiderEntity> GUIDER = Registry.register(
+    public static final EntityType<SFGuiderEntity> GUIDER = Registry.register(
             Registries.ENTITY_TYPE,
             Identifier.of("sfcraft", "guider"),
             EntityType.Builder.create(SFGuiderEntity::new, SpawnGroup.CREATURE)

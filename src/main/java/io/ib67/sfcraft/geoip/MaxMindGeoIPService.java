@@ -27,7 +27,7 @@ import static java.net.http.HttpResponse.BodyHandlers.ofFile;
 @Log4j2
 @Singleton
 public class MaxMindGeoIPService implements Module, GeoIPService {
-    private static final URI GEOIP_DOWNLOAD_URL = URI.create("http://sfclub.cc/GeoLite2-City.mmdb");
+    private static final URI GEOIP_DOWNLOAD_URL = URI.create("https://sfclub.cc/GeoLite2-City.mmdb");
     private Path mmdbPath;
     private final DatabaseReader databaseReader;
 
