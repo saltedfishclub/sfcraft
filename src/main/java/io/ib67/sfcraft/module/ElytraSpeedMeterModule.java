@@ -60,6 +60,7 @@ public class ElytraSpeedMeterModule extends ServerModule {
         if (b) {
             var text = Text.literal("");
             text.append(generateDurabilityMeter(f, player));
+            text.append(genPitchMeter(player.getPitch()));
             player.sendMessage(text, true);
         } else {
             clean((ServerPlayerEntity) player);
@@ -72,6 +73,20 @@ public class ElytraSpeedMeterModule extends ServerModule {
         }
     }
 
+    private Text genPitchMeter(float pitch) {
+        MutableText text;
+        var display = (Math.ceil(Math.abs(pitch) * 100) / 100);
+        if (pitch < 0) { // 朝上
+            text = Text.literal(" 🡹 " + display + "°");
+        } else {
+            text = Text.literal(" 🡻 " + display + "°");
+        }
+        if (pitch > 75) {
+            text.withColor(Colors.LIGHT_RED);
+        }
+        return text;
+    }
+
     private Text generateDurabilityMeter(long f, PlayerEntity player) {
         var stack = player.getInventory().getArmorStack(PlayerInventory.ARMOR_SLOTS[2]);
         if (stack.isDamageable() && stack.isDamaged()) {
@@ -79,7 +94,7 @@ public class ElytraSpeedMeterModule extends ServerModule {
             var percent = (int) Math.ceil(((double) remaining / stack.getMaxDamage()) * 100);
             return ELYTRA_DURABILITY[Math.max(percent - 1, 0)];
         }
-        return Text.literal(" ELYTRA: INFINITY").withColor(Colors.BLUE);
+        return Text.literal("ELYTRA: INFINITY").withColor(Colors.BLUE);
     }
 
     private static int getDamageColor(int percent) {

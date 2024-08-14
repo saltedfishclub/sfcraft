@@ -35,7 +35,7 @@ public class Helper {
         var wld = player.server.getWorld(pos.dimension());
         var _pos = pos.pos();
         if (wld == null) return false;
-        var nearby = wld.getClosestPlayer(_pos.getX(), _pos.getY(), _pos.getZ(), 20, true);
+        var nearby = wld.getClosestPlayer(_pos.getX(), _pos.getY(), _pos.getZ(), 100, true);
         return nearby != null;
     }
 
