@@ -8,15 +8,19 @@ import io.ib67.sfcraft.module.chat.ChatPingModule;
 import io.ib67.sfcraft.module.chat.ChatSendLocModule;
 import io.ib67.sfcraft.module.compat.ModCompatModule;
 import io.ib67.sfcraft.module.randomevt.LongNightModule;
+import io.ib67.sfcraft.module.room.CreativeRoomModule;
+import io.ib67.sfcraft.registry.RoomRegistry;
 import io.ib67.sfcraft.registry.chat.SimpleMessageDecorator;
 import io.ib67.sfcraft.registry.event.SFRandomEventRegistry;
 import io.ib67.sfcraft.init.GuiceModInitializer;
 import io.ib67.sfcraft.geoip.GeoIPService;
 import io.ib67.sfcraft.geoip.MaxMindGeoIPService;
 import io.ib67.sfcraft.inject.MinecraftServerSupplier;
-import io.ib67.sfcraft.registry.event.RandomEventRegistry;
+import io.ib67.sfcraft.registry.RandomEventRegistry;
 import io.ib67.sfcraft.module.command.BackModule;
 import io.ib67.sfcraft.module.command.ManagementModule;
+import io.ib67.sfcraft.registry.room.SimpleRoomRegistry;
+import io.ib67.sfcraft.room.RoomTeleporter;
 import lombok.extern.log4j.Log4j2;
 import net.minecraft.server.MinecraftServer;
 
@@ -35,6 +39,8 @@ public class SFCraftInitializer extends GuiceModInitializer {
         binder().bind(GeoIPService.class).to(MaxMindGeoIPService.class);
         binder().bind(RandomEventRegistry.class).to(SFRandomEventRegistry.class);
         binder().bind(SimpleMessageDecorator.class).in(Singleton.class);
+        binder().bind(RoomTeleporter.class).in(Singleton.class);
+        binder().bind(RoomRegistry.class).to(SimpleRoomRegistry.class).in(Singleton.class);
     }
 
     private void registerFeatures() {
@@ -51,6 +57,8 @@ public class SFCraftInitializer extends GuiceModInitializer {
         registerFeature(ChatSendLocModule.class);
         registerFeature(LongNightModule.class);
         registerFeature(ModCompatModule.class);
+        registerFeature(RoomModule.class);
+        registerFeature(CreativeRoomModule.class);
     }
 
     @Override

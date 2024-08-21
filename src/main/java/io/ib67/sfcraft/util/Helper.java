@@ -9,6 +9,7 @@ import net.minecraft.block.Block;
 import net.minecraft.block.CropBlock;
 import net.minecraft.block.Fertilizable;
 import net.minecraft.block.SaplingBlock;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.fluid.EmptyFluid;
 import net.minecraft.fluid.LavaFluid;
 import net.minecraft.fluid.WaterFluid;
@@ -16,15 +17,18 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
 import net.minecraft.util.Colors;
+import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.world.World;
 
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Optional;
+import java.util.UUID;
 
 public class Helper {
     public static final char COLOR = '§';
@@ -112,5 +116,14 @@ public class Helper {
             return _addr;
         }
         return q[0] + "." + q[1] + ".*.*";
+    }
+
+    public static UUID generateIdForRoom(String name, Identifier room) {
+        var uuid = UUID.nameUUIDFromBytes((name + "@" + room.toString()).getBytes(StandardCharsets.UTF_8));
+        return new UUID(uuid.getMostSignificantBits(), 0);
+    }
+
+    public static boolean isVirtual(UUID uuid) {
+        return uuid.getLeastSignificantBits() == 0;
     }
 }

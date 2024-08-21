@@ -1,8 +1,8 @@
 plugins {
-    id 'fabric-loom' version '1.6-SNAPSHOT'
     id 'maven-publish'
     id("io.freefair.lombok") version "8.6"
     id("com.github.johnrengelman.shadow") version "8.1.1"
+    id 'fabric-loom' version '1.7.3'
 }
 
 version = project.mod_version

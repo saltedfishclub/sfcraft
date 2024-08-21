@@ -1,0 +1,16 @@
+{
+  "type": "overworld",
+  "generator": {
+    "type": "flat",
+    "settings": {
+      "layers": [
+        {
+          "height": 64,
+          "block": "minecraft:white_stained_glass"
+        }
+      ],
+      "structure_overrides": [],
+      "biome": "plains"
+    }
+  }
+}
