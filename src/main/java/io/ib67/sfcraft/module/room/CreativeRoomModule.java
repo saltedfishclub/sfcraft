@@ -36,7 +36,7 @@ public class CreativeRoomModule extends ServerModule {
                 .register(this::registerCommand);
         room = new CreativeSpaceRoom();
         roomRegistry.registerRoomType(CreativeSpaceRoom.class, CreativeSpaceRoom.WORLD, new CreativeSpaceFactory(room));
-        roomRegistry.createRoomOf(CreativeSpaceRoom.class, CreativeSpaceRoom.IDENTIFIER, null, null);
+        roomRegistry.createRoomOf(CreativeSpaceRoom.class, CreativeSpaceRoom.IDENTIFIER, null, (String) null);
         roomModule.enqueuePregen(CreativeSpaceRoom.WORLD,CreativeSpaceRoom.SPAWN_POS);
     }
 
