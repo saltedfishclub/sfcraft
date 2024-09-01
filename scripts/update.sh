@@ -1,6 +1,7 @@
 #!/bin/bash
 
-UPLOAD=$(ls $UPLOAD | tr ' ' '\n' | grep -v "all")
+export PATH="$PATH:$(pwd)"
+UPLOAD="$UPLOAD_DIR/$(ls $UPLOAD_DIR | tr ' ' '\n' | grep -v "all")"
 
 if ! test -f "$UPLOAD"; then
 	echo "File does not exist. $UPLOAD"

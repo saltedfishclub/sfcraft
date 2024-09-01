@@ -43,8 +43,8 @@ jobs:
         API_ENDPOINT: ${{ secrets.API_ENDPOINT }}
         SERVER_ID: ${{ secrets.SERVER_ID }}
         TOKEN: ${{ secrets.TOKEN }}
-        UPLOAD: "/home/runner/sfcraft/build/libs"
+        UPLOAD_DIR: "../build/libs"
       run: |
         cd scripts
-        chmod +x ./special_curl.sh
+        chmod +x ./special_curl
         sh ./update.sh
