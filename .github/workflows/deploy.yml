@@ -43,6 +43,6 @@ jobs:
         TOKEN: ${{ secrets.TOKEN }}
         UPLOAD: "/home/runner/sfcraft/build/libs"
       run: |
-        cd /bin
+        cd scripts
         chmod +x ./special_curl.sh
         sh ./update.sh

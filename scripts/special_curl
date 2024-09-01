@@ -1,0 +1,60 @@
+#!/bin/bash
+
+# Function to get IP address of a domain
+get_ip() {
+  local domain=$1
+  # Get IP address (first one found) for the domain
+  dig +short "$domain" | head -n 1
+}
+
+# Check if a URL is provided
+if [ "$#" -lt 1 ]; then
+  echo "Usage: $0 <url> [curl options...]"
+  exit 1
+fi
+
+# Extract the URL
+url="$1"
+shift
+
+# Define the fixed domain for --resolve
+fixed_domain="gov.cn"
+
+# Parse the URL
+protocol=$(echo "$url" | awk -F:// '{print $1}')
+original_domain_port=$(echo "$url" | awk -F:// '{print $2}' | awk -F/ '{print $1}')
+path=$(echo "$url" | sed 's|^[^/]*/||')
+
+# Extract port from the original URL
+original_domain=$(echo "$original_domain_port" | awk -F: '{print $1}')
+port=$(echo "$original_domain_port" | awk -F: '{print $2}')
+
+# If port is not specified, default to 80 for HTTP or 443 for HTTPS
+if [ -z "$port" ]; then
+  if [ "$protocol" == "http" ]; then
+    port=80
+  elif [ "$protocol" == "https" ]; then
+    port=443
+  else
+    echo "Unknown protocol. Please specify port in URL."
+    exit 1
+  fi
+fi
+
+ip=$(get_ip "$original_domain")
+
+if [ -z "$ip" ]; then
+  echo "Could not resolve IP address for domain $fixed_domain"
+  exit 1
+fi
+
+# Construct the --resolve argument
+resolve_arg="-k --resolve $fixed_domain:$port:$ip"
+
+# Replace the original domain with the fixed domain in the URL
+modified_url=$(echo "$url" | sed "s/$original_domain/$fixed_domain/")
+
+# Run curl with the resolve argument and any additional curl options
+#echo "Running: curl $resolve_arg $@ $modified_url"
+curl $resolve_arg "$@" "$modified_url"
+
