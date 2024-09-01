@@ -71,6 +71,11 @@ public class SFCraftInitializer extends GuiceModInitializer {
     }
 
     @Override
+    protected void onStopping(MinecraftServer minecraftServer) {
+        getModuleManager().switchGlobalState(Lifecycle.State.DISABLED);
+    }
+
+    @Override
     protected Injector onInit() {
         SFEntityType.registerEntities();
         return SFCraft.injector = Guice.createInjector(

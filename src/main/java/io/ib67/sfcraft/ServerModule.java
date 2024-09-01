@@ -23,10 +23,17 @@ public abstract class ServerModule extends AbstractModule implements Lifecycle {
         }
     }
 
+    /**
+     * Often called when server is shutting down. Can also be triggered by manual operation
+     */
     public void onDisable() {
 
     }
 
+    /**
+     * Often called when server is starting. Can also be triggered by manual operation
+     * In this phase you can access MinecraftServer via {@link io.ib67.sfcraft.inject.MinecraftServerSupplier}, which is injectable.
+     */
     public void onEnable() {
 
     }
