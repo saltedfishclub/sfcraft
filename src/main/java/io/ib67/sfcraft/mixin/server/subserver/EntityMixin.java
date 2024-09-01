@@ -1,6 +1,7 @@
 package io.ib67.sfcraft.mixin.server.subserver;
 
 import io.ib67.sfcraft.SFCraft;
+import io.ib67.sfcraft.module.RoomModule;
 import io.ib67.sfcraft.registry.RoomRegistry;
 import io.ib67.sfcraft.util.Helper;
 import net.minecraft.entity.Entity;
@@ -21,7 +22,7 @@ public abstract class EntityMixin {
 
     @Inject(at = @At("HEAD"), method = "teleportTo", cancellable = true)
     private void sf$redirectTeleport(TeleportTarget teleportTarget, CallbackInfoReturnable<Entity> cir) {
-        if (Helper.isVirtual(this.getUuid())) {
+        if (RoomModule.isVirtual(this.getUuid())) {
             cir.setReturnValue((Entity) (Object) this);
         }
     }

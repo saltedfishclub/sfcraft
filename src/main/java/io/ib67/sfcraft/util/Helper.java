@@ -117,13 +117,4 @@ public class Helper {
         }
         return q[0] + "." + q[1] + ".*.*";
     }
-
-    public static UUID generateIdForRoom(String name, Identifier room) {
-        var uuid = UUID.nameUUIDFromBytes((name + "@" + room.toString()).getBytes(StandardCharsets.UTF_8));
-        return new UUID(uuid.getMostSignificantBits(), 0);
-    }
-
-    public static boolean isVirtual(UUID uuid) {
-        return uuid.getLeastSignificantBits() == 0;
-    }
 }

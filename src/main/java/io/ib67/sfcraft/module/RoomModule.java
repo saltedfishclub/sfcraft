@@ -10,7 +10,6 @@ import io.ib67.sfcraft.config.SFConfig;
 import io.ib67.sfcraft.inject.MinecraftServerSupplier;
 import io.ib67.sfcraft.room.RequestedRoom;
 import io.ib67.sfcraft.registry.RoomRegistry;
-import io.ib67.sfcraft.util.Helper;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import lombok.SneakyThrows;
@@ -24,7 +23,6 @@ import net.minecraft.network.packet.s2c.common.StoreCookieS2CPacket;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.server.world.ChunkTicket;
 import net.minecraft.server.world.ChunkTicketType;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
@@ -40,10 +38,11 @@ import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
+import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.security.spec.KeySpec;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static io.ib67.sfcraft.room.RoomTeleporter.ROOM_COOKIE;
 import static io.ib67.sfcraft.util.SFConsts.COMMAND_RECO;
@@ -59,6 +58,7 @@ public class RoomModule extends ServerModule {
     private SFConfig config;
     private Key key;
     private final List<Pair<RegistryKey<World>, BlockPos>> pregenQueue = new ArrayList<>();
+    private final Map<UUID, GameProfile> uuidMapper = new ConcurrentHashMap<>();
 
     @Override
     public void onInitialize() {
@@ -70,11 +70,11 @@ public class RoomModule extends ServerModule {
     public void onEnable() {
         for (Pair<RegistryKey<World>, BlockPos> registryKeyBlockPosPair : pregenQueue) {
             var world = serverSupplier.get().getWorld(registryKeyBlockPosPair.getLeft());
-            if(world == null){
-                log.warn("Cannot find world "+registryKeyBlockPosPair.getLeft());
+            if (world == null) {
+                log.warn("Cannot find world " + registryKeyBlockPosPair.getLeft());
                 continue;
             }
-            world.getChunkManager().addTicket(ChunkTicketType.START,new ChunkPos(registryKeyBlockPosPair.getRight()),64, Unit.INSTANCE);
+            world.getChunkManager().addTicket(ChunkTicketType.START, new ChunkPos(registryKeyBlockPosPair.getRight()), 64, Unit.INSTANCE);
         }
     }
 
@@ -88,7 +88,7 @@ public class RoomModule extends ServerModule {
 
     private int onCleanReconnect(CommandContext<ServerCommandSource> serverCommandSourceCommandContext) {
         var player = serverCommandSourceCommandContext.getSource().getPlayer();
-        if (!Helper.isVirtual(player.getUuid())) {
+        if (!isVirtual(player.getUuid())) {
             player.sendMessage(Text.literal("你不在任何 \"房间\" 内。"));
             return 0;
         }
@@ -160,5 +160,20 @@ public class RoomModule extends ServerModule {
 
     public void enqueuePregen(RegistryKey<World> world, BlockPos spawnPos) {
         pregenQueue.add(new Pair<>(world, spawnPos));
+    }
+
+    public UUID generateIdForRoom(GameProfile issuer, String name, Identifier room) {
+        var uuid = UUID.nameUUIDFromBytes((name + "@" + room.toString()).getBytes(StandardCharsets.UTF_8));
+        var result = new UUID(uuid.getMostSignificantBits(), 0);
+        if (issuer != null) uuidMapper.put(result, issuer);
+        return result;
+    }
+
+    public static boolean isVirtual(UUID uuid) {
+        return uuid.getLeastSignificantBits() == 0;
+    }
+
+    public GameProfile devirtualize(UUID virtual) {
+        return uuidMapper.get(virtual);
     }
 }

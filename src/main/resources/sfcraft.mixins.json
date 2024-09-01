@@ -31,7 +31,8 @@
     "server.subserver.EntityMixin",
     "server.subserver.PlayerManagerMixin",
     "server.subserver.PlayerSaveHandlerMixin",
-    "server.subserver.ServerPlayerEntityMixin"
+    "server.subserver.ServerPlayerEntityMixin",
+    "server.subserver.PlayerListS2CPacket$EntryMixin"
   ],
   "injectors": {
     "defaultRequire": 1

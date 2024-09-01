@@ -28,13 +28,13 @@ public class RoomTeleporter {
     public static final Identifier ROOM_COOKIE = Identifier.of("sfcraft", "room");
 
     public void teleportTo(Room room, ServerPlayerEntity player) {
-        if (Helper.isVirtual(player.getUuid())) {
+        if (roomModule.isVirtual(player.getUuid())) {
             player.sendMessage(Text.literal("您已经在某个房间里了").withColor(Colors.LIGHT_RED));
             return;
         }
-        var finalUuid = Helper.generateIdForRoom(player.getName().getLiteralString(), room.getServerIdentifier());
+        var finalUuid = roomModule.generateIdForRoom(player.getGameProfile(), player.getName().getLiteralString(), room.getServerIdentifier());
         var sess = room.getPlayerManager().createSessionFor(finalUuid);
-        if(player.getServer().getWorld(sess.getSpawnPosition().dimension()) == null){
+        if (player.getServer().getWorld(sess.getSpawnPosition().dimension()) == null) {
             throw new IllegalStateException("world isn't exist");
         }
         var networkHandler = player.networkHandler;
