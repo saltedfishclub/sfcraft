@@ -59,8 +59,9 @@ public class ElytraSpeedMeterModule extends ServerModule {
         }
         if (b) {
             var text = Text.literal("");
-            text.append(generateDurabilityMeter(f, player));
             text.append(genPitchMeter(player.getPitch()));
+            text.append(" ");
+            text.append(generateDurabilityMeter(f, player));
             player.sendMessage(text, true);
         } else {
             clean((ServerPlayerEntity) player);
