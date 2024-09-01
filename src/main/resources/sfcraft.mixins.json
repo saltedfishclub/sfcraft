@@ -26,7 +26,13 @@
     "common.MobEntityMixin",
     "server.hack.EntitySpawnS2CPacketMixin",
     "server.hack.RegistryHandlerMixin",
-    "server.hack.HoverEntityContentMixin"
+    "server.hack.HoverEntityContentMixin",
+    "server.subserver.ServerLoginNetworkHandlerMixin",
+    "server.subserver.EntityMixin",
+    "server.subserver.PlayerManagerMixin",
+    "server.subserver.PlayerSaveHandlerMixin",
+    "server.subserver.ServerPlayerEntityMixin",
+    "server.subserver.PlayerListS2CPacket$EntryMixin"
   ],
   "injectors": {
     "defaultRequire": 1
