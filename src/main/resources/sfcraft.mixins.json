@@ -32,7 +32,8 @@
     "server.subserver.PlayerManagerMixin",
     "server.subserver.PlayerSaveHandlerMixin",
     "server.subserver.ServerPlayerEntityMixin",
-    "server.subserver.PlayerListS2CPacket$EntryMixin"
+    "server.subserver.PlayerListS2CPacket$EntryMixin",
+    "server.optimize.LivingEntityMixin"
   ],
   "injectors": {
     "defaultRequire": 1
