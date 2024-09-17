@@ -28,10 +28,10 @@ special_curl "$SIGNED_URL&directory=/mods" -X POST -F "files=@$UPLOAD"
 echo "Uploaded!"
 
 BROADCAST="[ SFCRAFT UPDATE ] Server is shutting down in 10s, please be ready."
-special_curl "$API_ENDPOINT/api/client/servers/$SERVER_ID/command" -H "Authorization: Bearer $TOKEN" -X POST -d "{\"command\":\"say $BROADCAST\"}"
+special_curl "$API_ENDPOINT/api/client/servers/$SERVER_ID/command" -H "Content-Type: application/json" -H "Accept: application/json" -H "Authorization: Bearer $TOKEN" -X POST -d "{\"command\":\"say $BROADCAST\"}"
 echo "Broadcast is sent!"
 sleep 10s
 
-special_curl "$API_ENDPOINT/api/client/servers/$SERVER_ID/power" -H "Authorization: Bearer $TOKEN" -X POST -d "{\"signal\":\"restart\"}"
+special_curl "$API_ENDPOINT/api/client/servers/$SERVER_ID/power" -H "Content-Type: application/json" -H "Accept: application/json" -H "Authorization: Bearer $TOKEN" -X POST -d "{\"signal\":\"restart\"}"
 echo "Signal is sent!"
 
