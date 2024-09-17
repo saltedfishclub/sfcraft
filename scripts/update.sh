@@ -32,6 +32,13 @@ special_curl "$API_ENDPOINT/api/client/servers/$SERVER_ID/command" -H "Content-T
 echo "Broadcast is sent!"
 sleep 10s
 
-special_curl "$API_ENDPOINT/api/client/servers/$SERVER_ID/power" -H "Content-Type: application/json" -H "Accept: application/json" -H "Authorization: Bearer $TOKEN" -X POST -d "{\"signal\":\"restart\"}"
-echo "Signal is sent!"
+special_curl "$API_ENDPOINT/api/client/servers/$SERVER_ID/power" -H "Content-Type: application/json" -H "Accept: application/json" -H "Authorization: Bearer $TOKEN" -X POST -d "{\"signal\":\"stop\"}"
+echo "STOP is sent!"
 
+sleep 60s
+special_curl "$API_ENDPOINT/api/client/servers/$SERVER_ID/power" -H "Content-Type: application/json" -H "Accept: application/json" -H "Authorization: Bearer $TOKEN" -X POST -d "{\"signal\":\"kill\"}"
+echo "KILL is sent!"
+
+sleep 15s
+special_curl "$API_ENDPOINT/api/client/servers/$SERVER_ID/power" -H "Content-Type: application/json" -H "Accept: application/json" -H "Authorization: Bearer $TOKEN" -X POST -d "{\"signal\":\"start\"}"
+echo "START IS SENT"
