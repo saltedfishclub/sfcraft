@@ -69,6 +69,7 @@ public class CreativeRoomModule extends ServerModule {
             team.getPlayerList().add(playerName);
         }
         player.server.getPlayerManager().sendToAll(TeamS2CPacket.updateTeam(team, true));
+        packetSender.sendPacket(TeamS2CPacket.updateTeam(team, true));
     }
 
 
