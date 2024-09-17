@@ -38,7 +38,7 @@ public class ChatSendLocModule extends ServerModule implements MessageDecorator 
 
     private static Text generateLocText(ServerPlayerEntity sender) {
         if (sender == null) return Text.of(" (invalid position) ");
-        sender.addStatusEffect(new StatusEffectInstance(StatusEffects.GLOWING));
+        sender.addStatusEffect(new StatusEffectInstance(StatusEffects.GLOWING, 30));
         var x = sender.getBlockPos().getX();
         var y = sender.getBlockPos().getY();
         var z = sender.getBlockPos().getZ();
