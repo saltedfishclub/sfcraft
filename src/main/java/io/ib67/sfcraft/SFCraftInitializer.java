@@ -33,6 +33,11 @@ public class SFCraftInitializer extends GuiceModInitializer {
         binder().bind(MinecraftServerSupplier.class).asEagerSingleton();
         registerServices();
         registerFeatures();
+        registerItem();
+    }
+
+    private void registerItem() {
+        SFItem.INSTANCE = new SFItem();
     }
 
     private void registerServices() {

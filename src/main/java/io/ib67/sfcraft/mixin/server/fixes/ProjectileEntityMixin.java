@@ -33,6 +33,7 @@ public class ProjectileEntityMixin {
 
     /**
      * @reason Implement the logic correctly.
+     * @author icybear
      */
     @Overwrite
     public @Nullable Entity getOwner() {
