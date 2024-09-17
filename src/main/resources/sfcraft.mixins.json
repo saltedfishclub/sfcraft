@@ -23,6 +23,7 @@
     "server.bridge.ServerPlayerBridge",
     "server.bridge.ServerWorldBridge",
     "server.fixes.EndermanEntityMixin",
+    "server.fixes.ProjectileEntityMixin",
     "common.MobEntityMixin",
     "server.hack.EntitySpawnS2CPacketMixin",
     "server.hack.RegistryHandlerMixin",
