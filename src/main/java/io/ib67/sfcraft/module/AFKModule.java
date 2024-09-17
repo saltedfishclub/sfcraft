@@ -56,6 +56,7 @@ public class AFKModule extends ServerModule {
     }
 
     private void enAFK(ServerPlayerEntity player) {
+        SFCallbacks.PLAYER_AFK.invoker().onAFKStatus(player,true);
         String playerName = player.getName().getLiteralString();
         team.getPlayerList().add(playerName);
         player.server.getPlayerManager().sendToAll(TeamS2CPacket.updateTeam(team, true));
@@ -66,6 +67,7 @@ public class AFKModule extends ServerModule {
     }
 
     public void deAFK(ServerPlayerEntity player) {
+        SFCallbacks.PLAYER_AFK.invoker().onAFKStatus(player,false);
         String playerName = player.getName().getLiteralString();
         team.getPlayerList().remove(playerName);
         player.server.getPlayerManager().sendToAll(TeamS2CPacket.updateTeam(team, true));

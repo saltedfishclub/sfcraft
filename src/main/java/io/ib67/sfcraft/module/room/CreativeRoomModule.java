@@ -5,6 +5,7 @@ import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import io.ib67.sfcraft.ServerModule;
+import io.ib67.sfcraft.callback.SFCallbacks;
 import io.ib67.sfcraft.inject.MinecraftServerSupplier;
 import io.ib67.sfcraft.module.RoomModule;
 import io.ib67.sfcraft.registry.RoomRegistry;
@@ -46,10 +47,15 @@ public class CreativeRoomModule extends ServerModule {
                 .register(this::registerCommand);
         ServerPlayConnectionEvents.JOIN.register(this::onJoin);
         ServerPlayConnectionEvents.DISCONNECT.register(this::onDisconnect);
+        SFCallbacks.PLAYER_AFK.register(this::onAFK);
         room = new CreativeSpaceRoom();
         roomRegistry.registerRoomType(CreativeSpaceRoom.class, CreativeSpaceRoom.WORLD, new CreativeSpaceFactory(room));
         roomRegistry.createRoomOf(CreativeSpaceRoom.class, CreativeSpaceRoom.IDENTIFIER, null, (String) null);
         roomModule.enqueuePregen(CreativeSpaceRoom.WORLD, CreativeSpaceRoom.SPAWN_POS);
+    }
+
+    private void onAFK(ServerPlayerEntity player, boolean b) {
+        if (!b) player.server.getPlayerManager().sendToAll(TeamS2CPacket.updateTeam(team, true));
     }
 
     private void onDisconnect(ServerPlayNetworkHandler serverPlayNetworkHandler, MinecraftServer minecraftServer) {
@@ -71,7 +77,6 @@ public class CreativeRoomModule extends ServerModule {
         player.server.getPlayerManager().sendToAll(TeamS2CPacket.updateTeam(team, true));
         packetSender.sendPacket(TeamS2CPacket.updateTeam(team, true));
     }
-
 
 
     @Override
