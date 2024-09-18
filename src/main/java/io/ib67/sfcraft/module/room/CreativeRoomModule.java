@@ -38,8 +38,7 @@ import java.util.Set;
 public class CreativeRoomModule extends ServerModule {
     private static final Set<String> ALLOWED_VANILLA_COMMANDS = Set.of(
             "minecraft.command.weather",
-            "minecraft.command.time",
-            "minecraft.command.gamerule");
+            "minecraft.command.time");
     @Inject
     private RoomRegistry roomRegistry;
     @Inject
