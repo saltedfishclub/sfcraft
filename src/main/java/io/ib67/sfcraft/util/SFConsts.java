@@ -14,6 +14,7 @@ public class SFConsts {
     public static final Permission<PlayerEntity> USE_BROADCAST_LOCATION = ofSFCPermission("chat.xyz", true);
     public static final Permission<PlayerEntity> COMMAND_BACK = ofSFCPermission("command.back", true);
     public static final Permission<PlayerEntity> UNLIMITED_COMMAND_BACK = ofSFCPermission("command.back.unlimited", false);
+    public static final Permission<PlayerEntity> WORLDEDIT_AT_PLAYGROUND = ofSFCPermission("worldedit", true);
 
     public static final Permission<PlayerEntity> COMMAND_ADDWL = ofSFCPermission("command.addwl", false);
     public static final Permission<PlayerEntity> COMMAND_UNBLOCKSERVER = ofSFCPermission("command.unblockserver", false);
