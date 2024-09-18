@@ -1,7 +1,5 @@
 package io.ib67.sfcraft.mixin.server.subserver;
 
-import com.llamalad7.mixinextras.sugar.Local;
-import com.llamalad7.mixinextras.sugar.ref.LocalRef;
 import io.ib67.sfcraft.SFCraft;
 import io.ib67.sfcraft.module.RoomModule;
 import net.minecraft.registry.DynamicRegistryManager;
@@ -12,13 +10,11 @@ import net.minecraft.world.GameRules;
 import net.minecraft.world.MutableWorldProperties;
 import net.minecraft.world.World;
 import net.minecraft.world.dimension.DimensionType;
-import net.minecraft.world.level.LevelProperties;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.util.function.Supplier;
@@ -40,7 +36,7 @@ public abstract class WorldMixin {
                                        int maxChainedNeighborUpdates, CallbackInfo ci) {
         var id = registryRef.getValue();
         if (id.getNamespace().equals("sfcraft")) { // room
-            customGameRule = SFCraft.getInjector().getInstance(RoomModule.class).readGameRuleForRoom(id);
+            customGameRule = SFCraft.getInjector().getInstance(RoomModule.class).readGameRuleForRoom(registryRef);
         } else {
             customGameRule = properties.getGameRules();
         }

@@ -10,6 +10,7 @@ import io.ib67.sfcraft.config.SFConfig;
 import io.ib67.sfcraft.inject.MinecraftServerSupplier;
 import io.ib67.sfcraft.room.RequestedRoom;
 import io.ib67.sfcraft.registry.RoomRegistry;
+import io.ib67.sfcraft.room.data.RoomWorldDataLoader;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import lombok.SneakyThrows;
@@ -73,16 +74,11 @@ public class RoomModule extends ServerModule {
         for (Pair<RegistryKey<World>, BlockPos> registryKeyBlockPosPair : pregenQueue) {
             var world = serverSupplier.get().getWorld(registryKeyBlockPosPair.getLeft());
             if (world == null) {
-                log.warn("Cannot find world " + registryKeyBlockPosPair.getLeft());
+                log.warn("Cannot find world {}", registryKeyBlockPosPair.getLeft());
                 continue;
             }
             world.getChunkManager().addTicket(ChunkTicketType.START, new ChunkPos(registryKeyBlockPosPair.getRight()), 64, Unit.INSTANCE);
         }
-    }
-
-    @Override
-    public void onDisable() {
-        //todo persistence of gameRulesPerRoom
     }
 
     private void registerCommand(CommandDispatcher<ServerCommandSource> serverCommandSourceCommandDispatcher, CommandRegistryAccess commandRegistryAccess, CommandManager.RegistrationEnvironment registrationEnvironment) {
@@ -103,7 +99,7 @@ public class RoomModule extends ServerModule {
         networkHandler.send(new StoreCookieS2CPacket(ROOM_COOKIE, EMPTY), PacketCallbacks.always(() -> {
             networkHandler.sendPacket(new ServerTransferS2CPacket(config.domain, serverSupplier.get().getServerPort()));
         }));
-        return 0;
+        return 1;
     }
 
     @SneakyThrows
@@ -160,9 +156,7 @@ public class RoomModule extends ServerModule {
     private static SecretKey getKeyFromPassword(String password, String salt) {
         SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
         KeySpec spec = new PBEKeySpec(password.toCharArray(), salt.getBytes(), 65536, 256);
-        SecretKey secret = new SecretKeySpec(factory.generateSecret(spec)
-                .getEncoded(), "AES");
-        return secret;
+        return new SecretKeySpec(factory.generateSecret(spec).getEncoded(), "AES");
     }
 
     public void enqueuePregen(RegistryKey<World> world, BlockPos spawnPos) {
@@ -184,7 +178,7 @@ public class RoomModule extends ServerModule {
         return uuidMapper.get(virtual);
     }
 
-    public GameRules readGameRuleForRoom(Identifier identifier){
-        return gameRulesPerRoom.computeIfAbsent(identifier, k -> new GameRules());
+    public GameRules readGameRuleForRoom(RegistryKey<World> key){
+        return RoomWorldDataLoader.get(serverSupplier.get().getWorld(key)).getGameRules();
     }
 }
