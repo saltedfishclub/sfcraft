@@ -20,6 +20,7 @@
     "sfcraft.mixins.json"
   ],
   "depends": {
+    "fabric-permissions-api-v0": "*",
     "fabricloader": ">=${loader_version}",
     "fabric": "*",
     "minecraft": "${minecraft_version}"

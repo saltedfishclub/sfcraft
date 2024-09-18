@@ -1,5 +1,6 @@
 package io.ib67.sfcraft.util;
 
+import me.lucko.fabric.api.permissions.v0.Permissions;
 import net.minecraft.entity.Entity;
 
 import java.util.Objects;
@@ -21,28 +22,10 @@ public record Permission<T extends Entity>(String key, boolean byDefault) {
     }
 
     public boolean hasPermission(T t) {
-        if (t.getCommandTags().contains(SFConsts.SPECIAL_SUDO)) return true;
+        if (Permissions.check(t, SFConsts.SPECIAL_SUDO)) return true;
         if (byDefault) {
-            return !t.getCommandTags().contains("-" + key);
+            return !Permissions.check(t, "-"+key);
         }
-        return t.getCommandTags().contains(key);
-    }
-
-    public void grant(T t) {
-        if (!hasPermission(t)) {
-            t.getCommandTags().remove("-" + key);
-            if (!byDefault) {
-                t.addCommandTag(key);
-            }
-        }
-    }
-
-    public void revoke(T t) {
-        if (hasPermission(t)) {
-            t.removeCommandTag(key);
-            if (byDefault) {
-                t.addCommandTag("-" + key);
-            }
-        }
+        return Permissions.check(t, key);
     }
 }
