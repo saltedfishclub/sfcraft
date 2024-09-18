@@ -15,7 +15,7 @@ on:
     branches: [ "master" ]
 jobs:
   build:
-    if: startsWith(github.event.head_commit.message, '(update)')
+    if: github.event_name == 'schedule' || startsWith(github.event.head_commit.message, '(update)')
     runs-on: ubuntu-latest
     permissions:
       contents: read
