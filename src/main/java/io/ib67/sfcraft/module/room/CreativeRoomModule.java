@@ -65,7 +65,7 @@ public class CreativeRoomModule extends ServerModule {
         roomRegistry.createRoomOf(CreativeSpaceRoom.class, CreativeSpaceRoom.IDENTIFIER, null, (String) null);
         roomModule.enqueuePregen(CreativeSpaceRoom.WORLD, CreativeSpaceRoom.SPAWN_POS);
     }
-    //todo: support for vanilla permissions
+
     private @NotNull TriState onVanillaCommands(@NotNull CommandSource commandSource, @NotNull String s) {
         if (commandSource instanceof ServerCommandSource source && source.getPlayer() != null) {
             var p = source.getPlayer();
