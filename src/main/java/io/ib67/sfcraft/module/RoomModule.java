@@ -30,6 +30,7 @@ import net.minecraft.util.Pair;
 import net.minecraft.util.Unit;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;
+import net.minecraft.world.GameRules;
 import net.minecraft.world.World;
 import org.apache.commons.lang3.RandomStringUtils;
 
@@ -59,6 +60,7 @@ public class RoomModule extends ServerModule {
     private Key key;
     private final List<Pair<RegistryKey<World>, BlockPos>> pregenQueue = new ArrayList<>();
     private final Map<UUID, GameProfile> uuidMapper = new ConcurrentHashMap<>();
+    private final Map<Identifier, GameRules> gameRulesPerRoom = new HashMap<>();
 
     @Override
     public void onInitialize() {
@@ -76,6 +78,11 @@ public class RoomModule extends ServerModule {
             }
             world.getChunkManager().addTicket(ChunkTicketType.START, new ChunkPos(registryKeyBlockPosPair.getRight()), 64, Unit.INSTANCE);
         }
+    }
+
+    @Override
+    public void onDisable() {
+        //todo persistence of gameRulesPerRoom
     }
 
     private void registerCommand(CommandDispatcher<ServerCommandSource> serverCommandSourceCommandDispatcher, CommandRegistryAccess commandRegistryAccess, CommandManager.RegistrationEnvironment registrationEnvironment) {
@@ -100,14 +107,14 @@ public class RoomModule extends ServerModule {
     }
 
     @SneakyThrows
-    public byte[] encrypt(byte[] b) {
+    byte[] encrypt(byte[] b) {
         var cipher = Cipher.getInstance("AES");
         cipher.init(Cipher.ENCRYPT_MODE, key);
         return cipher.doFinal(b);
     }
 
     @SneakyThrows
-    public byte[] decrypt(byte[] b) {
+    byte[] decrypt(byte[] b) {
         var cipher = Cipher.getInstance("AES");
         cipher.init(Cipher.DECRYPT_MODE, key);
         return cipher.doFinal(b);
@@ -175,5 +182,9 @@ public class RoomModule extends ServerModule {
 
     public GameProfile devirtualize(UUID virtual) {
         return uuidMapper.get(virtual);
+    }
+
+    public GameRules readGameRuleForRoom(Identifier identifier){
+        return gameRulesPerRoom.computeIfAbsent(identifier, k -> new GameRules());
     }
 }

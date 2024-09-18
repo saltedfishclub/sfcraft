@@ -34,6 +34,8 @@
     "server.subserver.PlayerSaveHandlerMixin",
     "server.subserver.ServerPlayerEntityMixin",
     "server.subserver.PlayerListS2CPacket$EntryMixin",
+    "server.subserver.WorldMixin",
+    "server.subserver.GameRuleCommandMixin",
     "server.optimize.LivingEntityMixin"
   ],
   "injectors": {
