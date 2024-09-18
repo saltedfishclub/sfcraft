@@ -25,6 +25,7 @@ import net.minecraft.registry.RegistryKey;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.world.ChunkTicketType;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.Pair;
@@ -178,7 +179,7 @@ public class RoomModule extends ServerModule {
         return uuidMapper.get(virtual);
     }
 
-    public GameRules readGameRuleForRoom(RegistryKey<World> key){
-        return RoomWorldDataLoader.get(serverSupplier.get().getWorld(key)).getGameRules();
+    public GameRules readGameRuleForRoom(ServerWorld world){
+        return RoomWorldDataLoader.get(world).getGameRules();
     }
 }

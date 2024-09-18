@@ -7,7 +7,6 @@ import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.server.world.ServerWorld;
-import net.minecraft.util.Identifier;
 import net.minecraft.world.GameRules;
 import net.minecraft.world.PersistentState;
 
@@ -16,7 +15,7 @@ import java.util.Objects;
 @Getter
 public class RoomWorldDataLoader extends PersistentState {
 
-    private static final Identifier ID = Identifier.of("sfcraft", "room_data");
+    private static final String NAME = "sfcraft_room_data";
     private static final Type<RoomWorldDataLoader> TYPE = new Type<>(RoomWorldDataLoader::new, RoomWorldDataLoader::readNbt, DataFixTypes.LEVEL);
 
     private static final String TAG_GAME_RULES = "gameRules";
@@ -33,7 +32,7 @@ public class RoomWorldDataLoader extends PersistentState {
 
     public static RoomWorldDataLoader get(ServerWorld world) {
         Objects.requireNonNull(world);
-        var state = world.getPersistentStateManager().getOrCreate(TYPE, ID.toString());
+        var state = world.getPersistentStateManager().getOrCreate(TYPE, NAME);
         state.markDirty();
         return state;
     }
