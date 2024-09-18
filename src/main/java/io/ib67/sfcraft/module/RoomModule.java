@@ -10,6 +10,7 @@ import io.ib67.sfcraft.config.SFConfig;
 import io.ib67.sfcraft.inject.MinecraftServerSupplier;
 import io.ib67.sfcraft.room.RequestedRoom;
 import io.ib67.sfcraft.registry.RoomRegistry;
+import io.ib67.sfcraft.room.data.RoomWorldDataLoader;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import lombok.SneakyThrows;
@@ -24,12 +25,14 @@ import net.minecraft.registry.RegistryKey;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.world.ChunkTicketType;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.Pair;
 import net.minecraft.util.Unit;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;
+import net.minecraft.world.GameRules;
 import net.minecraft.world.World;
 import org.apache.commons.lang3.RandomStringUtils;
 
@@ -59,6 +62,7 @@ public class RoomModule extends ServerModule {
     private Key key;
     private final List<Pair<RegistryKey<World>, BlockPos>> pregenQueue = new ArrayList<>();
     private final Map<UUID, GameProfile> uuidMapper = new ConcurrentHashMap<>();
+    private final Map<Identifier, GameRules> gameRulesPerRoom = new HashMap<>();
 
     @Override
     public void onInitialize() {
@@ -71,7 +75,7 @@ public class RoomModule extends ServerModule {
         for (Pair<RegistryKey<World>, BlockPos> registryKeyBlockPosPair : pregenQueue) {
             var world = serverSupplier.get().getWorld(registryKeyBlockPosPair.getLeft());
             if (world == null) {
-                log.warn("Cannot find world " + registryKeyBlockPosPair.getLeft());
+                log.warn("Cannot find world {}", registryKeyBlockPosPair.getLeft());
                 continue;
             }
             world.getChunkManager().addTicket(ChunkTicketType.START, new ChunkPos(registryKeyBlockPosPair.getRight()), 64, Unit.INSTANCE);
@@ -96,18 +100,18 @@ public class RoomModule extends ServerModule {
         networkHandler.send(new StoreCookieS2CPacket(ROOM_COOKIE, EMPTY), PacketCallbacks.always(() -> {
             networkHandler.sendPacket(new ServerTransferS2CPacket(config.domain, serverSupplier.get().getServerPort()));
         }));
-        return 0;
+        return 1;
     }
 
     @SneakyThrows
-    public byte[] encrypt(byte[] b) {
+    byte[] encrypt(byte[] b) {
         var cipher = Cipher.getInstance("AES");
         cipher.init(Cipher.ENCRYPT_MODE, key);
         return cipher.doFinal(b);
     }
 
     @SneakyThrows
-    public byte[] decrypt(byte[] b) {
+    byte[] decrypt(byte[] b) {
         var cipher = Cipher.getInstance("AES");
         cipher.init(Cipher.DECRYPT_MODE, key);
         return cipher.doFinal(b);
@@ -153,9 +157,7 @@ public class RoomModule extends ServerModule {
     private static SecretKey getKeyFromPassword(String password, String salt) {
         SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
         KeySpec spec = new PBEKeySpec(password.toCharArray(), salt.getBytes(), 65536, 256);
-        SecretKey secret = new SecretKeySpec(factory.generateSecret(spec)
-                .getEncoded(), "AES");
-        return secret;
+        return new SecretKeySpec(factory.generateSecret(spec).getEncoded(), "AES");
     }
 
     public void enqueuePregen(RegistryKey<World> world, BlockPos spawnPos) {
@@ -175,5 +177,9 @@ public class RoomModule extends ServerModule {
 
     public GameProfile devirtualize(UUID virtual) {
         return uuidMapper.get(virtual);
+    }
+
+    public GameRules readGameRuleForRoom(ServerWorld world){
+        return RoomWorldDataLoader.get(world).getGameRules();
     }
 }
