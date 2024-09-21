@@ -31,7 +31,7 @@ BROADCAST="Server is shutting down in 10s, please be ready."
 UPDATE_CONTENT_COMMAND="tellraw @a {\"text\":$(echo $COMMIT_AUTHOR: $COMMIT_MESSAGE | jq -Ra .)}"
 UPDATE_CONTENT_COMMAND=$(echo $UPDATE_CONTENT_COMMAND | jq -Ra .)
 echo $UPDATE_CONTENT_COMMAND
-special_curl "$API_ENDPOINT/api/client/servers/$SERVER_ID/command" -H "Content-Type: application/json" -H "Accept: application/json" -H "Authorization: Bearer $TOKEN" -X POST -d '{"command":"tellraw @a [{\"text\":\"< SFCRAFT UPDATE >\n\n\",\"color\":\"aqua\"}]"}'
+special_curl "$API_ENDPOINT/api/client/servers/$SERVER_ID/command" -H "Content-Type: application/json" -H "Accept: application/json" -H "Authorization: Bearer $TOKEN" -X POST -d '{"command":"tellraw @a [{\"text\":\"< SFCRAFT UPDATE >\\n\\n\",\"color\":\"aqua\"}]"}'
 special_curl "$API_ENDPOINT/api/client/servers/$SERVER_ID/command" -H "Content-Type: application/json" -H "Accept: application/json" -H "Authorization: Bearer $TOKEN" -X POST -d "{\"command\":$UPDATE_CONTENT_COMMAND}"
 sleep 1s
 special_curl "$API_ENDPOINT/api/client/servers/$SERVER_ID/command" -H "Content-Type: application/json" -H "Accept: application/json" -H "Authorization: Bearer $TOKEN" -X POST -d "{\"command\":\"say $BROADCAST\"}"
