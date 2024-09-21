@@ -28,8 +28,10 @@ special_curl "$SIGNED_URL&directory=/mods" -X POST -F "files=@$UPLOAD"
 echo "Uploaded!"
 
 BROADCAST="Server is shutting down in 10s, please be ready."
-UPDATE_CONTENT_COMMAND="tellraw @a {\"text\":\"$COMMIT_AUTHOR: $(echo $COMMIT_MESSAGE | jq -Rsa .)\"}"
+UPDATE_CONTENT_COMMAND="tellraw @a {\"text\":$(echo $COMMIT_AUTHOR: $COMMIT_MESSAGE | jq -Rsa .)}"
+UPDATE_CONTENT_COMMAND=$(echo $UPDATE_CONTENT_COMMAND | jq -Ra .)
 UPDATE_BRD_COMMAND='tellraw @a [{"text":"< SFCRAFT UPDATE >\n\n","color":"aqua"}]'
+UPDATE_BRD_COMMAND=$(echo $UPDATE_BRD_COMMAND | jq -Ra .)
 special_curl "$API_ENDPOINT/api/client/servers/$SERVER_ID/command" -H "Content-Type: application/json" -H "Accept: application/json" -H "Authorization: Bearer $TOKEN" -X POST -d "{\"command\":\"$UPDATE_BRD_COMMAND\"}"
 special_curl "$API_ENDPOINT/api/client/servers/$SERVER_ID/command" -H "Content-Type: application/json" -H "Accept: application/json" -H "Authorization: Bearer $TOKEN" -X POST -d "{\"command\":\"$UPDATE_CONTENT_COMMAND\"}"
 sleep 1s
