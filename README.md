@@ -1,9 +1,23 @@
 # SFCraft
 
-本仓库为 S.F Craft 服务器的功能 Mod, S.F Craft 是一个邀请制的纯原版生存服务器。  
-本插件专门为 SFC 定制，因此您可能需要花费大多功夫来将其用在你的服务器上（比如修改大量的硬编码字符串，强制启用的功能，等等），因此，并不建议这么做。  
+SFCraft is a fabric mod tailored for the Minecraft server of the same name, including many fixes, features and other functionality.
 
-本仓库开源供有能力的玩家贡献。[贡献指南](./CONTRIBUTING.md)
+It is not recommended to use this mod on your server without proper modification. Things like constant values, missing feature options can break the consistency of your server.
 
-# 特性
-太多，懒得写
+This project is open source to allow players to contribute. [Contribution GUIDE](./CONTRIBUTING.md)
+
+You may also need our source if you're implementing some of the features listed below.
+
+# Features
+
+1. Hybrid offline & online authentication: Check [ServerLoginNetworkHandlerMixin](src/main/java/io/ib67/sfcraft/mixin/server/ServerLoginNetworkHandlerMixin.java)
+2. Worldwide regions, which divide the server into multiple "rooms" with data strictly isolated: See [this blog](https://blog.0w0.ing/2024/07/17/multiserver-based-on-one-utilizing-transfer/)
+  The implementation is mainly in [subserver](src/main/java/io/ib67/sfcraft/mixin/server/subserver/)
+3. Server-side entities, the custom entities, but tied to the vanilla module: Check and look for references to [SFEntityType] (src/main/java/io/ib67/sfcraft/SFEntityType.java)
+4. .. and more.
+
+Besides the above, there are also many tiny features in the [module](src/main/java/io/ib67/sfcraft/module/) package.
+
+# About our server
+
+SFCraft is a whitelisted Minecraft server. To join us, contact @iceBear67 in telegram (We chat in Chinese.)

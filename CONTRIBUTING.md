@@ -1,6 +1,6 @@
 # 贡献指南
 
-欢迎！
+欢迎！如果你想提交投影文件，请前往[此处](https://github.com/saltedfishclub/sfcraft-schematics)
 
 ## 贡献流程
 首先，你需要新建一个有关修改内容的分支（如果你没有本仓库的修改权限，请自行 Fork），然后在里面提交代码，最后你就可以发起 Pull Request 并且等待我们审查你的代码了。
