@@ -28,7 +28,7 @@ special_curl "$SIGNED_URL&directory=/mods" -X POST -F "files=@$UPLOAD"
 echo "Uploaded!"
 
 BROADCAST="Server is shutting down in 10s, please be ready."
-UPDATE_CONTENT_COMMAND="tellraw @a {\"text\":$(echo $COMMIT_AUTHOR: $COMMIT_MESSAGE | jq -Rsa .)}"
+UPDATE_CONTENT_COMMAND="tellraw @a {\"text\":$(echo $COMMIT_AUTHOR: $COMMIT_MESSAGE | jq -Ra .)}"
 UPDATE_CONTENT_COMMAND=$(echo $UPDATE_CONTENT_COMMAND | jq -Ra .)
 echo $UPDATE_CONTENT_COMMAND
 UPDATE_BRD_COMMAND='tellraw @a [{"text":"< SFCRAFT UPDATE >\n\n","color":"aqua"}]'
