@@ -102,6 +102,7 @@ public class CreativeRoomModule extends ServerModule {
         String playerName = player.getName().getLiteralString();
         team.getPlayerList().remove(playerName);
         player.server.getPlayerManager().sendToAll(TeamS2CPacket.updateTeam(team, true));
+        player.server.getPlayerManager().sendToAll(TeamS2CPacket.changePlayerTeam(team, playerName, TeamS2CPacket.Operation.REMOVE));
     }
 
     private void onJoin(ServerPlayNetworkHandler serverPlayNetworkHandler, PacketSender packetSender, MinecraftServer minecraftServer) {
