@@ -28,12 +28,15 @@ special_curl "$SIGNED_URL&directory=/mods" -X POST -F "files=@$UPLOAD"
 echo "Uploaded!"
 
 BROADCAST="Server is shutting down in 10s, please be ready."
-UPDATE_CONTENT="[ SFCRAFT UPDATE ] $COMMIT_MESSAGE by $COMMIT_AUTHOR"
-special_curl "$API_ENDPOINT/api/client/servers/$SERVER_ID/command" -H "Content-Type: application/json" -H "Accept: application/json" -H "Authorization: Bearer $TOKEN" -X POST -d "{\"command\":\"say $UPDATE_CONTENT\"}"
+UPDATE_CONTENT_COMMAND="tellraw @a {\"text\":\"$COMMIT_AUTHOR: $(echo $COMMIT_MESSAGE | jq -Rsa .)\"}"
+UPDATE_BRD_COMMAND='tellraw @a [{"text":"< SFCRAFT UPDATE >\n\n","color":"aqua"}]'
+special_curl "$API_ENDPOINT/api/client/servers/$SERVER_ID/command" -H "Content-Type: application/json" -H "Accept: application/json" -H "Authorization: Bearer $TOKEN" -X POST -d "{\"command\":\"$UPDATE_BRD_COMMAND\"}"
+special_curl "$API_ENDPOINT/api/client/servers/$SERVER_ID/command" -H "Content-Type: application/json" -H "Accept: application/json" -H "Authorization: Bearer $TOKEN" -X POST -d "{\"command\":\"$UPDATE_CONTENT_COMMAND\"}"
 sleep 1s
 special_curl "$API_ENDPOINT/api/client/servers/$SERVER_ID/command" -H "Content-Type: application/json" -H "Accept: application/json" -H "Authorization: Bearer $TOKEN" -X POST -d "{\"command\":\"say $BROADCAST\"}"
 echo "Broadcast is sent!"
 sleep 10s
+exit 0
 
 special_curl "$API_ENDPOINT/api/client/servers/$SERVER_ID/power" -H "Content-Type: application/json" -H "Accept: application/json" -H "Authorization: Bearer $TOKEN" -X POST -d "{\"signal\":\"stop\"}"
 echo "STOP is sent!"
