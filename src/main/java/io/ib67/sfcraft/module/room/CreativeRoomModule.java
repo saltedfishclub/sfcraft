@@ -21,7 +21,6 @@ import net.fabricmc.fabric.api.util.TriState;
 import net.minecraft.command.CommandRegistryAccess;
 import net.minecraft.command.CommandSource;
 import net.minecraft.network.packet.s2c.play.TeamS2CPacket;
-import net.minecraft.registry.RegistryKey;
 import net.minecraft.scoreboard.Team;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.command.CommandManager;
@@ -30,16 +29,17 @@ import net.minecraft.server.network.ServerPlayNetworkHandler;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.Colors;
-import net.minecraft.world.chunk.ChunkStatus;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Set;
 
 public class CreativeRoomModule extends ServerModule {
-    private static final Set<String> ALLOWED_VANILLA_COMMANDS = Set.of(
+    private static final Set<String> BYPASS_PERMISSIONS = Set.of(
             "minecraft.command.weather",
             "minecraft.command.time",
-            "minecraft.command.gamerule");
+            "minecraft.command.gamerule",
+            "carpet.command.player",
+            "carpet.command.track");
     @Inject
     private RoomRegistry roomRegistry;
     @Inject
@@ -58,7 +58,7 @@ public class CreativeRoomModule extends ServerModule {
         ServerPlayConnectionEvents.JOIN.register(this::onJoin);
         ServerPlayConnectionEvents.DISCONNECT.register(this::onDisconnect);
         PermissionCheckEvent.EVENT.register(this::onWorldEdit);
-        PermissionCheckEvent.EVENT.register(this::onVanillaCommands);
+        PermissionCheckEvent.EVENT.register(this::onOtherCommands);
         SFCallbacks.PLAYER_AFK.register(this::onAFK);
         room = new CreativeSpaceRoom();
         roomRegistry.registerRoomType(CreativeSpaceRoom.class, CreativeSpaceRoom.WORLD, new CreativeSpaceFactory(room));
@@ -66,11 +66,11 @@ public class CreativeRoomModule extends ServerModule {
         roomModule.enqueuePregen(CreativeSpaceRoom.WORLD, CreativeSpaceRoom.SPAWN_POS);
     }
 
-    private @NotNull TriState onVanillaCommands(@NotNull CommandSource commandSource, @NotNull String s) {
+    private @NotNull TriState onOtherCommands(@NotNull CommandSource commandSource, @NotNull String s) {
         if (commandSource instanceof ServerCommandSource source && source.getPlayer() != null) {
             var p = source.getPlayer();
             if (p.getServerWorld().getRegistryKey().equals(CreativeSpaceRoom.WORLD)) {
-                if (ALLOWED_VANILLA_COMMANDS.contains(s)) {
+                if (BYPASS_PERMISSIONS.contains(s)) {
                     return TriState.TRUE;
                 }
             }
