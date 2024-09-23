@@ -91,7 +91,10 @@ public class CreativeRoomModule extends ServerModule {
     }
 
     private void onAFK(ServerPlayerEntity player, boolean b) {
-        if (!b) player.server.getPlayerManager().sendToAll(TeamS2CPacket.updateTeam(team, true));
+        if (!b) {
+            player.server.getPlayerManager().sendToAll(TeamS2CPacket.changePlayerTeam(team, player.getName().getLiteralString(), TeamS2CPacket.Operation.ADD));
+            player.server.getPlayerManager().sendToAll(TeamS2CPacket.updateTeam(team, true));
+        }
     }
 
     private void onDisconnect(ServerPlayNetworkHandler serverPlayNetworkHandler, MinecraftServer minecraftServer) {
