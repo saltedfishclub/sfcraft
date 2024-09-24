@@ -59,6 +59,7 @@ public class SFCraftInitializer extends GuiceModInitializer {
         registerFeature(ModCompatModule.class);
         registerFeature(RoomModule.class);
         registerFeature(CreativeRoomModule.class);
+        registerFeature(GpsModule.class);
     }
 
     @Override

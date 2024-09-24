@@ -22,12 +22,14 @@ public class SFEntityType {
     public static final EntityType<SFGuiderEntity> GUIDER = Registry.register(
             Registries.ENTITY_TYPE,
             Identifier.of("sfcraft", "guider"),
-            EntityType.Builder.create(SFGuiderEntity::new, SpawnGroup.CREATURE)
+            EntityType.Builder.<SFGuiderEntity>create(SFGuiderEntity::new, SpawnGroup.CREATURE)
                     .dimensions(0.35F, 0.6F)
                     .eyeHeight(0.36F)
                     .vehicleAttachment(0.04F)
                     .maxTrackingRange(8)
-                    .trackingTickInterval(2).build()
+                    .trackingTickInterval(2)
+                    .disableSaving()
+                    .build()
     );
     private static SFEntityType registry;
     private final Map<EntityType<?>, EntityType<?>> mappedEntityTypes = new ConcurrentHashMap<>();
