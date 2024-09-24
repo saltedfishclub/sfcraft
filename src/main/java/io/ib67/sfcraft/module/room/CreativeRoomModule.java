@@ -39,7 +39,9 @@ public class CreativeRoomModule extends ServerModule {
             "minecraft.command.time",
             "minecraft.command.gamerule",
             "carpet.command.player",
-            "carpet.command.track");
+            "carpet.command.track",
+            "minecraft.command.setblock",
+            "minecraft.command.summon");
     @Inject
     private RoomRegistry roomRegistry;
     @Inject
