@@ -1,4 +1,4 @@
-package io.ib67.sfcraft.module.chat;
+package io.ib67.sfcraft.module.chat.decorator;
 
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;

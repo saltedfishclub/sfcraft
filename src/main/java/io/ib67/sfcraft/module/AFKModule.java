@@ -4,6 +4,8 @@ import com.google.inject.Inject;
 import io.ib67.sfcraft.ServerModule;
 import io.ib67.sfcraft.callback.SFCallbacks;
 import io.ib67.sfcraft.inject.MinecraftServerSupplier;
+import io.ib67.sfcraft.module.chat.ChatPrefix;
+import io.ib67.sfcraft.module.chat.ChatPrefixModule;
 import net.fabricmc.fabric.api.networking.v1.PacketSender;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.minecraft.network.packet.s2c.play.TeamS2CPacket;
@@ -19,33 +21,21 @@ import java.util.Objects;
 public class AFKModule extends ServerModule {
     @Inject
     private MinecraftServerSupplier serverSupplier;
-    private Team team;
+    @Inject
+    private ChatPrefixModule chatPrefixModule;
+    private ChatPrefix prefix;
 
     @Override
     public void onInitialize() {
         SFCallbacks.PLAYER_IDLE.register(this::onAFK);
-        ServerPlayConnectionEvents.JOIN.register(this::onJoin);
-        ServerPlayConnectionEvents.DISCONNECT.register(this::onDisconnect);
+        prefix = new ChatPrefix(
+                Text.literal("[挂机] ").withColor(Colors.LIGHT_GRAY),
+                "afk",
+                true,
+                10
+        );
     }
 
-    private void onDisconnect(ServerPlayNetworkHandler serverPlayNetworkHandler, MinecraftServer server) {
-        if (team != null) {
-            var name = serverPlayNetworkHandler.getPlayer().getName().getLiteralString();
-            if (team.getPlayerList().contains(name)) {
-                team.getPlayerList().remove(name);
-                server.getPlayerManager().sendToAll(TeamS2CPacket.updateTeam(team, true));
-                server.getPlayerManager().sendToAll(TeamS2CPacket.changePlayerTeam(team, name, TeamS2CPacket.Operation.REMOVE));
-            }
-        }
-    }
-
-    @Override
-    public void onEnable() {
-        if (team == null) {
-            team = new Team(serverSupplier.get().getScoreboard(), "afk");
-            team.setPrefix(Text.literal("[挂机] ").withColor(Colors.LIGHT_GRAY));
-        }
-    }
 
     private void onAFK(ServerPlayerEntity player, boolean afk) {
         if (afk) {
@@ -56,31 +46,21 @@ public class AFKModule extends ServerModule {
     }
 
     private void enAFK(ServerPlayerEntity player) {
-        String playerName = player.getName().getLiteralString();
-        team.getPlayerList().add(playerName);
-        player.server.getPlayerManager().sendToAll(TeamS2CPacket.updateTeam(team, true));
+        chatPrefixModule.applyPrefix(player, prefix);
         player.server.getPlayerManager().broadcast(
-                Text.literal(" * " + playerName + " 正在挂机.").withColor(Colors.LIGHT_GRAY),
+                Text.literal(" * " + player.getName().getLiteralString() + " 正在挂机.").withColor(Colors.LIGHT_GRAY),
                 false
         );
-        SFCallbacks.PLAYER_AFK.invoker().onAFKStatus(player,true);
+        SFCallbacks.PLAYER_AFK.invoker().onAFKStatus(player, true);
     }
 
     public void deAFK(ServerPlayerEntity player) {
         String playerName = player.getName().getLiteralString();
-        team.getPlayerList().remove(playerName);
-        player.server.getPlayerManager().sendToAll(TeamS2CPacket.updateTeam(team, true));
-        player.server.getPlayerManager().sendToAll(TeamS2CPacket.changePlayerTeam(team, playerName, TeamS2CPacket.Operation.REMOVE));
+        chatPrefixModule.removePrefix(player, prefix);
         player.server.getPlayerManager().broadcast(
                 Text.literal(" * " + playerName + " 回来了.").withColor(Colors.LIGHT_GRAY),
                 false
         );
-        SFCallbacks.PLAYER_AFK.invoker().onAFKStatus(player,false);
-    }
-
-    private void onJoin(ServerPlayNetworkHandler serverPlayNetworkHandler, PacketSender packetSender, MinecraftServer minecraftServer) {
-        if (team != null) {
-            packetSender.sendPacket(TeamS2CPacket.updateTeam(team, true));
-        }
+        SFCallbacks.PLAYER_AFK.invoker().onAFKStatus(player, false);
     }
 }

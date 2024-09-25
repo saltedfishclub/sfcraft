@@ -1,4 +1,4 @@
-package io.ib67.sfcraft.module.chat;
+package io.ib67.sfcraft.module.chat.decorator;
 
 import com.google.inject.Inject;
 import io.ib67.sfcraft.ServerModule;
@@ -9,7 +9,6 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.network.message.MessageDecorator;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.sound.SoundCategory;
-import net.minecraft.sound.SoundEvent;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
 import net.minecraft.util.Colors;

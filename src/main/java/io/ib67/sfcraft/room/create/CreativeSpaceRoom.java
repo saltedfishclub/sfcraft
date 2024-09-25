@@ -1,5 +1,6 @@
 package io.ib67.sfcraft.room.create;
 
+import io.ib67.sfcraft.module.room.CreativeRoomModule;
 import io.ib67.sfcraft.subserver.Room;
 import io.ib67.sfcraft.subserver.RoomPlayerManager;
 import lombok.Getter;
@@ -18,8 +19,8 @@ public class CreativeSpaceRoom implements Room {
     @Getter
     private final RoomPlayerManager playerManager;
 
-    public CreativeSpaceRoom() {
-        this.playerManager = new CreativePlayerManager(this);
+    public CreativeSpaceRoom(CreativeRoomModule module) {
+        this.playerManager = new CreativePlayerManager(this,module);
     }
 
     @Override

@@ -4,8 +4,9 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.inject.*;
 import io.ib67.sfcraft.module.*;
-import io.ib67.sfcraft.module.chat.ChatPingModule;
-import io.ib67.sfcraft.module.chat.ChatSendLocModule;
+import io.ib67.sfcraft.module.chat.ChatPrefixModule;
+import io.ib67.sfcraft.module.chat.decorator.ChatPingModule;
+import io.ib67.sfcraft.module.chat.decorator.ChatSendLocModule;
 import io.ib67.sfcraft.module.compat.ModCompatModule;
 import io.ib67.sfcraft.module.randomevt.LongNightModule;
 import io.ib67.sfcraft.module.room.CreativeRoomModule;
@@ -59,6 +60,7 @@ public class SFCraftInitializer extends GuiceModInitializer {
         registerFeature(ModCompatModule.class);
         registerFeature(RoomModule.class);
         registerFeature(CreativeRoomModule.class);
+        registerFeature(ChatPrefixModule.class);
     }
 
     @Override

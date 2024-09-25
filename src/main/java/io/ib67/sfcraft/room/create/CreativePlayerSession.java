@@ -1,5 +1,6 @@
 package io.ib67.sfcraft.room.create;
 
+import io.ib67.sfcraft.module.room.CreativeRoomModule;
 import io.ib67.sfcraft.subserver.Room;
 import io.ib67.sfcraft.subserver.RoomSession;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -13,9 +14,11 @@ import java.util.UUID;
 
 public class CreativePlayerSession extends RoomSession {
     private final GlobalPos spawn;
+    protected final CreativeRoomModule module;
 
-    protected CreativePlayerSession(Room room) {
+    protected CreativePlayerSession(Room room, CreativeRoomModule module) {
         super(room);
+        this.module = module;
         spawn = new GlobalPos(
                 CreativeSpaceRoom.WORLD,
                 CreativeSpaceRoom.SPAWN_POS
@@ -24,10 +27,7 @@ public class CreativePlayerSession extends RoomSession {
 
     @Override
     public void onPlayerJoin(ServerPlayerEntity player) {
-        player.sendMessage(Text.of("你现在正在创造游乐园中。"));
-        player.sendMessage(Text.literal("游乐园中的生物不能逃逸到其他维度。").withColor(Colors.GRAY));
-        player.sendMessage(Text.literal("使用 /reco 或重新加入游戏即可离开。").withColor(Colors.GRAY));
-        player.changeGameMode(GameMode.CREATIVE);
+        module.onPlayerJoin(player);
     }
 
     @Override
@@ -42,6 +42,6 @@ public class CreativePlayerSession extends RoomSession {
 
     @Override
     public void onPlayerQuit(ServerPlayerEntity player) {
-
+        module.onPlayerQuit(player);
     }
 }

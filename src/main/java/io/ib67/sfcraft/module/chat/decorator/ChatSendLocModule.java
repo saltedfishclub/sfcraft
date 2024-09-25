@@ -1,4 +1,4 @@
-package io.ib67.sfcraft.module.chat;
+package io.ib67.sfcraft.module.chat.decorator;
 
 import com.google.inject.Inject;
 import io.ib67.sfcraft.ServerModule;
@@ -6,7 +6,6 @@ import io.ib67.sfcraft.registry.chat.SimpleMessageDecorator;
 import io.ib67.sfcraft.util.Helper;
 import io.ib67.sfcraft.util.SFConsts;
 import net.minecraft.entity.effect.StatusEffectInstance;
-import net.minecraft.entity.effect.StatusEffectUtil;
 import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.network.message.MessageDecorator;
 import net.minecraft.registry.RegistryKey;
