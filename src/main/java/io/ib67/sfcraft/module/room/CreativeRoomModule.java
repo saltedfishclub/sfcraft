@@ -45,7 +45,8 @@ public class CreativeRoomModule extends ServerModule {
             "carpet.command.player",
             "carpet.command.track",
             "minecraft.command.setblock",
-            "minecraft.command.summon");
+            "minecraft.command.summon",
+            "carpet.command.player.gamemode");
     @Inject
     private RoomRegistry roomRegistry;
     @Inject
@@ -131,7 +132,6 @@ public class CreativeRoomModule extends ServerModule {
     }
 
     public void onPlayerQuit(ServerPlayerEntity player) {
-        System.out.println(player.getUuid());
         chatPrefixModule.removePrefix(player, prefix);
     }
 }
