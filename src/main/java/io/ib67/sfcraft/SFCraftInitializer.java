@@ -37,7 +37,7 @@ public class SFCraftInitializer extends GuiceModInitializer {
     }
 
     private void registerItem() {
-        SFItem.INSTANCE = new SFItem();
+        SFItemType.INSTANCE = new SFItemType();
     }
 
     private void registerServices() {

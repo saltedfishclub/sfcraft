@@ -1,6 +1,6 @@
 package io.ib67.sfcraft.mixin.server.item;
 
-import io.ib67.sfcraft.SFItem;
+import io.ib67.sfcraft.SFItemType;
 import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.player.PlayerAbilities;
 import net.minecraft.entity.player.PlayerEntity;
@@ -29,10 +29,10 @@ public abstract class PlayerEntityMixin {
     public void sf$updateBackpack(CallbackInfo ci) {
         var item = this.getEquippedStack(EquipmentSlot.CHEST);
         if (getAbilities().creativeMode) return;
-        var query = item.isOf(SFItem.INSTANCE.AERO_BACKPACK);;
+        var query = item.isOf(SFItemType.INSTANCE.AERO_BACKPACK);;
         if(wearingBackpack != query){
             System.out.println("State change!");
-            this.getAbilities().flying = item.isOf(SFItem.INSTANCE.AERO_BACKPACK);
+            this.getAbilities().flying = item.isOf(SFItemType.INSTANCE.AERO_BACKPACK);
             wearingBackpack = query;
             ((ServerPlayerEntity)(Object)this).networkHandler.sendPacket(new PlayerAbilitiesS2CPacket(getAbilities()));
         }
