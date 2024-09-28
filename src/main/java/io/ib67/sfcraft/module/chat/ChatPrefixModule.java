@@ -43,12 +43,13 @@ public class ChatPrefixModule extends ServerModule {
     private void onDisconnect(ServerPlayNetworkHandler serverPlayNetworkHandler, MinecraftServer minecraftServer) {
         var player = serverPlayNetworkHandler.getPlayer();
         var current = getCurrentPrefix(player);
-        if (current.temporary()) {
+        if (current != null && current.temporary()) {
             removeFromTeam(player, players.get(player.getUuid()));
         }
     }
 
     private void onJoin(ServerPlayNetworkHandler networkHandler, PacketSender sender, MinecraftServer minecraftServer) {
+        applyPrefix(networkHandler.getPlayer(), empty);
         for (Map.Entry<UUID, Team> uuidTeamEntry : players.entrySet()) {
             var team = uuidTeamEntry.getValue();
             sender.sendPacket(TeamS2CPacket.updateTeam(team, true));
