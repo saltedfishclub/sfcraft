@@ -88,6 +88,10 @@ java {
     withSourcesJar()
 }
 
+loom {
+    accessWidenerPath = file("src/main/resources/sfcraft.accesswidener")
+}
+
 jar {
     from("LICENSE") {
         rename { "${it}_${project.archivesBaseName}" }

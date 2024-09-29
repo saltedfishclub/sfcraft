@@ -36,6 +36,7 @@
     "server.subserver.PlayerListS2CPacket$EntryMixin",
     "server.subserver.WorldMixin",
     "server.subserver.GameRuleCommandMixin",
+    "server.item.PlayerEntityMixin",
     "server.optimize.LivingEntityMixin"
   ],
   "injectors": {

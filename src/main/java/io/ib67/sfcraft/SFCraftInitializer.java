@@ -23,6 +23,9 @@ import io.ib67.sfcraft.module.command.ManagementModule;
 import io.ib67.sfcraft.registry.room.SimpleRoomRegistry;
 import io.ib67.sfcraft.room.RoomTeleporter;
 import lombok.extern.log4j.Log4j2;
+import net.fabricmc.fabric.api.event.registry.FabricRegistryBuilder;
+import net.minecraft.registry.Registries;
+import net.minecraft.registry.Registry;
 import net.minecraft.server.MinecraftServer;
 
 @Log4j2
@@ -61,6 +64,8 @@ public class SFCraftInitializer extends GuiceModInitializer {
         registerFeature(RoomModule.class);
         registerFeature(CreativeRoomModule.class);
         registerFeature(ChatPrefixModule.class);
+        registerFeature(CustomItemModule.class);
+
     }
 
     @Override
