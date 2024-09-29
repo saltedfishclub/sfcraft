@@ -1,6 +1,7 @@
 package io.ib67.sfcraft.room;
 
 import com.google.inject.Inject;
+import io.ib67.sfcraft.SFCraft;
 import io.ib67.sfcraft.config.SFConfig;
 import io.ib67.sfcraft.inject.MinecraftServerSupplier;
 import io.ib67.sfcraft.module.RoomModule;
@@ -25,7 +26,7 @@ public class RoomTeleporter {
     @Inject
     private SFConfig config;
 
-    public static final Identifier ROOM_COOKIE = Identifier.of("sfcraft", "room");
+    public static final Identifier ROOM_COOKIE = Identifier.of(SFCraft.MOD_ID, "room");
 
     public void teleportTo(Room room, ServerPlayerEntity player) {
         if (roomModule.isVirtual(player.getUuid())) {

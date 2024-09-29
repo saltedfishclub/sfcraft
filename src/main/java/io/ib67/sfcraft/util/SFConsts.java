@@ -1,5 +1,6 @@
 package io.ib67.sfcraft.util;
 
+import io.ib67.sfcraft.SFCraft;
 import io.ib67.sfcraft.util.Permission;
 import lombok.experimental.UtilityClass;
 import net.fabricmc.loader.api.FabricLoader;
@@ -8,7 +9,7 @@ import net.minecraft.server.network.ServerPlayerEntity;
 
 @UtilityClass
 public class SFConsts {
-    public static final String VERSION = FabricLoader.getInstance().getModContainer("sfcraft").get().getMetadata().getVersion().getFriendlyString();
+    public static final String VERSION = FabricLoader.getInstance().getModContainer(SFCraft.MOD_ID).get().getMetadata().getVersion().getFriendlyString();
     public static final String SPECIAL_SUDO = "sfcraft.special.state.sudo";
     public static final Permission<PlayerEntity> USE_AT = ofSFCPermission("chat.at", true);
     public static final Permission<PlayerEntity> USE_BROADCAST_LOCATION = ofSFCPermission("chat.xyz", true);

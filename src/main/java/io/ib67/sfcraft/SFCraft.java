@@ -14,6 +14,7 @@ import java.nio.file.Path;
 import java.util.function.Supplier;
 
 public class SFCraft extends AbstractModule {
+    public static final String MOD_ID = "sfcraft";
     @Getter(AccessLevel.PUBLIC)
     static Injector injector;
     /**
@@ -27,7 +28,7 @@ public class SFCraft extends AbstractModule {
     @ConfigRoot
     @Singleton
     public static Path getRoot() {
-        return Path.of("sfcraft");
+        return Path.of(MOD_ID);
     }
 
     @Provides

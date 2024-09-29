@@ -21,7 +21,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class SFEntityType {
     public static final EntityType<SFGuiderEntity> GUIDER = Registry.register(
             Registries.ENTITY_TYPE,
-            Identifier.of("sfcraft", "guider"),
+            Identifier.of(SFCraft.MOD_ID    , "guider"),
             EntityType.Builder.create(SFGuiderEntity::new, SpawnGroup.CREATURE)
                     .dimensions(0.35F, 0.6F)
                     .eyeHeight(0.36F)

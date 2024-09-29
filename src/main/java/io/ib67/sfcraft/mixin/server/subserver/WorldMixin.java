@@ -20,7 +20,7 @@ public abstract class WorldMixin {
 
     @Inject(method = "getGameRules", at = @At("HEAD"), cancellable = true)
     private void beforeGetGameRules(CallbackInfoReturnable<GameRules> cir) {
-        if (!isClient() && registryKey.getValue().getNamespace().equals("sfcraft")) {
+        if (!isClient() && registryKey.getValue().getNamespace().equals(SFCraft.MOD_ID)) {
             if (sfcraft$customGameRule == null) {
                 sfcraft$customGameRule = SFCraft.getInjector().getInstance(RoomModule.class).readGameRuleForRoom((ServerWorld) (Object) this);
             }
