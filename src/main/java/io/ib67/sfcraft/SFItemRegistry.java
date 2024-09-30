@@ -17,8 +17,8 @@ import java.util.function.UnaryOperator;
 public class SFItemRegistry {
     public static final ComponentType<String> SF_ITEM_TYPE = register("sf_item_type",
             builder -> builder.codec(Codec.STRING).packetCodec(PacketCodecs.STRING));
-    public static final DefaultedRegistry<Item> ITEMS = FabricRegistryBuilder
-            .<Item>createDefaulted(RegistryKey.ofRegistry(Identifier.of(SFCraft.MOD_ID, "item")), Identifier.of(SFCraft.MOD_ID,"default"))
+    public static final Registry<Item> ITEMS = FabricRegistryBuilder
+            .<Item>createSimple(RegistryKey.ofRegistry(Identifier.of(SFCraft.MOD_ID, "item")))
             .attribute(RegistryAttribute.MODDED)
             .buildAndRegister();
     public static void init() {

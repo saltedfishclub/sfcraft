@@ -14,16 +14,6 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 @Debug(export = true)
 @Mixin(Item.class)
 public abstract class ItemMixin {
-    @Redirect(
-            method = "<init>",
-            at = @At(value = "FIELD", target = "Lnet/minecraft/registry/Registries;ITEM:Lnet/minecraft/registry/DefaultedRegistry;")
-    )
-    public DefaultedRegistry<Item> getRegistry() {
-        if (this instanceof SFItem) {
-            return SFItemRegistry.ITEMS;
-        }
-        return Registries.ITEM;
-    }
 
     @Redirect(
             method ="<init>",

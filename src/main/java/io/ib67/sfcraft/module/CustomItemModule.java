@@ -56,7 +56,7 @@ public class CustomItemModule extends ServerModule {
             return 0;
         }
         var player = context.getSource().getPlayer();
-            player.giveItemStack(getItemByName(SFItems.AERO_BACKPACK.getRegistryEntry()));
+        player.giveItemStack(WrappedItemStack.create(SFItems.AERO_BACKPACK.getRegistryEntry()));
         return 1;
     }
 }
