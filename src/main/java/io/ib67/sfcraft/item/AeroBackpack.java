@@ -11,7 +11,7 @@ public class AeroBackpack extends ArmorItem implements TickableItem, SFItem {
     public AeroBackpack(Settings settings) {
         super(ArmorMaterials.IRON, Type.CHESTPLATE, settings);
     }
-
+    
     @Override
     public void onUpdate(PlayerEntity player, ItemStack stack) {
         player.sendMessage(STATUS_MESSAGE, true);
