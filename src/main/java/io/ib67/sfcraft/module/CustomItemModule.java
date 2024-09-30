@@ -4,26 +4,23 @@ import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import io.ib67.sfcraft.SFCraft;
 import io.ib67.sfcraft.SFItemRegistry;
 import io.ib67.sfcraft.SFItems;
 import io.ib67.sfcraft.ServerModule;
-import io.ib67.sfcraft.item.internal.WrappedItemStack;
+import io.ib67.sfcraft.item.SFItem;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.minecraft.command.CommandRegistryAccess;
 import net.minecraft.command.argument.ItemStackArgument;
-import net.minecraft.command.argument.ItemStackArgumentType;
-import net.minecraft.command.argument.RegistryEntryArgumentType;
 import net.minecraft.component.ComponentChanges;
+import net.minecraft.component.DataComponentTypes;
+import net.minecraft.component.type.NbtComponent;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NbtCompound;
 import net.minecraft.registry.entry.RegistryEntry;
-import net.minecraft.resource.featuretoggle.FeatureFlag;
-import net.minecraft.resource.featuretoggle.FeatureSet;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.text.Text;
-import net.minecraft.util.Identifier;
 
 public class CustomItemModule extends ServerModule {
     @Override
@@ -43,20 +40,27 @@ public class CustomItemModule extends ServerModule {
         );
     }
 
-    private static ItemStack getItemByName(RegistryEntry<Item> registryEntry) throws CommandSyntaxException {
-        var isa = new ItemStackArgument(registryEntry, ComponentChanges.EMPTY);
-        return new WrappedItemStack<>(isa.createStack(1, false));
+    private static ItemStack getItemByName(Item item) throws CommandSyntaxException {
+        var stack = new ItemStack(((SFItem)item).getMappedItem());
+        var cmp = new NbtCompound();
+        cmp.putString("sf_type",item.getRegistryEntry().getIdAsString());
+        stack.set(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(cmp));
+        return stack;
     }
 
 
     private int performGive(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
-        var itemName = StringArgumentType.getString(context, "item");
-        if (!context.getSource().isExecutedByPlayer()) {
-            context.getSource().sendMessage(Text.of("Can't be executed by non-players"));
-            return 0;
+        try {
+            var itemName = StringArgumentType.getString(context, "item");
+            if (!context.getSource().isExecutedByPlayer()) {
+                context.getSource().sendMessage(Text.of("Can't be executed by non-players"));
+                return 0;
+            }
+            var player = context.getSource().getPlayer();
+            player.giveItemStack(getItemByName(SFItems.AERO_BACKPACK));
+        }catch(Throwable t){
+            t.printStackTrace();
         }
-        var player = context.getSource().getPlayer();
-        player.giveItemStack(WrappedItemStack.create(SFItems.AERO_BACKPACK.getRegistryEntry()));
         return 1;
     }
 }

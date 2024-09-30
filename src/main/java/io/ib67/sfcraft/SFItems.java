@@ -1,6 +1,7 @@
 package io.ib67.sfcraft;
 
 import io.ib67.sfcraft.item.AeroBackpack;
+import io.ib67.sfcraft.item.SFItem;
 import io.ib67.sfcraft.mixin.server.bridge.ItemBridge;
 import net.minecraft.item.ArmorItem;
 import net.minecraft.item.Item;
@@ -17,7 +18,7 @@ public class SFItems {
     private static Item register(Item item, String id) {
         Identifier itemID = Identifier.of(SFCraft.MOD_ID, id);
         Item registeredItem = Registry.register(SFItemRegistry.ITEMS, itemID, item);
-        ((ItemBridge) (Object) registeredItem).setRegistryEntry(SFItemRegistry.ITEMS.getEntry(itemID).get());
+        ((ItemBridge)registeredItem).setRegistryEntry(SFItemRegistry.ITEMS.getEntry(itemID).get());
         return registeredItem;
     }
 }
