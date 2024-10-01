@@ -1,4 +1,4 @@
-package io.ib67.sfcraft.mixin.server.bridge;
+package io.ib67.sfcraft.mixin.common.bridge;
 
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.server.world.SleepManager;

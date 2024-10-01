@@ -1,8 +1,7 @@
 package io.ib67.sfcraft;
 
 import io.ib67.sfcraft.item.AeroBackpack;
-import io.ib67.sfcraft.item.SFItem;
-import io.ib67.sfcraft.mixin.server.bridge.ItemBridge;
+import io.ib67.sfcraft.mixin.common.bridge.ItemBridge;
 import net.minecraft.item.ArmorItem;
 import net.minecraft.item.Item;
 import net.minecraft.registry.Registry;

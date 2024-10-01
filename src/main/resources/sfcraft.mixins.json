@@ -4,8 +4,10 @@
   "package": "io.ib67.sfcraft.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
-    "server.bridge.ItemBridge",     
-    "server.item.ItemStackMixin"
+    "common.bridge.EntityBridge",
+    "common.bridge.ServerPlayerBridge",
+    "common.bridge.ServerWorldBridge",
+    "common.bridge.ItemBridge"
   ],
   "client": [
   ],
@@ -22,15 +24,13 @@
     "server.ServerPlayNetworkHandlerMixin",
     "server.ServerWorldMixin",
     "server.SleepManagerMixin",
-    "server.bridge.EntityBridge",
-    "server.bridge.ServerPlayerBridge",
-    "server.bridge.ServerWorldBridge",
     "server.fixes.EndermanEntityMixin",
     "server.fixes.ProjectileEntityMixin",
     "server.hack.EntitySpawnS2CPacketMixin",
     "server.hack.HoverEntityContentMixin",
     "server.hack.RegistryHandlerMixin",
     "server.item.ItemMixin",
+    "server.item.ItemStackMixin",
     "server.item.PlayerEntityMixin",
     "server.optimize.LivingEntityMixin",
     "server.subserver.EntityMixin",

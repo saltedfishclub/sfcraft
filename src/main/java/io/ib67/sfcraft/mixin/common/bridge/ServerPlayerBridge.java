@@ -1,4 +1,4 @@
-package io.ib67.sfcraft.mixin.server.bridge;
+package io.ib67.sfcraft.mixin.common.bridge;
 
 import net.minecraft.server.network.ServerPlayerEntity;
 import org.spongepowered.asm.mixin.Mixin;

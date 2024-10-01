@@ -1,5 +1,2 @@
 accessWidener v2 named
-extendable class net/minecraft/item/ItemStack
-accessible method net/minecraft/item/ItemStack <init> (Lnet/minecraft/item/ItemConvertible;ILnet/minecraft/component/ComponentMapImpl;)V
 mutable field net/minecraft/item/Item registryEntry Lnet/minecraft/registry/entry/RegistryEntry$Reference;
-#accessible field net/minecraft/item/Item registryEntry Lnet/minecraft/registry/entry/RegistryEntry$Reference;
