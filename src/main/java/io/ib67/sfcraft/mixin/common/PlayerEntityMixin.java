@@ -1,7 +1,7 @@
 package io.ib67.sfcraft.mixin.common;
 
 import io.ib67.sfcraft.callback.SFCallbacks;
-import io.ib67.sfcraft.mixin.server.bridge.EntityBridge;
+import io.ib67.sfcraft.mixin.common.bridge.EntityBridge;
 import net.minecraft.entity.player.PlayerEntity;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;

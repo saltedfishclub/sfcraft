@@ -1,6 +1,6 @@
 package io.ib67.sfcraft.mixin.server;
 
-import io.ib67.sfcraft.mixin.server.bridge.ServerWorldBridge;
+import io.ib67.sfcraft.mixin.common.bridge.ServerWorldBridge;
 import io.ib67.sfcraft.util.MixinHelper;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.world.GameRules;
