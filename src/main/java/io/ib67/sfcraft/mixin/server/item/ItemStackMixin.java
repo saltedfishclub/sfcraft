@@ -2,12 +2,14 @@ package io.ib67.sfcraft.mixin.server.item;
 
 import io.ib67.sfcraft.SFCraft;
 import io.ib67.sfcraft.SFItems;
+import io.ib67.sfcraft.SFRegistries;
 import net.minecraft.component.ComponentHolder;
 import net.minecraft.component.ComponentMapImpl;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemConvertible;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.Items;
 import net.minecraft.util.Identifier;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -30,6 +32,9 @@ public abstract class ItemStackMixin implements ComponentHolder {
     private Item item;
 
     @Shadow @Final private static Logger LOGGER;
+
+    @Shadow public abstract boolean isEmpty();
+
     @Unique
     private Item sfItem;
 
@@ -39,7 +44,7 @@ public abstract class ItemStackMixin implements ComponentHolder {
         if (_id != null && _id.contains(SFItems.SF_ITEM_TYPE_KEY)) {
             var id = _id.copyNbt().getString(SFItems.SF_ITEM_TYPE_KEY);
             try {
-                sfItem = SFItems.ITEMS.get(Identifier.of(SFCraft.MOD_ID, id));
+                sfItem = SFRegistries.ITEMS.get(Identifier.of(SFCraft.MOD_ID, id));
             }catch(Exception e){
                 e.printStackTrace();
             }
@@ -57,11 +62,11 @@ public abstract class ItemStackMixin implements ComponentHolder {
 
     @Redirect(method = "getRegistryEntry", at = @At(value = "INVOKE", target = "Lnet/minecraft/item/ItemStack;getItem()Lnet/minecraft/item/Item;"))
     private Item sf$getMappedEntry(ItemStack instance) {
-        return item;
+        return isEmpty() ? Items.AIR : this.item;
     }
 
     @Redirect(method = "copy", at= @At(value = "INVOKE", target = "Lnet/minecraft/item/ItemStack;getItem()Lnet/minecraft/item/Item;"))
     private Item sf$getCopySubject(ItemStack instance){
-        return item;
+        return isEmpty() ? Items.AIR : this.item;
     }
 }
