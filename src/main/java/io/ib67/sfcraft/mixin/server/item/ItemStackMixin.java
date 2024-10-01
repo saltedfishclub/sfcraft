@@ -1,8 +1,7 @@
 package io.ib67.sfcraft.mixin.server.item;
 
 import io.ib67.sfcraft.SFCraft;
-import io.ib67.sfcraft.SFItemRegistry;
-import io.ib67.sfcraft.item.SFItem;
+import io.ib67.sfcraft.SFItems;
 import net.minecraft.component.ComponentHolder;
 import net.minecraft.component.ComponentMapImpl;
 import net.minecraft.component.DataComponentTypes;
@@ -37,10 +36,10 @@ public abstract class ItemStackMixin implements ComponentHolder {
     @Inject(method = "<init>(Lnet/minecraft/item/ItemConvertible;ILnet/minecraft/component/ComponentMapImpl;)V", at = @At("TAIL"))
     private void initSFItem(ItemConvertible item, int count, ComponentMapImpl components, CallbackInfo ci) {
         var _id = get(DataComponentTypes.CUSTOM_DATA);
-        if (_id != null && _id.contains(SFItemRegistry.SF_ITEM_TYPE_KEY)) {
-            var id = _id.copyNbt().getString(SFItemRegistry.SF_ITEM_TYPE_KEY);
+        if (_id != null && _id.contains(SFItems.SF_ITEM_TYPE_KEY)) {
+            var id = _id.copyNbt().getString(SFItems.SF_ITEM_TYPE_KEY);
             try {
-                sfItem = SFItemRegistry.ITEMS.get(Identifier.of(SFCraft.MOD_ID, id));
+                sfItem = SFItems.ITEMS.get(Identifier.of(SFCraft.MOD_ID, id));
             }catch(Exception e){
                 e.printStackTrace();
             }
