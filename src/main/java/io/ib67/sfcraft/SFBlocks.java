@@ -31,6 +31,7 @@ public class SFBlocks {
             SFItems.register(blockItem, name);
         }
         Block registeredBlock = Registry.register(SFRegistries.BLOCKS, id, block);
+        Registry.register(Registries.BLOCK, id, block);
         ((BlockBridge) registeredBlock).setRegistryEntry(registeredBlock.getRegistryEntry());
         return registeredBlock;
     }
