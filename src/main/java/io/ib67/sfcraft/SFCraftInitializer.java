@@ -65,6 +65,7 @@ public class SFCraftInitializer extends GuiceModInitializer {
         registerFeature(CreativeRoomModule.class);
         registerFeature(ChatPrefixModule.class);
         registerFeature(CustomItemModule.class);
+        registerFeature(CustomBlockModule.class);
 
     }
 

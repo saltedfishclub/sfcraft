@@ -4,10 +4,11 @@
   "package": "io.ib67.sfcraft.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
+    "common.bridge.BlockBridge",
     "common.bridge.EntityBridge",
+    "common.bridge.ItemBridge",
     "common.bridge.ServerPlayerBridge",
-    "common.bridge.ServerWorldBridge",
-    "common.bridge.ItemBridge"
+    "common.bridge.ServerWorldBridge"
   ],
   "client": [
   ],
@@ -32,6 +33,7 @@
     "server.item.ItemMixin",
     "server.item.ItemStackMixin",
     "server.item.PlayerEntityMixin",
+    "server.block.BlockMixin",
     "server.optimize.LivingEntityMixin",
     "server.subserver.EntityMixin",
     "server.subserver.GameRuleCommandMixin",
