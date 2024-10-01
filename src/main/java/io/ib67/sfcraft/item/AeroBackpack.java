@@ -1,5 +1,6 @@
 package io.ib67.sfcraft.item;
 
+import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.*;
 import net.minecraft.registry.entry.RegistryEntry;
@@ -11,14 +12,15 @@ public class AeroBackpack extends ArmorItem implements TickableItem, SFItem {
     public AeroBackpack(Settings settings) {
         super(ArmorMaterials.IRON, Type.CHESTPLATE, settings);
     }
-    
+
     @Override
-    public void onUpdate(PlayerEntity player, ItemStack stack) {
+    public void onUpdate(PlayerEntity player, ItemStack stack, EquipmentSlot slot) {
+        if (slot != EquipmentSlot.CHEST) return;
         player.sendMessage(STATUS_MESSAGE, true);
     }
 
     @Override
     public Item getMappedItem() {
-        return Items.IRON_CHESTPLATE;   
+        return Items.IRON_CHESTPLATE;
     }
 }

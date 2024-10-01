@@ -13,12 +13,25 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(PlayerEntity.class)
 public abstract class PlayerEntityMixin {
+    @Shadow
+    public abstract ItemStack getEquippedStack(EquipmentSlot slot);
+
     @Inject(method = "updateTurtleHelmet", at = @At("TAIL"))
     public void sf$tickMyItems(CallbackInfo ci) {
-        for (ItemStack equippedItem : $this().getEquippedItems()) {
-            if (equippedItem.getItem() instanceof TickableItem tickable) {
-                tickable.onUpdate($this(), equippedItem);
-            }
+        checkAndUpdate(EquipmentSlot.OFFHAND);
+        checkAndUpdate(EquipmentSlot.MAINHAND);
+        checkAndUpdate(EquipmentSlot.HEAD);
+        checkAndUpdate(EquipmentSlot.CHEST);
+        checkAndUpdate(EquipmentSlot.LEGS);
+        checkAndUpdate(EquipmentSlot.FEET);
+        checkAndUpdate(EquipmentSlot.BODY);
+    }
+
+    @Unique
+    private void checkAndUpdate(EquipmentSlot equipmentSlot) {
+        var item = getEquippedStack(equipmentSlot);
+        if (item.getItem() instanceof TickableItem tickableItem) {
+            tickableItem.onUpdate($this(), item, equipmentSlot);
         }
     }
 
