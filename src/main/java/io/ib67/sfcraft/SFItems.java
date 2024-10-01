@@ -18,7 +18,11 @@ public class SFItems {
     private static Item register(Item item, String id) {
         Identifier itemID = Identifier.of(SFCraft.MOD_ID, id);
         Item registeredItem = Registry.register(SFItemRegistry.ITEMS, itemID, item);
-        ((ItemBridge)registeredItem).setRegistryEntry(SFItemRegistry.ITEMS.getEntry(itemID).get());
+        ((ItemBridge) registeredItem).setRegistryEntry(SFItemRegistry.ITEMS.getEntry(itemID).get());
         return registeredItem;
+    }
+
+    public static Item getById(Identifier item) {
+        return SFItemRegistry.ITEMS.get(item);
     }
 }
