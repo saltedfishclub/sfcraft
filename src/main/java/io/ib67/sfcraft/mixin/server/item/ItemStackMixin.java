@@ -9,6 +9,7 @@ import net.minecraft.component.DataComponentTypes;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemConvertible;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.Items;
 import net.minecraft.util.Identifier;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -34,6 +35,8 @@ public abstract class ItemStackMixin implements ComponentHolder {
     @Unique
     private Item sfItem;
 
+    @Shadow public abstract boolean isEmpty();
+
     @Inject(method = "<init>(Lnet/minecraft/item/ItemConvertible;ILnet/minecraft/component/ComponentMapImpl;)V", at = @At("TAIL"))
     private void initSFItem(ItemConvertible item, int count, ComponentMapImpl components, CallbackInfo ci) {
         var _id = get(DataComponentTypes.CUSTOM_DATA);
@@ -58,11 +61,11 @@ public abstract class ItemStackMixin implements ComponentHolder {
 
     @Redirect(method = "getRegistryEntry", at = @At(value = "INVOKE", target = "Lnet/minecraft/item/ItemStack;getItem()Lnet/minecraft/item/Item;"))
     private Item sf$getMappedEntry(ItemStack instance) {
-        return item;
+        return isEmpty() ? Items.AIR : this.item;
     }
 
     @Redirect(method = "copy", at= @At(value = "INVOKE", target = "Lnet/minecraft/item/ItemStack;getItem()Lnet/minecraft/item/Item;"))
     private Item sf$getCopySubject(ItemStack instance){
-        return item;
+        return isEmpty() ? Items.AIR : this.item;
     }
 }
