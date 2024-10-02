@@ -2,6 +2,7 @@ package io.ib67.sfcraft.mixin.server.item;
 
 import io.ib67.sfcraft.SFCraft;
 import io.ib67.sfcraft.SFItems;
+import io.ib67.sfcraft.SFRegistries;
 import net.minecraft.component.ComponentHolder;
 import net.minecraft.component.ComponentMapImpl;
 import net.minecraft.component.DataComponentTypes;
@@ -39,7 +40,7 @@ public abstract class ItemStackMixin implements ComponentHolder {
         if (_id != null && _id.contains(SFItems.SF_ITEM_TYPE_KEY)) {
             var id = _id.copyNbt().getString(SFItems.SF_ITEM_TYPE_KEY);
             try {
-                sfItem = SFItems.ITEMS.get(Identifier.of(SFCraft.MOD_ID, id));
+                sfItem = SFRegistries.ITEMS.get(Identifier.of(SFCraft.MOD_ID, id));
             }catch(Exception e){
                 e.printStackTrace();
             }

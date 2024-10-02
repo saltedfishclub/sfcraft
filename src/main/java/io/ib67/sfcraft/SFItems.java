@@ -10,14 +10,12 @@ import net.minecraft.registry.Registry;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.util.Identifier;
 
+import static io.ib67.sfcraft.SFRegistries.ITEMS;
+
 public class SFItems {
     public static final Item AERO_BACKPACK = register(
             new AeroBackpack(new Item.Settings().maxDamage(ArmorItem.Type.CHESTPLATE.getMaxDamage(15))), "aero_backpack");
     public static final String SF_ITEM_TYPE_KEY = "sf_type";
-    public static final Registry<Item> ITEMS = FabricRegistryBuilder
-            .<Item>createSimple(RegistryKey.ofRegistry(Identifier.of(SFCraft.MOD_ID, "item")))
-            .attribute(RegistryAttribute.MODDED)
-            .buildAndRegister();
 
     public static void init() {
     }
