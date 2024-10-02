@@ -3,6 +3,7 @@ package io.ib67.sfcraft;
 import io.ib67.sfcraft.block.ColorWool;
 import io.ib67.sfcraft.item.SFBlockItem;
 import io.ib67.sfcraft.mixin.common.bridge.BlockBridge;
+import io.ib67.sfcraft.util.HackedBlockStateIdList;
 import net.minecraft.block.AbstractBlock;
 import net.minecraft.block.Block;
 import net.minecraft.item.BlockItem;
@@ -18,6 +19,7 @@ public class SFBlocks {
             "color_wool",
             true
     );
+    public static final HackedBlockStateIdList HACKED_STATE_IDS = new HackedBlockStateIdList();
 
     public static void init() {
 
@@ -30,9 +32,6 @@ public class SFBlocks {
             BlockItem blockItem = new SFBlockItem(block, Items.IRON_BLOCK, new Item.Settings());
             SFItems.register(blockItem, name);
         }
-        Block registeredBlock = Registry.register(SFRegistries.BLOCKS, id, block);
-        Registry.register(Registries.BLOCK, id, block);
-        ((BlockBridge) registeredBlock).setRegistryEntry(registeredBlock.getRegistryEntry());
-        return registeredBlock;
+        return Registry.register(Registries.BLOCK, id, block);
     }
 }

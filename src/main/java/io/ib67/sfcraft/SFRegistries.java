@@ -13,7 +13,4 @@ public class SFRegistries {
             .<Item>createSimple(RegistryKey.ofRegistry(Identifier.of(SFCraft.MOD_ID, "item")))
             .attribute(RegistryAttribute.MODDED)
             .buildAndRegister();
-    public static final Registry<Block> BLOCKS = FabricRegistryBuilder
-            .<Block>createSimple(RegistryKey.ofRegistry(Identifier.of(SFCraft.MOD_ID, "block")))
-            .buildAndRegister();
 }

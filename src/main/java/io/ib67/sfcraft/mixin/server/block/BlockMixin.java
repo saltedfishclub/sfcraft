@@ -23,24 +23,13 @@ public class BlockMixin {
     @Shadow
     private RegistryEntry.Reference<Block> registryEntry;
 
-    @Redirect(
-            method="<clinit>",
-            at= @At(value = "NEW",target = "()Lnet/minecraft/util/collection/IdList;")
-    )
-    private static IdList sf$hackIdList(){
-        return new HackedBlockStateIdList();
-    }
-
-    @Redirect(
-            method = "<init>",
-            at = @At(value = "INVOKE", target = "Lnet/minecraft/registry/DefaultedRegistry;createEntry(Ljava/lang/Object;)Lnet/minecraft/registry/entry/RegistryEntry$Reference;")
-    )
-    public RegistryEntry.Reference sf$redirectCreateEntry(DefaultedRegistry instance, Object o) {
-        if (this instanceof SFBlock) {
-            return null;
-        }
-        return instance.createEntry(o);
-    }
+//    @Redirect(
+//            method="<clinit>",
+//            at= @At(value = "NEW",target = "()Lnet/minecraft/util/collection/IdList;")
+//    )
+//    private static IdList sf$hackIdList(){
+//        return new HackedBlockStateIdList();
+//    }
 
     @Redirect(
             method = "getRegistryEntry",

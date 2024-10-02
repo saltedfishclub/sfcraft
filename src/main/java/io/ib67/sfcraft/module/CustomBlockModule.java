@@ -32,20 +32,6 @@ public class CustomBlockModule extends ServerModule {
     }
 
     private void registerCommand(CommandDispatcher<ServerCommandSource> dispatcher, CommandRegistryAccess commandRegistryAccess, CommandManager.RegistrationEnvironment registrationEnvironment) {
-        var cmd = CommandManager.literal("sfsetblock")
-                //.requires(it -> it.isExecutedByPlayer() && SFConsts.COMMAND_SFSETBLOCK.hasPermission(it.getPlayer()))
-                .then(CommandManager.argument("type", IdentifierArgumentType.identifier())
-                        .executes(this::performSetBlock));
-        dispatcher.register(cmd);
-    }
 
-    private int performSetBlock(CommandContext<ServerCommandSource> ctx) {
-        var id = IdentifierArgumentType.getIdentifier(ctx, "type");
-        var block = SFRegistries.BLOCKS.get(id);
-        var player = ctx.getSource().getPlayer();
-        var world = player.getWorld();
-        var state = block.getDefaultState();
-        world.setBlockState(player.getBlockPos(), state);
-        return 1;
     }
 }
