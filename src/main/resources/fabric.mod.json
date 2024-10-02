@@ -16,6 +16,7 @@
       "io.ib67.sfcraft.SFCraftInitializer"
     ]
   },
+  "accessWidener": "sfcraft.accesswidener",
   "mixins": [
     "sfcraft.mixins.json"
   ],
