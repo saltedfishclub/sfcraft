@@ -13,10 +13,15 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(World.class)
 public abstract class WorldMixin {
-    @Shadow public abstract boolean isClient();
-    @Shadow @Final private RegistryKey<World> registryKey;
+    @Shadow
+    public abstract boolean isClient();
 
-    @Unique private GameRules sfcraft$customGameRule;
+    @Shadow
+    @Final
+    private RegistryKey<World> registryKey;
+
+    @Unique
+    private GameRules sfcraft$customGameRule;
 
     @Inject(method = "getGameRules", at = @At("HEAD"), cancellable = true)
     private void beforeGetGameRules(CallbackInfoReturnable<GameRules> cir) {

@@ -5,9 +5,9 @@
   "compatibilityLevel": "JAVA_21",
   "mixins": [
     "common.bridge.EntityBridge",
+    "common.bridge.ItemBridge",
     "common.bridge.ServerPlayerBridge",
-    "common.bridge.ServerWorldBridge",
-    "common.bridge.ItemBridge"
+    "common.bridge.ServerWorldBridge"
   ],
   "client": [
   ],
@@ -34,13 +34,13 @@
     "server.item.PlayerEntityMixin",
     "server.optimize.LivingEntityMixin",
     "server.subserver.EntityMixin",
-    "server.subserver.GameRuleCommandMixin",
     "server.subserver.PlayerListS2CPacket$EntryMixin",
     "server.subserver.PlayerManagerMixin",
     "server.subserver.PlayerSaveHandlerMixin",
     "server.subserver.ServerLoginNetworkHandlerMixin",
     "server.subserver.ServerPlayerEntityMixin",
-    "server.subserver.WorldMixin"
+    "server.subserver.WorldMixin",
+    "server.subserver.command.GameRuleCommandMixin"
   ],
   "injectors": {
     "defaultRequire": 1

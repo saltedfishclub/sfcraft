@@ -39,8 +39,6 @@ import java.util.Set;
 
 public class CreativeRoomModule extends ServerModule {
     private static final Set<String> BYPASS_PERMISSIONS = Set.of(
-            "minecraft.command.weather",
-            "minecraft.command.time",
             "minecraft.command.gamerule",
             "carpet.command.player",
             "carpet.command.track",
@@ -120,7 +118,7 @@ public class CreativeRoomModule extends ServerModule {
     public void onPlayerJoin(ServerPlayerEntity player) {
         player.sendMessage(Text.of("你现在正在创造游乐园中，使用 //schem list 查看可用投影。"));
         player.sendMessage(Text.literal("以下功能现在可用：").withColor(Colors.WHITE)
-                .append(Text.literal("/player /track /summon /setblock /time /gamerule /weather 及 WorldEdit 的所有命令").withColor(Color.MAGENTA.getRGB()).append("。")));
+                .append(Text.literal("/player /track /summon /setblock /gamerule 及 WorldEdit 的所有命令").withColor(Color.MAGENTA.getRGB()).append("。")));
         player.sendMessage(Text.of("    "));
         player.sendMessage(Text.literal("如何上传投影到游乐场: ").withColor(Colors.GRAY)
                 .append(Text.literal("https://github.com/saltedfishclub/sfcraft-schematics").withColor(Colors.GRAY).styled(it -> it.withUnderline(true)))       );

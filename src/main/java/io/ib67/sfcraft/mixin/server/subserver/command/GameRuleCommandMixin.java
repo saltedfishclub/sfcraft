@@ -1,4 +1,4 @@
-package io.ib67.sfcraft.mixin.server.subserver;
+package io.ib67.sfcraft.mixin.server.subserver.command;
 
 import com.mojang.brigadier.context.CommandContext;
 import net.minecraft.server.MinecraftServer;
