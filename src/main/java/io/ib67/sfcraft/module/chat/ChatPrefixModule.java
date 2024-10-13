@@ -15,6 +15,7 @@ import net.minecraft.text.Text;
 
 import java.util.*;
 
+//todo rework
 public class ChatPrefixModule extends ServerModule {
     @Inject
     private MinecraftServerSupplier serverSupplier;
@@ -69,13 +70,15 @@ public class ChatPrefixModule extends ServerModule {
 
     private void addToTeam(PlayerEntity player, Team team) {
         var playerName = player.getName().getLiteralString();
+        if(team == null) return;
         team.getPlayerList().add(playerName);
-        sendToAll(TeamS2CPacket.updateTeam(team, true));
         players.put(player.getUuid(), team);
+        sendToAll(TeamS2CPacket.updateTeam(team, true));
     }
 
     private void removeFromTeam(PlayerEntity player, Team team) {
         var playerName = player.getName().getLiteralString();
+        if(team == null) return;
         team.getPlayerList().remove(playerName);
         sendToAll(TeamS2CPacket.updateTeam(team, true));
         var current = getCurrentPrefix(player);
