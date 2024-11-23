@@ -2,7 +2,7 @@
 
 SFCraft is a fabric mod tailored for the Minecraft server of the same name, including many fixes, features and other functionality.
 
-**It is not recommended to use this mod on your server without proper configuration.**
+**It is not recommended to use this mod on your server without proper configuration!!**
 
 This project is open source to allow players to contribute. [Contribution GUIDE](./CONTRIBUTING.md)
 
