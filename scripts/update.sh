@@ -1,5 +1,7 @@
 #!/bin/bash
 
+exit 0
+exit
 export PATH="$PATH:$(pwd)"
 UPLOAD="$UPLOAD_DIR/$(ls $UPLOAD_DIR | tr ' ' '\n' | grep -v "all")"
 
