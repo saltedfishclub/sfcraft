@@ -28,9 +28,6 @@ public class LegacyQueryHandlerMixin {
     @Redirect(method = "channelRead", at = @At(value = "INVOKE", target = "Lnet/minecraft/network/handler/LegacyQueryHandler;getResponse(Lnet/minecraft/network/QueryableServer;)Ljava/lang/String;"))
     private String getResponse(QueryableServer server) {
         var version = server.getVersion();
-        if (address instanceof InetSocketAddress address) {
-            version = Helper.getVersionString(address);
-        }
         return String.format(
                 Locale.ROOT,
                 "§1\u0000%d\u0000%s\u0000%s\u0000%d\u0000%d",

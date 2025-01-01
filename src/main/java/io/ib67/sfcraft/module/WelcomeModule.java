@@ -52,7 +52,6 @@ public class WelcomeModule extends ServerModule {
             player.sendMessage(Text.of(" - 服务器内已有的设施均为其他玩家的财产，(如可以)使用时请注意礼貌"));
             player.sendMessage(Text.literal(" - 服务器内有一些非原版特性，可以点击此条消息查看 [特性列表]")
                     .styled(s -> s.withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, "https://wiki.sfclub.cc/s/sfcraft-features"))));
-            player.sendMessage(Text.of(" - 工作日下午 " + config.maintainceStartHour + " 至 " + config.maintainceEndHour + "点 为服务器维护时间 (防沉迷)"));
             player.sendMessage(Text.of("§c - 邀请新成员即等同为其作担保"));
             player.sendMessage(Text.of("§7如果您想邀请朋友加入服务器, 可以向管理员提出申请§7 (需备注正/盗版/小号)"));
             player.sendMessage(Text.of("§7此外, 本服务器无密码登录，盗版账号安全责任自负"));

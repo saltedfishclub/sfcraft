@@ -77,20 +77,6 @@ public class Helper {
         return true;
     }
 
-    public static String getVersionString(InetSocketAddress address) {
-        var geoIp = SFCraft.getInjector().getInstance(GeoIPService.class);
-        var config = SFCraft.getInjector().getInstance(SFConfig.class);
-        try {
-            var clock = geoIp.clockOf(address.getAddress());
-            if (config.isClosed(clock)) {
-                return "防沉迷: " + config.maintainceStartHour + "~" + config.maintainceEndHour;
-            }
-        } catch (GeoIp2Exception ignored) {
-            return "Not Available!";
-        }
-        return null;
-    }
-
     @SneakyThrows
     public static Optional<String> getConfigResource(Path root, String resource) {
         if (Files.exists(root)) {
