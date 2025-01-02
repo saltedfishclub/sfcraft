@@ -20,4 +20,4 @@ Besides the above, there are also many tiny features in the [module](src/main/ja
 
 # About our server
 
-SFCraft is a whitelisted Minecraft server. To join us, contact @iceBear67 in telegram (We chat in Chinese.)
+SFCraft is a whitelisted Minecraft server. To join us, contact [@ib67_pm_bot](https://t.me/ib67_pm_bot) in telegram (We chat in Chinese.)
