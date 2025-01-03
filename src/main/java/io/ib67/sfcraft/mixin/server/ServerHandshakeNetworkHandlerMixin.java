@@ -6,6 +6,7 @@ import net.minecraft.network.ClientConnection;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.ServerMetadata;
 import net.minecraft.server.network.ServerHandshakeNetworkHandler;
+import org.spongepowered.asm.mixin.Debug;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -13,6 +14,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
 
 @Mixin(ServerHandshakeNetworkHandler.class)
+@Debug(export = true)
 public abstract class ServerHandshakeNetworkHandlerMixin {
     @Shadow
     @Final
@@ -20,6 +22,11 @@ public abstract class ServerHandshakeNetworkHandlerMixin {
 
     @Redirect(method = "onHandshake", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/MinecraftServer;getServerMetadata()Lnet/minecraft/server/ServerMetadata;"))
     public ServerMetadata getMetadata(MinecraftServer instance) {
-        return SFCallbacks.MOTD.invoker().onMotd(instance,connection);
+        var result = SFCallbacks.MOTD.invoker().onMotd(instance,connection);
+        if(result == null) {
+            return instance.getServerMetadata();
+        }else{
+            return result;
+        }
     }
 }

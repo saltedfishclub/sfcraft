@@ -3,19 +3,14 @@ package io.ib67.sfcraft.module;
 import com.google.inject.Inject;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
-import io.ib67.sfcraft.callback.SFCallbacks;
 import io.ib67.sfcraft.inject.MinecraftServerSupplier;
 import io.ib67.sfcraft.util.Helper;
 import io.ib67.sfcraft.ServerModule;
 import io.ib67.sfcraft.config.ConfigResources;
 import io.ib67.sfcraft.inject.ConfigResource;
 import io.ib67.sfcraft.inject.ConfigRoot;
-import net.minecraft.network.ClientConnection;
-import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.ServerMetadata;
 
 import java.nio.file.Path;
-import java.util.Optional;
 
 public class MotdModule extends ServerModule {
     @Inject
@@ -29,11 +24,6 @@ public class MotdModule extends ServerModule {
     @Override
     public void onInitialize() {
         motd = getMotd(configRoot);
-       SFCallbacks.MOTD.register(this::onMotd);
-    }
-
-    private ServerMetadata onMotd(MinecraftServer minecraftServer, ClientConnection clientConnection) {
-        return minecraftServer.getServerMetadata(); // it works, but who knows why?
     }
 
     @Override
