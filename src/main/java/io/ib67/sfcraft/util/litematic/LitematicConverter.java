@@ -1,4 +1,4 @@
-package io.ib67.sfcraft.util;
+package io.ib67.sfcraft.util.litematic;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -6,8 +6,6 @@ import lombok.SneakyThrows;
 import net.minecraft.nbt.*;
 
 import java.io.InputStream;
-import java.io.PipedInputStream;
-import java.io.PipedOutputStream;
 import java.util.ArrayList;
 import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
@@ -17,8 +15,8 @@ import java.util.stream.Collectors;
  * Uses {@link NbtCompound} from Minecraft.
  */
 public class LitematicConverter implements AutoCloseable {
-    private final InputStream input;
-    private final NbtSizeTracker sizeTracker;
+    protected final InputStream input;
+    protected final NbtSizeTracker sizeTracker;
 
     public LitematicConverter(InputStream input, NbtSizeTracker sizeTracker) {
         this.input = input;
@@ -41,7 +39,7 @@ public class LitematicConverter implements AutoCloseable {
         }
     }
 
-    private NbtCompound convertRegionToSchematic(int dataVersion, NbtCompound region) {
+    protected NbtCompound convertRegionToSchematic(int dataVersion, NbtCompound region) {
         var worldEditTag = new NbtCompound();
 
         // prepare metadata
@@ -69,7 +67,7 @@ public class LitematicConverter implements AutoCloseable {
         return schematicsRoot;
     }
 
-    private SizeTuple readSizeTuple(NbtCompound region) {
+    protected SizeTuple readSizeTuple(NbtCompound region) {
         var size = (NbtCompound) region.get("Size");
         var sizeX = size.getInt("x");
         var sizeY = size.getInt("y");
@@ -77,27 +75,29 @@ public class LitematicConverter implements AutoCloseable {
         return new SizeTuple(sizeX, sizeY, sizeZ);
     }
 
-    private NbtList convertToWETileEntities(NbtList tileEntities) {
+    protected NbtList convertToWETileEntities(NbtList tileEntities) {
         var weTEs = new NbtList();
         for (NbtElement _tileEntity : tileEntities) {
+            var weTE = new NbtCompound();
             var tE = (NbtCompound) _tileEntity;
-            tE.putIntArray("Pos", new int[]{
+            weTE.putIntArray("Pos", new int[]{
                     tE.getInt("x"),
                     tE.getInt("y"),
                     tE.getInt("z")
             });
-            tE.putString("Id", tE.getString("id"));
+            weTE.putString("Id", tE.getString("id"));
             // other properties
             tE.remove("x");
             tE.remove("y");
             tE.remove("z");
             tE.remove("id");
-            weTEs.add(tE);
+            weTE.put("Data",tE);
+            weTEs.add(weTE);
         }
         return weTEs;
     }
 
-    private NbtCompound convertToWEPalette(NbtList paletteNbt) {
+    protected NbtCompound convertToWEPalette(NbtList paletteNbt) {
         var wePalette = new NbtCompound();
         for (int i = 0; i < paletteNbt.size(); i++) {
             var entry = (NbtCompound) paletteNbt.get(i);
@@ -117,7 +117,7 @@ public class LitematicConverter implements AutoCloseable {
         return wePalette;
     }
 
-    private NbtElement convertToWeMeta(SizeTuple size, NbtCompound region) {
+    protected NbtElement convertToWeMeta(SizeTuple size, NbtCompound region) {
         var pos = (NbtCompound) region.get("Position");
         var nbt = new NbtCompound();
         nbt.putInt("WEOffsetX", pos.getInt("x") + (size.x < 0 ? size.x + 1 : 0));
@@ -126,7 +126,7 @@ public class LitematicConverter implements AutoCloseable {
         return nbt;
     }
 
-    private byte[] convertToWEBlocks(int totalBlocks, NbtCompound region) {
+    protected byte[] convertToWEBlocks(int totalBlocks, NbtCompound region) {
         var buf = Unpooled.buffer();
         var blockStates = region.getLongArray("BlockStates");
 
@@ -148,11 +148,11 @@ public class LitematicConverter implements AutoCloseable {
             }
 
             bitMask = (1 << bitsPerBlock) - 1;
-            while(remainingBits >= bitsPerBlock){
+            while (remainingBits >= bitsPerBlock) {
                 bits = blockState & bitMask;
                 blockState = blockState >>> bitsPerBlock;
                 remainingBits -= bitsPerBlock;
-                if(blockIterated >= totalBlocks) break;
+                if (blockIterated >= totalBlocks) break;
                 writeBlocks(buf, (short) bits);
                 blockIterated++;
             }
@@ -162,7 +162,7 @@ public class LitematicConverter implements AutoCloseable {
         return buf.array();
     }
 
-    private static int writeBlocks(ByteBuf buf, short block) {
+    protected static int writeBlocks(ByteBuf buf, short block) {
         int b = block >>> 7;
         if (b == 0) {
             buf.writeByte(block);

@@ -5,27 +5,20 @@ import io.ib67.sfcraft.ServerModule;
 import io.ib67.sfcraft.config.SFConfig;
 import io.ib67.sfcraft.module.SignatureService;
 import io.ib67.sfcraft.util.Helper;
-import io.ib67.sfcraft.util.LitematicConverter;
+import io.ib67.sfcraft.util.litematic.LitematicConverter;
+import io.ib67.sfcraft.util.litematic.LitematicConverterV3;
 import io.javalin.Javalin;
 import io.javalin.http.Context;
 import io.javalin.http.UploadedFile;
-import io.netty.buffer.Unpooled;
 import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
-import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtIo;
 import net.minecraft.nbt.NbtSizeTracker;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.DataOutputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Base64;
 import java.util.List;
-import java.util.concurrent.ForkJoinPool;
-import java.util.regex.Pattern;
 
 @Log4j2
 public class WebModule extends ServerModule {
@@ -87,7 +80,7 @@ public class WebModule extends ServerModule {
             log.info("Saved " + fileName + " as a schematic.");
         } else if (fileName.endsWith(".litematic")) {
             log.error("Handling new {}", fileName);
-            var converter = new LitematicConverter(
+            var converter = new LitematicConverterV3(
                     file.content(),
                     new NbtSizeTracker(config.maxSchematicSize, 16)
             );
