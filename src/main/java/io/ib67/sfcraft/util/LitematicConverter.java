@@ -17,7 +17,6 @@ import java.util.stream.Collectors;
  * Uses {@link NbtCompound} from Minecraft.
  */
 public class LitematicConverter implements AutoCloseable {
-    public static final String NBT_LITEMATICA_ROOT = "";
     private final InputStream input;
     private final NbtSizeTracker sizeTracker;
 
@@ -30,7 +29,7 @@ public class LitematicConverter implements AutoCloseable {
     public void read(
             BiConsumer<String, NbtCompound> schematicOutput
     ) {
-        var root = NbtIo.readCompressed(input, sizeTracker).getCompound(NBT_LITEMATICA_ROOT);
+        var root = NbtIo.readCompressed(input, sizeTracker);
         var dataVersion = root.getInt("MinecraftDataVersion");
         var regionsNbt = root.getCompound("Regions");
         var i = 0;
@@ -64,7 +63,7 @@ public class LitematicConverter implements AutoCloseable {
         worldEditTag.put("BlockEntities", convertToWETileEntities(tileEntities));
         worldEditTag.putInt("Version", 2);
         worldEditTag.putIntArray("Offset", new int[3]);
-        worldEditTag.putByteArray("BlockData", convertToWEBlocks(size.x * size.y * size.z, region));
+        worldEditTag.putByteArray("BlockData", convertToWEBlocks(Math.abs(size.x * size.y * size.z), region));
         var schematicsRoot = new NbtCompound();
         schematicsRoot.put("Schematic", worldEditTag);
         return schematicsRoot;
@@ -121,9 +120,9 @@ public class LitematicConverter implements AutoCloseable {
     private NbtElement convertToWeMeta(SizeTuple size, NbtCompound region) {
         var pos = (NbtCompound) region.get("Position");
         var nbt = new NbtCompound();
-        nbt.putInt("WEOffsetX", pos.getInt("x") + size.x < 0 ? size.x + 1 : 0);
-        nbt.putInt("WEOffsetY", pos.getInt("y") + size.y < 0 ? size.y + 1 : 0);
-        nbt.putInt("WEOffsetZ", pos.getInt("z") + size.z < 0 ? size.z + 1 : 0);
+        nbt.putInt("WEOffsetX", pos.getInt("x") + (size.x < 0 ? size.x + 1 : 0));
+        nbt.putInt("WEOffsetY", pos.getInt("y") + (size.y < 0 ? size.y + 1 : 0));
+        nbt.putInt("WEOffsetZ", pos.getInt("z") + (size.z < 0 ? size.z + 1 : 0));
         return nbt;
     }
 
@@ -132,14 +131,14 @@ public class LitematicConverter implements AutoCloseable {
         var blockStates = region.getLongArray("BlockStates");
 
         int bitsPerBlock = region.getList("BlockStatePalette", NbtElement.COMPOUND_TYPE).size();
-        bitsPerBlock = Math.max(2, Integer.SIZE - Integer.numberOfTrailingZeros(bitsPerBlock - 1));
+        bitsPerBlock = Math.max(2, Integer.SIZE - Integer.numberOfLeadingZeros(bitsPerBlock - 1));
 
         int bitCounts = 0, blockIterated = 0;
         long bitMask, bits = 0;
         for (long blockState : blockStates) {
             int remainingBits = bitCounts + 64;
             if (bitCounts != 0) {
-                bitMask = (1L << (bitsPerBlock - bitCounts)) - 1;
+                bitMask = (1 << (bitsPerBlock - bitCounts)) - 1;
                 long newBits = (blockState & bitMask) << bitCounts;
                 bits = bits | newBits;
                 blockState = blockState >>> (bitsPerBlock - bitCounts);
@@ -148,7 +147,7 @@ public class LitematicConverter implements AutoCloseable {
                 blockIterated++;
             }
 
-            bitMask = (1L << bitsPerBlock) - 1;
+            bitMask = (1 << bitsPerBlock) - 1;
             while(remainingBits >= bitsPerBlock){
                 bits = blockState & bitMask;
                 blockState = blockState >>> bitsPerBlock;

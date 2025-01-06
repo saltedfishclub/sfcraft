@@ -10,6 +10,7 @@ import io.ib67.sfcraft.module.chat.decorator.ChatSendLocModule;
 import io.ib67.sfcraft.module.compat.ModCompatModule;
 import io.ib67.sfcraft.module.randomevt.LongNightModule;
 import io.ib67.sfcraft.module.room.CreativeRoomModule;
+import io.ib67.sfcraft.module.supervisor.WebModule;
 import io.ib67.sfcraft.registry.RoomRegistry;
 import io.ib67.sfcraft.registry.chat.SimpleMessageDecorator;
 import io.ib67.sfcraft.registry.event.SFRandomEventRegistry;
@@ -65,7 +66,7 @@ public class SFCraftInitializer extends GuiceModInitializer {
         registerFeature(CreativeRoomModule.class);
         registerFeature(ChatPrefixModule.class);
         registerFeature(CustomItemModule.class);
-
+        registerFeature(WebModule.class);
     }
 
     @Override
