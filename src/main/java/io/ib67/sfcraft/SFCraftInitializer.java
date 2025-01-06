@@ -43,6 +43,7 @@ public class SFCraftInitializer extends GuiceModInitializer {
         binder().bind(GeoIPService.class).to(MaxMindGeoIPService.class);
         binder().bind(RandomEventRegistry.class).to(SFRandomEventRegistry.class);
         binder().bind(SimpleMessageDecorator.class).in(Singleton.class);
+        binder().bind(SignatureService.class).in(Singleton.class);
         binder().bind(RoomTeleporter.class).in(Singleton.class);
         binder().bind(RoomRegistry.class).to(SimpleRoomRegistry.class).in(Singleton.class);
     }

@@ -3,9 +3,11 @@ package io.ib67.sfcraft.mixin.server.subserver;
 import com.mojang.authlib.GameProfile;
 import io.ib67.sfcraft.SFCraft;
 import io.ib67.sfcraft.module.RoomModule;
+import io.ib67.sfcraft.module.SignatureService;
 import io.ib67.sfcraft.registry.RoomRegistry;
 import io.ib67.sfcraft.room.CookieState;
 import io.ib67.sfcraft.room.RequestedRoom;
+import io.netty.buffer.Unpooled;
 import net.minecraft.network.ClientConnection;
 import net.minecraft.network.packet.c2s.common.CookieResponseC2SPacket;
 import net.minecraft.network.packet.s2c.common.CookieRequestS2CPacket;
@@ -68,6 +70,7 @@ public abstract class ServerLoginNetworkHandlerMixin {
         if (packet.key().equals(ROOM_COOKIE)) {
             if (sf$cookieState != SENT) throw new IllegalStateException("Protocol error");
             var roomSvc = SFCraft.getInjector().getInstance(RoomModule.class);
+            var signSvc = SFCraft.getInjector().getInstance(SignatureService.class);
             try {
                 if (packet.payload().length == 0) {
                     // clean reconnect.
@@ -76,7 +79,8 @@ public abstract class ServerLoginNetworkHandlerMixin {
                     ci.cancel();
                     return;
                 }
-                this.sf$room = roomSvc.readRoomRequest(packet.payload());
+                var sign = signSvc.readSignature(Unpooled.wrappedBuffer(packet.payload()));
+                this.sf$room = RequestedRoom.PACKET_CODEC.decode(Unpooled.wrappedBuffer(sign.data()));
             } catch (Exception t) {
                 LOGGER.error("Failed to read cookie: {0}", t);
                 this.disconnect(Text.of("Protocol error."));

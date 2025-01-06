@@ -52,6 +52,7 @@ import static io.ib67.sfcraft.util.SFConsts.COMMAND_RECO;
 
 @Log4j2
 public class RoomModule extends ServerModule {
+    public static final String SIGN_TOPIC = "room";
     private static final byte[] EMPTY = new byte[0];
     @Inject
     private RoomRegistry roomRegistry;
@@ -59,14 +60,11 @@ public class RoomModule extends ServerModule {
     private MinecraftServerSupplier serverSupplier;
     @Inject
     private SFConfig config;
-    private Key key;
     private final List<Pair<RegistryKey<World>, BlockPos>> pregenQueue = new ArrayList<>();
     private final Map<UUID, GameProfile> uuidMapper = new ConcurrentHashMap<>();
-    private final Map<Identifier, GameRules> gameRulesPerRoom = new HashMap<>();
 
     @Override
     public void onInitialize() {
-        key = getKeyFromPassword(config.serverSecret, RandomStringUtils.random(16));
         CommandRegistrationCallback.EVENT.register(this::registerCommand);
     }
 
@@ -101,63 +99,6 @@ public class RoomModule extends ServerModule {
             networkHandler.sendPacket(new ServerTransferS2CPacket(config.domain, serverSupplier.get().getServerPort()));
         }));
         return 1;
-    }
-
-    @SneakyThrows
-    byte[] encrypt(byte[] b) {
-        var cipher = Cipher.getInstance("AES");
-        cipher.init(Cipher.ENCRYPT_MODE, key);
-        return cipher.doFinal(b);
-    }
-
-    @SneakyThrows
-    byte[] decrypt(byte[] b) {
-        var cipher = Cipher.getInstance("AES");
-        cipher.init(Cipher.DECRYPT_MODE, key);
-        return cipher.doFinal(b);
-    }
-
-    public byte[] serializeRequestedRoom(RequestedRoom room) {
-        var buf = Unpooled.buffer();
-        ByteBuf nbuf = null;
-        try {
-            Identifier.PACKET_CODEC.encode(buf, room.identifier());
-            PacketCodecs.GAME_PROFILE.encode(buf, new GameProfile(room.profileUuid(), room.profileName()));
-            var encrypted = encrypt(buf.array());
-            nbuf = Unpooled.buffer();
-            nbuf.writeShortLE(encrypted.length);
-            nbuf.writeBytes(encrypted);
-            return nbuf.array();
-        } finally {
-            if (nbuf != null) nbuf.release();
-            buf.release();
-        }
-    }
-
-    public RequestedRoom readRoomRequest(byte[] payload) {
-        ByteBuf buf = null;
-        ByteBuf decrypted = null;
-        try {
-            buf = Unpooled.wrappedBuffer(payload);
-            var len = buf.readUnsignedShortLE();
-            var content = new byte[len];
-            buf.readBytes(content);
-            decrypted = Unpooled.wrappedBuffer(decrypt(content));
-
-            var identifier = Identifier.PACKET_CODEC.decode(decrypted);
-            var profile = PacketCodecs.GAME_PROFILE.decode(decrypted);
-            return new RequestedRoom(identifier, profile.getName(), profile.getId());
-        } finally {
-            if (buf != null) buf.release(); //todo
-            if (decrypted != null) decrypted.release();
-        }
-    }
-
-    @SneakyThrows
-    private static SecretKey getKeyFromPassword(String password, String salt) {
-        SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
-        KeySpec spec = new PBEKeySpec(password.toCharArray(), salt.getBytes(), 65536, 256);
-        return new SecretKeySpec(factory.generateSecret(spec).getEncoded(), "AES");
     }
 
     public void enqueuePregen(RegistryKey<World> world, BlockPos spawnPos) {

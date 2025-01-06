@@ -111,7 +111,12 @@ public class CreativeRoomModule extends ServerModule {
 
     private int gotoPlayground(CommandContext<ServerCommandSource> serverCommandSourceCommandContext) {
         var player = serverCommandSourceCommandContext.getSource().getPlayer();
-        teleporter.teleportTo(room, player);
+        try {
+            teleporter.teleportTo(room, player);
+        }catch (Exception e){
+            player.networkHandler.disconnect(Text.of(e.getMessage()));
+            e.printStackTrace();
+        }
         return 0;
     }
 

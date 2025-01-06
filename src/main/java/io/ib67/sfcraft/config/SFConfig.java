@@ -11,4 +11,6 @@ public class SFConfig {
     public boolean enableOfflineExempt = true;
     public String domain = "localhost";
     public String serverSecret = RandomStringUtils.random(32);
+    public int httpPort = 8080;
+    public long maxSchematicSize = 100000;
 }

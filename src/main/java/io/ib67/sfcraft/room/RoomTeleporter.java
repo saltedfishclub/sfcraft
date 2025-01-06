@@ -5,9 +5,10 @@ import io.ib67.sfcraft.SFCraft;
 import io.ib67.sfcraft.config.SFConfig;
 import io.ib67.sfcraft.inject.MinecraftServerSupplier;
 import io.ib67.sfcraft.module.RoomModule;
+import io.ib67.sfcraft.module.SignatureService;
 import io.ib67.sfcraft.registry.RoomRegistry;
 import io.ib67.sfcraft.subserver.Room;
-import io.ib67.sfcraft.util.Helper;
+import io.netty.buffer.Unpooled;
 import net.minecraft.network.PacketCallbacks;
 import net.minecraft.network.packet.s2c.common.ServerTransferS2CPacket;
 import net.minecraft.network.packet.s2c.common.StoreCookieS2CPacket;
@@ -22,6 +23,8 @@ public class RoomTeleporter {
     @Inject
     private RoomModule roomModule;
     @Inject
+    private SignatureService signatureModule;
+    @Inject
     private MinecraftServerSupplier serverSupplier;
     @Inject
     private SFConfig config;
@@ -35,16 +38,25 @@ public class RoomTeleporter {
         }
         var finalUuid = roomModule.generateIdForRoom(player.getGameProfile(), player.getName().getLiteralString(), room.getServerIdentifier());
         var sess = room.getPlayerManager().createSessionFor(finalUuid);
+        var name = player.getName().getLiteralString();
         if (player.getServer().getWorld(sess.getSpawnPosition().dimension()) == null) {
             throw new IllegalStateException("world isn't exist");
         }
         var networkHandler = player.networkHandler;
         networkHandler.reconfigure();
-        networkHandler.send(new StoreCookieS2CPacket(ROOM_COOKIE, roomModule.serializeRequestedRoom(new RequestedRoom(
-                room.getServerIdentifier(),
-                player.getName().getLiteralString(),
-                finalUuid
-        ))), PacketCallbacks.always(() -> {
+        var request = new RequestedRoom(room.getServerIdentifier(), name, finalUuid);
+        var requestBuf = Unpooled.buffer();
+        RequestedRoom.PACKET_CODEC.encode(requestBuf, request);
+        var cookie = signatureModule.createSignature(
+                new SignatureService.Signature(
+                        RoomModule.SIGN_TOPIC,
+                        name,
+                        0,
+                        System.currentTimeMillis() + 10000,
+                        requestBuf.array()
+                )
+        );
+        networkHandler.send(new StoreCookieS2CPacket(ROOM_COOKIE, cookie), PacketCallbacks.always(() -> {
             networkHandler.sendPacket(new ServerTransferS2CPacket(config.domain, serverSupplier.get().getServerPort()));
         }));
     }
