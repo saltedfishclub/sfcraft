@@ -29,25 +29,21 @@ public class LitematicConverter implements AutoCloseable {
 
     @SneakyThrows
     public void read(
-            BiConsumer<Integer, NbtCompound> schematicOutput
+            BiConsumer<String, NbtCompound> schematicOutput
     ) {
         if (root != null) throw new IllegalStateException("Litematica file is already read");
         root = NbtIo.readCompressed(input, sizeTracker).getCompound(NBT_LITEMATICA_ROOT);
         var dataVersion = root.getInt("MinecraftDataVersion");
-        var regionsNbt = root.getList("Regions", NbtElement.COMPOUND_TYPE);
+        var regionsNbt = root.getCompound("Regions");
         var i = 0;
-        for (NbtElement nbtElement : regionsNbt) {
-            var compound = (NbtCompound) nbtElement;
+        for (String regionName : regionsNbt.getKeys()) {
+            var compound = regionsNbt.getCompound(regionName);
             var j = i++;
             var schematic = convertRegionToSchematic(dataVersion, compound);
-            schematicOutput.accept(j, schematic);
+            schematicOutput.accept(regionName, schematic);
         }
     }
 
-    /**
-     * @param region region
-     * @return a path to temp file.
-     */
     private NbtCompound convertRegionToSchematic(int dataVersion, NbtCompound region) {
         var worldEditTag = new NbtCompound();
 
