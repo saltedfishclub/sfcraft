@@ -20,7 +20,6 @@ public class LitematicConverter implements AutoCloseable {
     public static final String NBT_LITEMATICA_ROOT = "";
     private final InputStream input;
     private final NbtSizeTracker sizeTracker;
-    private NbtCompound root;
 
     public LitematicConverter(InputStream input, NbtSizeTracker sizeTracker) {
         this.input = input;
@@ -31,8 +30,7 @@ public class LitematicConverter implements AutoCloseable {
     public void read(
             BiConsumer<String, NbtCompound> schematicOutput
     ) {
-        if (root != null) throw new IllegalStateException("Litematica file is already read");
-        root = NbtIo.readCompressed(input, sizeTracker).getCompound(NBT_LITEMATICA_ROOT);
+        var root = NbtIo.readCompressed(input, sizeTracker).getCompound(NBT_LITEMATICA_ROOT);
         var dataVersion = root.getInt("MinecraftDataVersion");
         var regionsNbt = root.getCompound("Regions");
         var i = 0;

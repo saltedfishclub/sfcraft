@@ -1,5 +1,8 @@
 package io.ib67.sfcraft.util;
 
+import com.github.houbb.pinyin.api.impl.Pinyin;
+import com.github.houbb.pinyin.constant.enums.PinyinStyleEnum;
+import com.github.houbb.pinyin.util.PinyinHelper;
 import com.maxmind.geoip2.exception.GeoIp2Exception;
 import io.ib67.sfcraft.SFCraft;
 import io.ib67.sfcraft.config.SFConfig;
@@ -29,8 +32,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.regex.Pattern;
 
 public class Helper {
+    private static final Pattern ILLEGAL_CHARACTERS = Pattern.compile("[./\\\\#%!@&*]");
     public static final char COLOR = '§';
 
     public static boolean canBack(ServerPlayerEntity player) {
@@ -41,6 +46,15 @@ public class Helper {
         if (wld == null) return false;
         var nearby = wld.getClosestPlayer(_pos.getX(), _pos.getY(), _pos.getZ(), 100, true);
         return nearby != null;
+    }
+
+    public static String cleanFileName(String filename) {
+        var name = PinyinHelper.toPinyin(filename, PinyinStyleEnum.NORMAL,"_");
+        name =  ILLEGAL_CHARACTERS.matcher(name).replaceAll("");
+        if(name.length() > 32){
+            name = name.substring(0,32);
+        }
+        return name;
     }
 
     public static boolean teleportSafely(ServerPlayerEntity player, ServerWorld world, int x, int y, int z, float yaw, float pitch) {
