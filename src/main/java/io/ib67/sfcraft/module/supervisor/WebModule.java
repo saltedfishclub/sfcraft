@@ -40,7 +40,7 @@ public class WebModule extends ServerModule {
         Files.createDirectories(SCHEMATIC_DIR);
         Thread.ofVirtual().name("SFCraft API Web").start(() -> {
             Javalin.create(cfg -> cfg.useVirtualThreads = true)
-                    .post("/api/schematics", this::uploadSchematic)
+                    .put("/api/schematics", this::uploadSchematic)
                     .start(config.httpPort);
         });
     }
