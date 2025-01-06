@@ -10,6 +10,7 @@ import io.ib67.sfcraft.util.litematic.LitematicConverterV3;
 import io.javalin.Javalin;
 import io.javalin.http.Context;
 import io.javalin.http.UploadedFile;
+import io.netty.buffer.Unpooled;
 import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
 import net.minecraft.nbt.NbtIo;
@@ -18,6 +19,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Base64;
 import java.util.List;
 
 @Log4j2
@@ -35,10 +37,18 @@ public class WebModule extends ServerModule {
     public void onInitialize() {
         Files.createDirectories(SCHEMATIC_DIR);
         javalin = Javalin.create(cfg -> cfg.useVirtualThreads = false)
-                .put("/api/schematics", this::uploadSchematic);
+                .options("/api/schematics/{name}", this::onUploadOptions)
+                .put("/api/schematics/{name}", this::uploadSchematic);
         Thread.ofVirtual().name("SFCraft API Web").start(() -> {
             javalin.start(config.httpPort);
         });
+    }
+
+    private void onUploadOptions(@NotNull Context context) {
+        context.res().addHeader("Access-Control-Allow-Origin", "*");
+        context.res().addHeader("Access-Control-Allow-Methods", "OPTIONS, PUT");
+        context.res().addHeader("Access-Control-Allow-Headers", context.header("Access-Control-Request-Headers"));
+        context.res().addHeader("Access-Control-Max-Age", "86400");
     }
 
     @Override
@@ -47,19 +57,21 @@ public class WebModule extends ServerModule {
     }
 
     private void uploadSchematic(@NotNull Context context) {
+        onUploadOptions(context);
         if (context.contentLength() > config.maxSchematicSize) {
             context.result("Content is too large!");
             return;
         }
 
-//        var signRaw = Base64.getUrlDecoder().decode(context.pathParam("sign"));
-//        var verifiedSign = signatureService.readSignature(Unpooled.wrappedBuffer(signRaw));
-//        if ((verifiedSign.permission() & PERMISSION_UPLOAD_SCHEMATICS) == 0) {
-//            context.result("Permission denied!");
-//            return;
-//        }
+        var signRaw = Base64.getUrlDecoder().decode(context.pathParam("sign"));
+        var verifiedSign = signatureService.readSignature(Unpooled.wrappedBuffer(signRaw));
+        if ((verifiedSign.permission() & PERMISSION_UPLOAD_SCHEMATICS) == 0) {
+            context.result("Permission denied!");
+            return;
+        }
         var files = context.uploadedFileMap();
-        files.forEach((k, v) -> handleUploadSchematic(context, k, v));
+        var name = context.pathParam("name");
+        files.forEach((k, v) -> handleUploadSchematic(context, name, v));
     }
 
     @SneakyThrows
@@ -76,7 +88,7 @@ public class WebModule extends ServerModule {
         var baseFileName = Helper.cleanFileName(fileName.substring(0, fileName.length() - 10));
         log.info("Handling new file: {}", fileName);
         if (fileName.endsWith(".schematic")) {
-            Files.write(SCHEMATIC_DIR.resolve(baseFileName+".schematic"), file.content().readAllBytes());
+            Files.write(SCHEMATIC_DIR.resolve(baseFileName + ".schematic"), file.content().readAllBytes());
             log.info("Saved " + fileName + " as a schematic.");
         } else if (fileName.endsWith(".litematic")) {
             log.error("Handling new {}", fileName);
