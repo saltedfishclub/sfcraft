@@ -5,6 +5,7 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import lombok.SneakyThrows;
 import net.minecraft.nbt.*;
+import net.minecraft.network.PacketByteBuf;
 import org.apache.commons.compress.utils.Lists;
 
 import java.io.InputStream;
@@ -63,7 +64,7 @@ public class LitematicConverter implements AutoCloseable {
         worldEditTag.put("BlockEntities", convertToWETileEntities(tileEntities));
         worldEditTag.putInt("Version", 2);
         worldEditTag.putIntArray("Offset", new int[3]);
-        worldEditTag.putByteArray("BlockData", convertToWEBlocks(Math.abs(size.x * size.y * size.z), region));
+        worldEditTag.putByteArray("BlockData", convertToWEBlocks(size, region));
         var schematicsRoot = new NbtCompound();
         schematicsRoot.put("Schematic", worldEditTag);
         return schematicsRoot;
@@ -94,7 +95,7 @@ public class LitematicConverter implements AutoCloseable {
             tE.remove("y");
             tE.remove("z");
             tE.remove("id");
-            weTE.put("Data",tE);
+            weTE.put("Data", tE);
             weTEs.add(weTE);
         }
         return weTEs;
@@ -129,52 +130,32 @@ public class LitematicConverter implements AutoCloseable {
         return nbt;
     }
 
-    protected byte[] convertToWEBlocks(int totalBlocks, NbtCompound region) {
-        var buf = Unpooled.buffer();
+    protected byte[] convertToWEBlocks(SizeTuple size, NbtCompound region) {
+        var blockCount = Math.abs(size.x * size.y * size.z);
         var blockStates = region.getLongArray("BlockStates");
-
         int bitsPerBlock = region.getList("BlockStatePalette", NbtElement.COMPOUND_TYPE).size();
         bitsPerBlock = Math.max(2, Integer.SIZE - Integer.numberOfLeadingZeros(bitsPerBlock - 1));
+        int maxEntryValue = (1 << bitsPerBlock) - 1;
+        var buffer = new PacketByteBuf(Unpooled.buffer());
+        for (int index = 0; index < blockCount; index++) {
+            int startBit = index * bitsPerBlock;
+            int startLongIndex = startBit / 64;
+            int startBitOffset = startBit % 64;
+            int endBit = startBit + bitsPerBlock - 1;
+            int endLongIndex = endBit / 64;
 
-        int bitCounts = 0, blockIterated = 0;
-        long bitMask, bits = 0;
-        for (long blockState : blockStates) {
-            int remainingBits = bitCounts + 64;
-            if (bitCounts != 0) {
-                bitMask = (1 << (bitsPerBlock - bitCounts)) - 1;
-                long newBits = (blockState & bitMask) << bitCounts;
-                bits = bits | newBits;
-                blockState = blockState >>> (bitsPerBlock - bitCounts);
-                remainingBits -= bitsPerBlock;
-                writeBlocks(buf, (short) bits);
-                blockIterated++;
+            int value;
+            if (startLongIndex == endLongIndex) {
+                value = (int) ((blockStates[startLongIndex] >>> startBitOffset) & maxEntryValue);
+            } else {
+                int bitsInFirstPart = 64 - startBitOffset; // 第一个 long 提取的位数
+                long firstPart = blockStates[startLongIndex] >>> startBitOffset;
+                long secondPart = blockStates[endLongIndex] & ((1L << (bitsPerBlock - bitsInFirstPart)) - 1);
+                value = (int) ((firstPart | (secondPart << bitsInFirstPart)) & maxEntryValue);
             }
-
-            bitMask = (1 << bitsPerBlock) - 1;
-            while (remainingBits >= bitsPerBlock) {
-                bits = blockState & bitMask;
-                blockState = blockState >>> bitsPerBlock;
-                remainingBits -= bitsPerBlock;
-                if (blockIterated >= totalBlocks) break;
-                writeBlocks(buf, (short) bits);
-                blockIterated++;
-            }
-            bits = blockState;
-            bitCounts = remainingBits;
+            buffer.writeVarInt(value);
         }
-        return buf.array();
-    }
-
-    protected static int writeBlocks(ByteBuf buf, short block) {
-        int b = block >>> 7;
-        if (b == 0) {
-            buf.writeByte(block);
-            return 1;
-        } else {
-            buf.writeByte(block | 128);
-            buf.writeByte(block);
-            return 2;
-        }
+        return buffer.array();
     }
 
     @Override
@@ -182,7 +163,7 @@ public class LitematicConverter implements AutoCloseable {
         input.close();
     }
 
-    record SizeTuple(
+    protected record SizeTuple(
             int x, int y, int z
     ) {
     }
