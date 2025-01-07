@@ -13,5 +13,5 @@ public class SFConfig {
     public String webApiBase = "localhost";
     public String serverSecret = RandomStringUtils.random(32);
     public int httpPort = 8080;
-    public long maxSchematicSize = 100000;
+    public long maxSchematicSize = 10240000;
 }
