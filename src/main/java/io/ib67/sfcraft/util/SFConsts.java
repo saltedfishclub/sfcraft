@@ -18,7 +18,7 @@ public class SFConsts {
     public static final Permission<PlayerEntity> WORLDEDIT_AT_PLAYGROUND = ofSFCPermission("worldedit", true);
 
     public static final Permission<PlayerEntity> COMMAND_ADDWL = ofSFCPermission("command.addwl", false);
-    public static final Permission<PlayerEntity> COMMAND_UNBLOCKSERVER = ofSFCPermission("command.unblockserver", false);
+    public static final Permission<PlayerEntity> COMMAND_UPLOAD_SCHEMATIC = ofSFCPermission("command.upload.schematic", false);
     public static final Permission<PlayerEntity> COMMAND_LISTOFFLINE = ofSFCPermission("command.listoffline", false);
     public static final Permission<PlayerEntity> COMMAND_LISTPERM = ofSFCPermission("command.listperm", false);
     public static final Permission<PlayerEntity> COMMAND_LISTGEO = ofSFCPermission("command.listgeo", false);

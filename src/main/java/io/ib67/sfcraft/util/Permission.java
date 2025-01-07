@@ -5,13 +5,6 @@ import net.minecraft.entity.Entity;
 
 import java.util.Objects;
 
-/**
- * 基于 Command Tags 实现的权限系统
- * 权限节点通常以 `.` 切割并且总是在 `sfcraft` 分类下，例如 `sfcraft.back`
- * 用 `-权限节点` 表示禁止使用
- *
- * @param <T> 对象
- */
 public record Permission<T extends Entity>(String key, boolean byDefault) {
     /**
      * @param key 权限节点

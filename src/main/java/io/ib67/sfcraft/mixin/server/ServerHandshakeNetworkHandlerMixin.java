@@ -14,7 +14,6 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
 
 @Mixin(ServerHandshakeNetworkHandler.class)
-@Debug(export = true)
 public abstract class ServerHandshakeNetworkHandlerMixin {
     @Shadow
     @Final

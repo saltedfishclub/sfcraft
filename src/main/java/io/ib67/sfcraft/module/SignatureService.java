@@ -45,6 +45,7 @@ public class SignatureService {
     public byte[] createSignature(Signature signature) {
         var buf = Unpooled.buffer();
         writeSignature(buf, signature);
+        buf = buf.slice(0, buf.readableBytes());
         return buf.array();
     }
 
