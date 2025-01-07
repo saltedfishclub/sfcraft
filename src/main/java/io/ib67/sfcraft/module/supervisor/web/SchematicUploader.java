@@ -143,19 +143,15 @@ public class SchematicUploader extends WebHandler {
         if (fileName.endsWith(".schematic") || fileName.endsWith(".schem")) {
             Files.write(SCHEMATIC_DIR.resolve(baseFileName + ".schematic"), file.content().readAllBytes());
             log.info("Saved " + fileName + " as a schematic.");
-            if (player != null) {
-                player.sendMessage(Text.literal(sign.issuer()+": Schematic " + baseFileName + " has been saved! Use //schem list to find it").withColor(Color.GREEN.getRGB()));
-            }
+            sendSuccess(player, baseFileName);
         } else if (fileName.endsWith(".litematic")) {
             try (var converter = new LitematicConverterV3(file.content(), new NbtSizeTracker(config.maxSchematicSize, 64))) {
                 converter.read((name, nbt) -> {
                     name = baseFileName + "-" + name + ".schematic";
                     try {
                         NbtIo.writeCompressed(nbt, SCHEMATIC_DIR.resolve(name));
-                        log.info(sign.issuer()+": Schematic " + name + " has been saved!");
-                        if (player != null) {
-                            player.sendMessage(Text.literal("Schematic " + name + " has been saved! Use //schem list to find it").withColor(Color.GREEN.getRGB()));
-                        }
+                        log.info(sign.issuer() + ": Schematic " + name + " has been saved!");
+                        sendSuccess(player, name);
                         context.result("Success!");
                     } catch (Exception e) {
                         log.error("Error occurred when serializing .litematic to disk.", e);
@@ -170,5 +166,15 @@ public class SchematicUploader extends WebHandler {
             return;
         }
         context.result("Uploaded!");
+    }
+
+    private static void sendSuccess(ServerPlayerEntity player, String fileName) {
+        if (player == null) {
+            return;
+        }
+        player.sendMessage(Text.literal("Schematic " + fileName + " has been saved! Use //schem list to find it").withColor(Color.GREEN.getRGB()));
+        player.sendMessage(Text.literal("Or you can click this").styled(it->it.withUnderline(true).withClickEvent(
+                new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, "//schem load " + fileName)
+        )));
     }
 }
