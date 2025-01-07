@@ -54,13 +54,16 @@ public class SchematicUploader extends WebHandler {
     private void registerCommand(CommandDispatcher<ServerCommandSource> dispatcher, CommandRegistryAccess registry, CommandManager.RegistrationEnvironment env) {
         dispatcher.register(CommandManager.literal("upload").then(
                 CommandManager.literal("schematic")
-                        .requires(it -> !it.isExecutedByPlayer() || SFConsts.COMMAND_UPLOAD_SCHEMATIC.hasPermission(it.getPlayer()))
                         .executes(this::onRequestSchematic)
         ));
     }
 
     private int onRequestSchematic(CommandContext<ServerCommandSource> context) {
         var source = context.getSource();
+        if (source.isExecutedByPlayer() && !SFConsts.COMMAND_UPLOAD_SCHEMATIC.hasPermission(source.getPlayer())) {
+            source.sendMessage(Text.literal("你没有使用上传功能的权限！请联系管理员申请"));
+            return Command.SINGLE_SUCCESS;
+        }
         var url = generateSchematicUrl(source.isExecutedByPlayer() ? source.getPlayer().getName().getLiteralString() : "CONSOLE");
         source.sendMessage(Text.literal("Click this URL to upload schematic files.").withColor(Color.GREEN.getRGB()));
         source.sendMessage(Text.literal(url).styled(it -> it.withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, url))));
