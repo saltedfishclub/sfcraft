@@ -147,7 +147,7 @@ public class SchematicUploader extends WebHandler {
         } else if (fileName.endsWith(".litematic")) {
             try (var converter = new LitematicConverterV3(file.content(), new NbtSizeTracker(config.maxSchematicSize, 64))) {
                 converter.read((name, nbt) -> {
-                    name = baseFileName + "-" + name + ".schematic";
+                    name = baseFileName + "-" + Helper.cleanFileName(name) + ".schematic";
                     try {
                         NbtIo.writeCompressed(nbt, SCHEMATIC_DIR.resolve(name));
                         log.info(sign.issuer() + ": Schematic " + name + " has been saved!");
