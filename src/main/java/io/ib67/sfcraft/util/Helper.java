@@ -36,6 +36,7 @@ import java.util.regex.Pattern;
 
 public class Helper {
     private static final Pattern ILLEGAL_CHARACTERS = Pattern.compile("[./\\\\#%!@&*]");
+    private static final Pattern NON_ASCII = Pattern.compile("[^a-zA-Z0-9_+()]");
     public static final char COLOR = '§';
 
     public static boolean canBack(ServerPlayerEntity player) {
@@ -54,7 +55,7 @@ public class Helper {
         if(name.length() > 32){
             name = name.substring(0,32);
         }
-        return name;
+        return NON_ASCII.matcher(name).replaceAll("");
     }
 
     public static boolean teleportSafely(ServerPlayerEntity player, ServerWorld world, int x, int y, int z, float yaw, float pitch) {
