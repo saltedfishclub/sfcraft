@@ -86,8 +86,8 @@ public class WebModule extends ServerModule {
         }
         if (fileName.length() <= 10) return;
         var baseFileName = Helper.cleanFileName(fileName.substring(0, fileName.length() - 10));
-        log.info("Handling new file: {}", fileName);
-        if (fileName.endsWith(".schematic")) {
+
+        if (fileName.endsWith(".schematic") || fileName.endsWith(".schem")) {
             Files.write(SCHEMATIC_DIR.resolve(baseFileName + ".schematic"), file.content().readAllBytes());
             log.info("Saved " + fileName + " as a schematic.");
         } else if (fileName.endsWith(".litematic")) {
