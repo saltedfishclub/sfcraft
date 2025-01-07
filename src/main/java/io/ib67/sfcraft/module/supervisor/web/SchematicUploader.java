@@ -5,6 +5,7 @@ import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.context.CommandContext;
 import io.ib67.sfcraft.config.SFConfig;
+import io.ib67.sfcraft.inject.MinecraftServerSupplier;
 import io.ib67.sfcraft.module.SignatureService;
 import io.ib67.sfcraft.module.supervisor.WebHandler;
 import io.ib67.sfcraft.util.Helper;
@@ -43,6 +44,8 @@ public class SchematicUploader extends WebHandler {
     SFConfig config;
     @Inject
     SignatureService signatureService;
+    @Inject
+    MinecraftServerSupplier serverSupplier;
 
     @Override
     @SneakyThrows
@@ -103,12 +106,19 @@ public class SchematicUploader extends WebHandler {
             return;
         }
         var signRaw = Base64.getUrlDecoder().decode(context.queryParam("sign"));
-        var verifiedSign = signatureService.readSignature(Unpooled.wrappedBuffer(signRaw));
-        if ((verifiedSign.permission() & PERMISSION_UPLOAD_SCHEMATICS) == 0) {
-            context.result("Permission denied!");
+        try {
+            var verifiedSign = signatureService.readSignature(Unpooled.wrappedBuffer(signRaw));
+            if ((verifiedSign.permission() & PERMISSION_UPLOAD_SCHEMATICS) == 0) {
+                context.result("Permission denied!");
+                context.status(403);
+                return;
+            }
+            context.attribute("sign", verifiedSign);
+        } catch (Exception e) {
+            context.result("Invalid signature. Please re-run /upload schematic in game.");
+            context.status(400);
             return;
         }
-        context.attribute("sign", verifiedSign);
         var files = context.uploadedFileMap();
         var name = context.pathParam("name");
         files.forEach((k, v) -> handleUploadSchematic(context, name, v));
@@ -128,24 +138,23 @@ public class SchematicUploader extends WebHandler {
         if (fileName.length() <= 10) return;
         var baseFileName = Helper.cleanFileName(fileName.substring(0, fileName.length() - 10));
         var sign = context.<SignatureService.Signature>attribute("sign");
-        //var player = serverSupplier.get().getPlayerManager().getPlayer(sign.issuer());
-        ServerPlayerEntity player = null;
+        var player = serverSupplier.get().getPlayerManager().getPlayer(sign.issuer());
+        log.info("Handling file {} from player {}", fileName, sign.issuer());
         if (fileName.endsWith(".schematic") || fileName.endsWith(".schem")) {
             Files.write(SCHEMATIC_DIR.resolve(baseFileName + ".schematic"), file.content().readAllBytes());
             log.info("Saved " + fileName + " as a schematic.");
             if (player != null) {
-                player.sendMessage(Text.literal("Schematic " + baseFileName + " has been saved!").withColor(Color.GREEN.getRGB()));
+                player.sendMessage(Text.literal(sign.issuer()+": Schematic " + baseFileName + " has been saved! Use //schem list to find it").withColor(Color.GREEN.getRGB()));
             }
         } else if (fileName.endsWith(".litematic")) {
-            log.info("Handling new litematic: {}", fileName);
-            try (var converter = new LitematicConverterV3(file.content(), new NbtSizeTracker(config.maxSchematicSize, 16))) {
+            try (var converter = new LitematicConverterV3(file.content(), new NbtSizeTracker(config.maxSchematicSize, 64))) {
                 converter.read((name, nbt) -> {
                     name = baseFileName + "-" + name + ".schematic";
                     try {
                         NbtIo.writeCompressed(nbt, SCHEMATIC_DIR.resolve(name));
-                        log.info("Schematic " + name + " has been saved!");
+                        log.info(sign.issuer()+": Schematic " + name + " has been saved!");
                         if (player != null) {
-                            player.sendMessage(Text.literal("Schematic " + name + " has been saved!").withColor(Color.GREEN.getRGB()));
+                            player.sendMessage(Text.literal("Schematic " + name + " has been saved! Use //schem list to find it").withColor(Color.GREEN.getRGB()));
                         }
                         context.result("Success!");
                     } catch (Exception e) {

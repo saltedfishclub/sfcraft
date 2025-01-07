@@ -1,9 +1,11 @@
 package io.ib67.sfcraft.util.litematic;
 
+import io.ib67.sfcraft.util.TypedNbtList;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import lombok.SneakyThrows;
 import net.minecraft.nbt.*;
+import org.apache.commons.compress.utils.Lists;
 
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -76,7 +78,8 @@ public class LitematicConverter implements AutoCloseable {
     }
 
     protected NbtList convertToWETileEntities(NbtList tileEntities) {
-        var weTEs = new NbtList();
+        var weTEs = new TypedNbtList(Lists.newArrayList(), NbtElement.COMPOUND_TYPE);
+
         for (NbtElement _tileEntity : tileEntities) {
             var weTE = new NbtCompound();
             var tE = (NbtCompound) _tileEntity;
