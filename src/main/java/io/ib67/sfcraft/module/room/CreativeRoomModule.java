@@ -5,6 +5,7 @@ import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import io.ib67.sfcraft.ServerModule;
 import io.ib67.sfcraft.callback.SFCallbacks;
 import io.ib67.sfcraft.inject.MinecraftServerSupplier;
@@ -15,6 +16,7 @@ import io.ib67.sfcraft.registry.RoomRegistry;
 import io.ib67.sfcraft.room.RoomTeleporter;
 import io.ib67.sfcraft.room.create.CreativeSpaceFactory;
 import io.ib67.sfcraft.room.create.CreativeSpaceRoom;
+import io.ib67.sfcraft.util.Helper;
 import io.ib67.sfcraft.util.SFConsts;
 import me.lucko.fabric.api.permissions.v0.PermissionCheckEvent;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
@@ -23,6 +25,8 @@ import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.fabric.api.util.TriState;
 import net.minecraft.command.CommandRegistryAccess;
 import net.minecraft.command.CommandSource;
+import net.minecraft.command.EntitySelector;
+import net.minecraft.command.argument.EntityArgumentType;
 import net.minecraft.command.argument.GameModeArgumentType;
 import net.minecraft.network.packet.s2c.play.TeamS2CPacket;
 import net.minecraft.scoreboard.Team;
@@ -116,6 +120,32 @@ public class CreativeRoomModule extends ServerModule {
                                 .executes(this::onGameMode)
                         )
         );
+        dispatcher.register(
+                CommandManager.literal("pt")
+                        .then(CommandManager.argument("dest", EntityArgumentType.entity())
+                                .requires(it -> it.isExecutedByPlayer() && SFConsts.COMMAND_PLAYGROUND_TELEPORT.hasPermission(it.getPlayer()))
+                                .executes(this::onTeleport))
+        );
+    }
+
+    private int onTeleport(CommandContext<ServerCommandSource> ctx) throws CommandSyntaxException {
+        var src = ctx.getSource();
+        if (src instanceof ServerCommandSource source && source.getPlayer() != null) {
+            var p = source.getPlayer();
+            var dest = EntityArgumentType.getEntity(ctx, "dest");
+            if (p.getServerWorld().getRegistryKey().equals(CreativeSpaceRoom.WORLD)) {
+                if (dest.getWorld() == p.getServerWorld()) {
+                    Helper.teleportSafely(
+                            p, p.getServerWorld(),
+                            dest.getBlockX(), dest.getBlockY(), dest.getBlockZ(),
+                            dest.getYaw(), dest.getPitch()
+                    );
+                    return Command.SINGLE_SUCCESS;
+                }
+            }
+            p.sendMessage(Text.of("You and target must be in playground!"));
+        }
+        return Command.SINGLE_SUCCESS;
     }
 
     private int onGameMode(CommandContext<ServerCommandSource> ctx) {
@@ -125,8 +155,8 @@ public class CreativeRoomModule extends ServerModule {
             var mode = ctx.getArgument("mode", GameMode.class);
             if (p.getServerWorld().getRegistryKey().equals(CreativeSpaceRoom.WORLD)) {
                 p.changeGameMode(mode);
-                p.sendMessage(Text.of("Your gamemode has been changed to "+mode.asString()));
-            }else{
+                p.sendMessage(Text.of("Your gamemode has been changed to " + mode.asString()));
+            } else {
                 p.sendMessage(Text.of("You can only use this in playground!"));
             }
         }

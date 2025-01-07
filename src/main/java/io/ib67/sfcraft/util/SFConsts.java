@@ -24,6 +24,7 @@ public class SFConsts {
     public static final Permission<PlayerEntity> COMMAND_LISTGEO = ofSFCPermission("command.listgeo", false);
     public static final Permission<PlayerEntity> COMMAND_PLAYGROUND = ofSFCPermission("command.playground", true);
     public static final Permission<PlayerEntity> COMMAND_PLAYGROUND_GAMEMODE = ofSFCPermission("command.playground.gamemode", true);
+    public static final Permission<PlayerEntity> COMMAND_PLAYGROUND_TELEPORT = ofSFCPermission("command.playground.teleport", true);
     public static final Permission<PlayerEntity> COMMAND_RECO = ofSFCPermission("command.reco", true);
 
     public static Permission<PlayerEntity> ofSFCPermission(String key, boolean byDefault) {
