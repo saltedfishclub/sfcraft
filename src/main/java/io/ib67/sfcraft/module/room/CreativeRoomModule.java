@@ -1,6 +1,7 @@
 package io.ib67.sfcraft.module.room;
 
 import com.google.inject.Inject;
+import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
@@ -22,6 +23,7 @@ import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.fabric.api.util.TriState;
 import net.minecraft.command.CommandRegistryAccess;
 import net.minecraft.command.CommandSource;
+import net.minecraft.command.argument.GameModeArgumentType;
 import net.minecraft.network.packet.s2c.play.TeamS2CPacket;
 import net.minecraft.scoreboard.Team;
 import net.minecraft.server.MinecraftServer;
@@ -103,17 +105,39 @@ public class CreativeRoomModule extends ServerModule {
     private void registerCommand(CommandDispatcher<ServerCommandSource> dispatcher,
                                  CommandRegistryAccess registry, CommandManager.RegistrationEnvironment env) {
         dispatcher.register(
-                LiteralArgumentBuilder.<ServerCommandSource>literal("playground")
+                LiteralArgumentBuilder.<ServerCommandSource>literal("playgrd")
                         .requires(it -> it.isExecutedByPlayer() && SFConsts.COMMAND_PLAYGROUND.hasPermission(it.getPlayer()))
                         .executes(this::gotoPlayground)
         );
+        dispatcher.register(
+                CommandManager.literal("gm")
+                        .then(CommandManager.argument("mode", GameModeArgumentType.gameMode())
+                                .requires(it -> it.isExecutedByPlayer() && SFConsts.COMMAND_PLAYGROUND_GAMEMODE.hasPermission(it.getPlayer()))
+                                .executes(this::onGameMode)
+                        )
+        );
+    }
+
+    private int onGameMode(CommandContext<ServerCommandSource> ctx) {
+        var src = ctx.getSource();
+        if (src instanceof ServerCommandSource source && source.getPlayer() != null) {
+            var p = source.getPlayer();
+            var mode = ctx.getArgument("mode", GameMode.class);
+            if (p.getServerWorld().getRegistryKey().equals(CreativeSpaceRoom.WORLD)) {
+                p.changeGameMode(mode);
+                p.sendMessage(Text.of("Your gamemode has been changed to "+mode.asString()));
+            }else{
+                p.sendMessage(Text.of("You can only use this in playground!"));
+            }
+        }
+        return Command.SINGLE_SUCCESS;
     }
 
     private int gotoPlayground(CommandContext<ServerCommandSource> serverCommandSourceCommandContext) {
         var player = serverCommandSourceCommandContext.getSource().getPlayer();
         try {
             teleporter.teleportTo(room, player);
-        }catch (Exception e){
+        } catch (Exception e) {
             player.networkHandler.disconnect(Text.of(e.getMessage()));
             e.printStackTrace();
         }
@@ -126,7 +150,7 @@ public class CreativeRoomModule extends ServerModule {
                 .append(Text.literal("/player /track /summon /setblock /gamerule 及 WorldEdit 的所有命令").withColor(Color.MAGENTA.getRGB()).append("。")));
         player.sendMessage(Text.of("    "));
         player.sendMessage(Text.literal("如何上传投影到游乐场: ").withColor(Colors.GRAY)
-                .append(Text.literal("https://github.com/saltedfishclub/sfcraft-schematics").withColor(Colors.GRAY).styled(it -> it.withUnderline(true)))       );
+                .append(Text.literal("https://github.com/saltedfishclub/sfcraft-schematics").withColor(Colors.GRAY).styled(it -> it.withUnderline(true))));
         player.sendMessage(Text.literal("游乐园中的生物不能逃逸到其他维度。").withColor(Colors.GRAY));
         player.sendMessage(Text.literal("使用 /reco 或重新加入游戏即可离开。").withColor(Colors.GRAY));
         player.changeGameMode(GameMode.CREATIVE);
