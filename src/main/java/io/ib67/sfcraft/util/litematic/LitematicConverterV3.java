@@ -57,6 +57,7 @@ public class LitematicConverterV3 extends LitematicConverter {
             int width,
             int length
     ) {
+        log.info("Validating schematic");
         // find invalid palette ids
         var buf = new PacketByteBuf(Unpooled.wrappedBuffer(weBlockData));
         var paletteIds = new Int2ObjectOpenHashMap<>();
@@ -81,6 +82,7 @@ public class LitematicConverterV3 extends LitematicConverter {
         paletteIds.keySet().intStream().filter(it->!touchedIds.contains(it))
                 .forEach(it-> log.error("Unused palette id: {}, blockState: {}", it, paletteIds.get(it)));
     }
+
     private static Vec3i decodePositionFromDataIndex(int width, int length, int index) {
         // index = (y * width * length) + (z * width) + x
         int y = index / (width * length);
