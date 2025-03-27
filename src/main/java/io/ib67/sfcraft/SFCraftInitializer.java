@@ -8,7 +8,6 @@ import io.ib67.sfcraft.module.chat.ChatPrefixModule;
 import io.ib67.sfcraft.module.chat.decorator.ChatPingModule;
 import io.ib67.sfcraft.module.chat.decorator.ChatSendLocModule;
 import io.ib67.sfcraft.module.compat.ModCompatModule;
-import io.ib67.sfcraft.module.randomevt.LongNightModule;
 import io.ib67.sfcraft.module.room.CreativeRoomModule;
 import io.ib67.sfcraft.module.supervisor.WebModule;
 import io.ib67.sfcraft.module.supervisor.web.SchematicUploader;
@@ -25,9 +24,6 @@ import io.ib67.sfcraft.module.command.ManagementModule;
 import io.ib67.sfcraft.registry.room.SimpleRoomRegistry;
 import io.ib67.sfcraft.room.RoomTeleporter;
 import lombok.extern.log4j.Log4j2;
-import net.fabricmc.fabric.api.event.registry.FabricRegistryBuilder;
-import net.minecraft.registry.Registries;
-import net.minecraft.registry.Registry;
 import net.minecraft.server.MinecraftServer;
 
 @Log4j2
@@ -61,12 +57,10 @@ public class SFCraftInitializer extends GuiceModInitializer {
         registerFeature(FartFertilizerModule.class);
         registerFeature(ChatPingModule.class);
         registerFeature(ChatSendLocModule.class);
-        registerFeature(LongNightModule.class);
         registerFeature(ModCompatModule.class);
         registerFeature(RoomModule.class);
         registerFeature(CreativeRoomModule.class);
         registerFeature(ChatPrefixModule.class);
-        registerFeature(CustomItemModule.class);
         registerWebModules();
     }
 
@@ -91,7 +85,6 @@ public class SFCraftInitializer extends GuiceModInitializer {
 
     @Override
     protected Injector onInit() {
-        SFEntityType.registerEntities();
         return SFCraft.injector = Guice.createInjector(
                 new SFCraft(),
                 this

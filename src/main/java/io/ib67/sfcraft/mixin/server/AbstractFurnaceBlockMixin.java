@@ -8,6 +8,7 @@ import net.minecraft.block.entity.AbstractFurnaceBlockEntity;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.BlockEntityTicker;
 import net.minecraft.block.entity.BlockEntityType;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.GameRules;
 import net.minecraft.world.World;
@@ -26,15 +27,17 @@ public abstract class AbstractFurnaceBlockMixin extends BlockWithEntity {
      * @author icybear
      * @reason to replace their ticker
      */
+    @Nullable
     @Overwrite
-    public static <T extends BlockEntity> @Nullable BlockEntityTicker<T> validateTicker(
+    public static <T extends BlockEntity> BlockEntityTicker<T> validateTicker(
             World world, BlockEntityType<T> givenType, BlockEntityType<? extends AbstractFurnaceBlockEntity> expectedType
     ) {
-        return world.isClient ? null : BlockWithEntity.validateTicker(givenType, expectedType, AbstractFurnaceBlockMixin::tickMultiple);
+        return world instanceof ServerWorld sw ? BlockWithEntity.validateTicker(givenType, expectedType, AbstractFurnaceBlockMixin::tickMultiple) : null;
     }
 
     @Unique
-    private static void tickMultiple(World world, BlockPos pos, BlockState state, AbstractFurnaceBlockEntity blockEntity) {
+    private static <E extends AbstractFurnaceBlockEntity> void tickMultiple(World _world, BlockPos pos, BlockState state, E blockEntity) {
+        var world = (ServerWorld) _world;
         AbstractFurnaceBlockEntity.tick(world, pos, state, blockEntity);
         int i = world.getGameRules().getInt(GameRules.PLAYERS_SLEEPING_PERCENTAGE);
         if (((ServerWorldBridge) world).getSleepManager().canSkipNight(i)) {

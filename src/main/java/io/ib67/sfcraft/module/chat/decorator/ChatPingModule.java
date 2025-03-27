@@ -21,7 +21,7 @@ import java.util.regex.MatchResult;
 import java.util.regex.Pattern;
 
 public class ChatPingModule extends ServerModule implements MessageDecorator {
-    private static final Pattern PING = Pattern.compile("(@[\\w]+)?");
+    private static final Pattern PING = Pattern.compile("(@[\\w]+)?"); //todo remove the need of prefix
     @Inject
     MinecraftServerSupplier serverSupplier;
     @Inject
@@ -51,7 +51,7 @@ public class ChatPingModule extends ServerModule implements MessageDecorator {
         var r = Text.literal(match.replaceAll(it -> this.matchPlayer(it, names, foundPlayers)));
         for (PlayerEntity foundPlayer : foundPlayers) {
             if (sender != null) {
-                foundPlayer.sendMessage(Text.literal(sender.getName().getLiteralString() + " 正在叫你。").withColor(Colors.LIGHT_GRAY));
+                foundPlayer.sendMessage(Text.literal(sender.getName().getLiteralString() + " 正在叫你。").withColor(Colors.LIGHT_GRAY), true);
             }
             foundPlayer.playSoundToPlayer(
                     SoundEvents.ENTITY_ITEM_PICKUP,

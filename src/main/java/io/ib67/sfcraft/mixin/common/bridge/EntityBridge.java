@@ -7,7 +7,7 @@ import org.spongepowered.asm.mixin.gen.Invoker;
 
 @Mixin(Entity.class)
 public interface EntityBridge {
-    @Accessor("FALL_FLYING_FLAG_INDEX")
+    @Accessor("GLIDING_FLAG_INDEX")
     static int sfcraft$getFlyingFlagIndex() {
         throw new AssertionError();
     }

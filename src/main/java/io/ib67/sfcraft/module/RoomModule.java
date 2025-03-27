@@ -2,48 +2,32 @@ package io.ib67.sfcraft.module;
 
 import com.google.inject.Inject;
 import com.mojang.authlib.GameProfile;
+import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import io.ib67.sfcraft.ServerModule;
 import io.ib67.sfcraft.config.SFConfig;
 import io.ib67.sfcraft.inject.MinecraftServerSupplier;
-import io.ib67.sfcraft.room.RequestedRoom;
 import io.ib67.sfcraft.registry.RoomRegistry;
-import io.ib67.sfcraft.room.data.RoomWorldDataLoader;
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
-import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.minecraft.command.CommandRegistryAccess;
 import net.minecraft.network.PacketCallbacks;
-import net.minecraft.network.codec.PacketCodecs;
 import net.minecraft.network.packet.s2c.common.ServerTransferS2CPacket;
 import net.minecraft.network.packet.s2c.common.StoreCookieS2CPacket;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.world.ChunkTicketType;
-import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.Pair;
-import net.minecraft.util.Unit;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;
-import net.minecraft.world.GameRules;
 import net.minecraft.world.World;
-import org.apache.commons.lang3.RandomStringUtils;
 
-import javax.crypto.Cipher;
-import javax.crypto.SecretKey;
-import javax.crypto.SecretKeyFactory;
-import javax.crypto.spec.PBEKeySpec;
-import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
-import java.security.Key;
-import java.security.spec.KeySpec;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -76,7 +60,7 @@ public class RoomModule extends ServerModule {
                 log.warn("Cannot find world {}", registryKeyBlockPosPair.getLeft());
                 continue;
             }
-            world.getChunkManager().addTicket(ChunkTicketType.START, new ChunkPos(registryKeyBlockPosPair.getRight()), 64, Unit.INSTANCE);
+            world.getChunkManager().addTicket(ChunkTicketType.START, new ChunkPos(registryKeyBlockPosPair.getRight()), 64);
         }
     }
 
@@ -90,6 +74,9 @@ public class RoomModule extends ServerModule {
 
     private int onCleanReconnect(CommandContext<ServerCommandSource> serverCommandSourceCommandContext) {
         var player = serverCommandSourceCommandContext.getSource().getPlayer();
+        if (player == null) {
+            return 0;
+        }
         if (!isVirtual(player.getUuid())) {
             player.sendMessage(Text.literal("你不在任何 \"房间\" 内。"));
             return 0;
@@ -118,9 +105,5 @@ public class RoomModule extends ServerModule {
 
     public GameProfile devirtualize(UUID virtual) {
         return uuidMapper.get(virtual);
-    }
-
-    public GameRules readGameRuleForRoom(ServerWorld world){
-        return RoomWorldDataLoader.get(world).getGameRules();
     }
 }

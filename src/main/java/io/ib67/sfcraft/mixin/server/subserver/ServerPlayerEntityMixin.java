@@ -15,22 +15,14 @@ import java.util.Set;
 
 @Mixin(ServerPlayerEntity.class)
 public abstract class ServerPlayerEntityMixin {
-    @Inject(at = @At("HEAD"), method = "teleport(Lnet/minecraft/server/world/ServerWorld;DDDLjava/util/Set;FF)Z", cancellable = true)
-    public void sf$interceptTeleport(ServerWorld world, double destX, double destY, double destZ, Set<PositionFlag> flags, float yaw, float pitch, CallbackInfoReturnable<Boolean> cir) {
+    //todo test this
+    //todo fix playground operate players in main world
+    @Inject(at=@At("HEAD"), method = "teleport(Lnet/minecraft/server/world/ServerWorld;DDDLjava/util/Set;FFZ)Z")
+    public void sf$interceptTeleport(ServerWorld world, double destX, double destY, double destZ, Set<PositionFlag> flags, float yaw, float pitch, boolean resetCamera, CallbackInfoReturnable<Boolean> cir) {
         var room = roomRegistry().getRoomBy($this().getUuid());
         if (room != null) {
             if (world.getRegistryKey() != room.getSpawnPosition().dimension()) {
                 cir.setReturnValue(false);
-            }
-        }
-    }
-
-    @Inject(at = @At("HEAD"), method = "teleport(Lnet/minecraft/server/world/ServerWorld;DDDFF)V", cancellable = true)
-    public void sf$interceptTeleport(ServerWorld targetWorld, double x, double y, double z, float yaw, float pitch, CallbackInfo ci) {
-        var room = roomRegistry().getRoomBy($this().getUuid());
-        if (room != null) {
-            if (targetWorld.getRegistryKey() != room.getSpawnPosition().dimension()) {
-                ci.cancel();
             }
         }
     }

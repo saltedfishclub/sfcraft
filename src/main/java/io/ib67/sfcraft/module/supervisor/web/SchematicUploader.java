@@ -30,6 +30,7 @@ import net.minecraft.text.Text;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
+import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Base64;
@@ -69,7 +70,7 @@ public class SchematicUploader extends WebHandler {
         }
         var url = generateSchematicUrl(source.isExecutedByPlayer() ? source.getPlayer().getName().getLiteralString() : "CONSOLE");
         source.sendMessage(Text.literal("Click this URL to upload schematic files.").withColor(Color.GREEN.getRGB()));
-        source.sendMessage(Text.literal(url).styled(it -> it.withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, url))));
+        source.sendMessage(Text.literal(url).styled(it -> it.withClickEvent(new ClickEvent.OpenUrl(URI.create(url)))));
         return Command.SINGLE_SUCCESS;
     }
 
@@ -173,8 +174,8 @@ public class SchematicUploader extends WebHandler {
             return;
         }
         player.sendMessage(Text.literal("Schematic " + fileName + " has been saved! Use //schem list to find it").withColor(Color.GREEN.getRGB()));
-        player.sendMessage(Text.literal("Or you can click this").styled(it->it.withUnderline(true).withClickEvent(
-                new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, "//schem load " + fileName)
+        player.sendMessage(Text.literal("Or you can click this").styled(it -> it.withUnderline(true).withClickEvent(
+                new ClickEvent.SuggestCommand("//schem load " + fileName)
         )));
     }
 }

@@ -3,6 +3,7 @@ package io.ib67.sfcraft.module.randomevt.longnight;
 import io.ib67.sfcraft.module.randomevt.RandomEvent;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
 import net.minecraft.util.Colors;
 import net.minecraft.world.GameRules;
@@ -14,7 +15,7 @@ public class LongNightEvent extends RandomEvent {
     static boolean isAtLongNight;
     @Getter
     private static int remainingTicks;
-    private final World world;
+    private final ServerWorld world;
     private boolean doDaylightCycle;
     private boolean doTraderSpawning;
 

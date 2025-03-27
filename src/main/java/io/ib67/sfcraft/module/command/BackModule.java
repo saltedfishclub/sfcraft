@@ -55,7 +55,7 @@ public class BackModule extends ServerModule {
 
     public void onPlayerDeath(PlayerEntity player, DamageSource damageSource) {
         if (this.isEnabled() && Helper.canBack((ServerPlayerEntity) player)) {
-            player.sendMessage(Text.of("Tip: 死亡地点附近有玩家，可以使用 /back 传送到他们那里。（即使在对方也死亡的状态下）"));
+            player.sendMessage(Text.of("Tip: 死亡地点附近有玩家，可以使用 /back 传送到他们那里。（即使在对方也死亡的状态下）"), false);
         }
     }
 }

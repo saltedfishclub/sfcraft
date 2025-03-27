@@ -31,6 +31,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.regex.Pattern;
 
@@ -87,7 +88,7 @@ public class Helper {
                 deltaZ = stand.getCollisionShape(world, pos).getMax(Direction.Axis.X);
                 deltaZ = Double.isFinite(deltaZ) ? deltaZ / 2 : 0.5;
             }
-            player.teleport(world, x + deltaX, y + deltaY, z + deltaZ, yaw, pitch);
+            player.teleport(world, x + deltaX, y + deltaY, z + deltaZ, Set.of(), yaw, pitch, true);
         }
         return true;
     }

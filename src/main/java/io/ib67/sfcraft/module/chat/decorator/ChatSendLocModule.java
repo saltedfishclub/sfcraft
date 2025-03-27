@@ -37,7 +37,7 @@ public class ChatSendLocModule extends ServerModule implements MessageDecorator 
 
     private static Text generateLocText(ServerPlayerEntity sender) {
         if (sender == null) return Text.of(" (invalid position) ");
-        sender.addStatusEffect(new StatusEffectInstance(StatusEffects.GLOWING, 15*20));
+        sender.addStatusEffect(new StatusEffectInstance(StatusEffects.GLOWING, 15 * 20));
         var x = sender.getBlockPos().getX();
         var y = sender.getBlockPos().getY();
         var z = sender.getBlockPos().getZ();
@@ -46,7 +46,7 @@ public class ChatSendLocModule extends ServerModule implements MessageDecorator 
         return Text
                 .literal(" " + x + ", " + y + ", " + z + world + " ")
                 .withColor(Helper.fromRgb(63, 254, 254))
-                .styled(style -> style.withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/gps " + key + " " + x + " " + y + " " + z)));
+                .styled(style -> style.withClickEvent(new ClickEvent.RunCommand("/gps " + key + " " + x + " " + y + " " + z)));
     }
 
     private static String translate(RegistryKey<World> registryKey) {

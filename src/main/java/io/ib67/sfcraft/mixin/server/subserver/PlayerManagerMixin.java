@@ -2,6 +2,7 @@ package io.ib67.sfcraft.mixin.server.subserver;
 
 import com.mojang.authlib.GameProfile;
 import io.ib67.sfcraft.SFCraft;
+import io.ib67.sfcraft.mixin.server.ServerChunkManagerMixin;
 import io.ib67.sfcraft.module.RoomModule;
 import io.ib67.sfcraft.registry.RoomRegistry;
 import io.ib67.sfcraft.util.Helper;
@@ -70,8 +71,8 @@ public abstract class PlayerManagerMixin {
     private void teleportToRoom(ServerPlayerEntity player, GlobalPos spawn) {
         var world = player.getServer().getWorld(spawn.dimension());
         var pos = spawn.pos();
-        world.getChunkManager().chunkLoadingManager.getTicketManager().handleChunkEnter(player.getWatchedSection(), player);
-        player.teleport(world, pos.getX(), pos.getY(), pos.getZ(), Set.of(), 0, 0);
+        ((ServerChunkManagerMixin)world.getChunkManager()).getLevelManager().handleChunkEnter(player.getWatchedSection(), player);
+        player.teleport(world, pos.getX(), pos.getY(), pos.getZ(), Set.of(), 0, 0, true);
     }
 
     @Inject(method = "remove", at = @At("HEAD"))

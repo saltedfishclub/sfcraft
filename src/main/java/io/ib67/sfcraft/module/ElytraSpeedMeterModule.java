@@ -2,16 +2,10 @@ package io.ib67.sfcraft.module;
 
 import io.ib67.sfcraft.ServerModule;
 import io.ib67.sfcraft.callback.SFCallbacks;
-import io.ib67.sfcraft.util.ColorHelper;
 import it.unimi.dsi.fastutil.objects.*;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
+import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.item.ElytraItem;
-import net.minecraft.network.packet.Packet;
-import net.minecraft.network.packet.s2c.play.SubtitleS2CPacket;
-import net.minecraft.network.packet.s2c.play.TitleFadeS2CPacket;
-import net.minecraft.network.packet.s2c.play.TitleS2CPacket;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayNetworkHandler;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -19,10 +13,6 @@ import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.util.Colors;
 import net.minecraft.util.math.BlockPos;
-import org.spongepowered.asm.mixin.Unique;
-
-import java.awt.*;
-import java.text.DecimalFormat;
 
 public class ElytraSpeedMeterModule extends ServerModule {
     private static final int BAR_LEN = 20;
@@ -89,7 +79,7 @@ public class ElytraSpeedMeterModule extends ServerModule {
     }
 
     private Text generateDurabilityMeter(long f, PlayerEntity player) {
-        var stack = player.getInventory().getArmorStack(PlayerInventory.ARMOR_SLOTS[2]);
+        var stack = player.getEquippedStack(EquipmentSlot.CHEST);
         if (stack.isDamageable() && stack.isDamaged()) {
             var remaining = stack.getMaxDamage() - stack.getDamage();
             var percent = (int) Math.ceil(((double) remaining / stack.getMaxDamage()) * 100);

@@ -45,7 +45,6 @@ import java.util.Set;
 
 public class CreativeRoomModule extends ServerModule {
     private static final Set<String> BYPASS_PERMISSIONS = Set.of(
-            "minecraft.command.gamerule",
             "carpet.command.player",
             "carpet.command.track",
             "minecraft.command.setblock",

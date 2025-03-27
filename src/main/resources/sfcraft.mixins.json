@@ -7,7 +7,8 @@
     "common.bridge.EntityBridge",
     "common.bridge.ItemBridge",
     "common.bridge.ServerPlayerBridge",
-    "common.bridge.ServerWorldBridge"
+    "common.bridge.ServerWorldBridge",
+    "server.ServerChunkManagerMixin"
   ],
   "client": [
   ],
@@ -26,12 +27,6 @@
     "server.SleepManagerMixin",
     "server.fixes.EndermanEntityMixin",
     "server.fixes.ProjectileEntityMixin",
-    "server.hack.EntitySpawnS2CPacketMixin",
-    "server.hack.HoverEntityContentMixin",
-    "server.hack.RegistryHandlerMixin",
-    "server.item.ItemMixin",
-    "server.item.ItemStackMixin",
-    "server.item.PlayerEntityMixin",
     "server.optimize.LivingEntityMixin",
     "server.subserver.EntityMixin",
     "server.subserver.PlayerListS2CPacket$EntryMixin",
@@ -39,7 +34,6 @@
     "server.subserver.PlayerSaveHandlerMixin",
     "server.subserver.ServerLoginNetworkHandlerMixin",
     "server.subserver.ServerPlayerEntityMixin",
-    "server.subserver.WorldMixin",
     "server.subserver.command.GameRuleCommandMixin"
   ],
   "injectors": {

@@ -35,9 +35,9 @@ public class LitematicConverterV3 extends LitematicConverter {
         schematicsTag.putShort("Width", (short) Math.abs(size.x()));
 
         // block & tile entities
-        var paletteNbt = region.getList("BlockStatePalette", NbtElement.COMPOUND_TYPE);
+        var paletteNbt = region.getListOrEmpty("BlockStatePalette");
         var wePalette = convertToWEPalette(paletteNbt);
-        var tileEntities = region.getList("TileEntities", NbtElement.COMPOUND_TYPE);
+        var tileEntities = region.getListOrEmpty("TileEntities");
 
         var blocksNbt = new NbtCompound();
         blocksNbt.put("Palette", wePalette);
@@ -63,7 +63,11 @@ public class LitematicConverterV3 extends LitematicConverter {
         var paletteIds = new Int2ObjectOpenHashMap<>();
         var touchedIds = new IntOpenHashSet();
         for (String key : wePalette.getKeys()) {
-            paletteIds.put(wePalette.getInt(key), key);
+            paletteIds.put(
+                    wePalette.getInt(key)
+                            .orElseThrow(() -> new IllegalStateException("Cannot find key " + key + " in palette from worldedit schematic"))
+                    , key
+            );
         }
         int counter = 0;
         try {
@@ -79,8 +83,8 @@ public class LitematicConverterV3 extends LitematicConverter {
         } catch (Exception e) {
             log.error("Error validing schematic", e);
         }
-        paletteIds.keySet().intStream().filter(it->!touchedIds.contains(it))
-                .forEach(it-> log.error("Unused palette id: {}, blockState: {}", it, paletteIds.get(it)));
+        paletteIds.keySet().intStream().filter(it -> !touchedIds.contains(it))
+                .forEach(it -> log.error("Unused palette id: {}, blockState: {}", it, paletteIds.get(it)));
     }
 
     private static Vec3i decodePositionFromDataIndex(int width, int length, int index) {
@@ -95,11 +99,14 @@ public class LitematicConverterV3 extends LitematicConverter {
     @Override
     protected NbtElement convertToWeMeta(SizeTuple size, NbtCompound region) {
         var pos = (NbtCompound) region.get("Position");
+        if (pos == null) {
+            throw new IllegalStateException("Cannot find Position");
+        }
         var worldEditNbt = new NbtCompound();
         worldEditNbt.putIntArray("Origin", new int[]{
-                pos.getInt("x") + (size.x() < 0 ? size.x() + 1 : 0),
-                pos.getInt("y") + (size.y() < 0 ? size.y() + 1 : 0),
-                pos.getInt("z") + (size.z() < 0 ? size.z() + 1 : 0)
+                pos.getInt("x").orElseThrow() + (size.x() < 0 ? size.x() + 1 : 0),
+                pos.getInt("y").orElseThrow() + (size.y() < 0 ? size.y() + 1 : 0),
+                pos.getInt("z").orElseThrow() + (size.z() < 0 ? size.z() + 1 : 0)
         });
         var Metadata = new NbtCompound();
         Metadata.put("WorldEdit", worldEditNbt);
