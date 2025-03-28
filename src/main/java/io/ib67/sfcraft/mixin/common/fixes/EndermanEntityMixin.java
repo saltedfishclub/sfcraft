@@ -1,4 +1,4 @@
-package io.ib67.sfcraft.mixin.server.fixes;
+package io.ib67.sfcraft.mixin.common.fixes;
 
 import io.ib67.sfcraft.mixin.common.MobEntityMixin;
 import net.minecraft.entity.mob.EndermanEntity;

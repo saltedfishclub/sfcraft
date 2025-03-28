@@ -1,4 +1,4 @@
-package io.ib67.sfcraft.mixin.server.fixes;
+package io.ib67.sfcraft.mixin.common.fixes;
 
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;

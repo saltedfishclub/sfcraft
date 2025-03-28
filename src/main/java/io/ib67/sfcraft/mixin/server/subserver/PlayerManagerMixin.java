@@ -2,20 +2,16 @@ package io.ib67.sfcraft.mixin.server.subserver;
 
 import com.mojang.authlib.GameProfile;
 import io.ib67.sfcraft.SFCraft;
-import io.ib67.sfcraft.mixin.server.ServerChunkManagerMixin;
+import io.ib67.sfcraft.mixin.common.bridge.ServerChunkManagerBridge;
 import io.ib67.sfcraft.module.RoomModule;
 import io.ib67.sfcraft.registry.RoomRegistry;
-import io.ib67.sfcraft.util.Helper;
 import net.minecraft.entity.Entity;
 import net.minecraft.network.ClientConnection;
 import net.minecraft.server.PlayerManager;
 import net.minecraft.server.network.ConnectedClientData;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.GlobalPos;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.TeleportTarget;
 import org.slf4j.Logger;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
@@ -23,7 +19,6 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
@@ -71,7 +66,7 @@ public abstract class PlayerManagerMixin {
     private void teleportToRoom(ServerPlayerEntity player, GlobalPos spawn) {
         var world = player.getServer().getWorld(spawn.dimension());
         var pos = spawn.pos();
-        ((ServerChunkManagerMixin)world.getChunkManager()).getLevelManager().handleChunkEnter(player.getWatchedSection(), player);
+        ((ServerChunkManagerBridge)world.getChunkManager()).getLevelManager().handleChunkEnter(player.getWatchedSection(), player);
         player.teleport(world, pos.getX(), pos.getY(), pos.getZ(), Set.of(), 0, 0, true);
     }
 

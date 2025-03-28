@@ -8,14 +8,17 @@
     "common.bridge.ItemBridge",
     "common.bridge.ServerPlayerBridge",
     "common.bridge.ServerWorldBridge",
-    "server.ServerChunkManagerMixin"
+    "common.bridge.ServerChunkManagerBridge",
+    "common.fixes.EndermanEntityMixin",
+    "common.fixes.ProjectileEntityMixin",
+    "common.fixes.LivingEntityMixin",
+    "common.EntityMixin",
+    "common.MobEntityMixin",
+    "common.PlayerEntityMixin"
   ],
   "client": [
   ],
   "server": [
-    "common.EntityMixin",
-    "common.MobEntityMixin",
-    "common.PlayerEntityMixin",
     "server.AbstractFurnaceBlockMixin",
     "server.LegacyQueryHandlerMixin",
     "server.MinecraftServerMixin",
@@ -25,16 +28,11 @@
     "server.ServerPlayNetworkHandlerMixin",
     "server.ServerWorldMixin",
     "server.SleepManagerMixin",
-    "server.fixes.EndermanEntityMixin",
-    "server.fixes.ProjectileEntityMixin",
-    "server.optimize.LivingEntityMixin",
-    "server.subserver.EntityMixin",
     "server.subserver.PlayerListS2CPacket$EntryMixin",
     "server.subserver.PlayerManagerMixin",
     "server.subserver.PlayerSaveHandlerMixin",
     "server.subserver.ServerLoginNetworkHandlerMixin",
-    "server.subserver.ServerPlayerEntityMixin",
-    "server.subserver.command.GameRuleCommandMixin"
+    "server.subserver.ServerPlayerEntityMixin"
   ],
   "injectors": {
     "defaultRequire": 1

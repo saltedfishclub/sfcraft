@@ -1,4 +1,4 @@
-package io.ib67.sfcraft.mixin.server.optimize;
+package io.ib67.sfcraft.mixin.common.fixes;
 
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.passive.BeeEntity;
