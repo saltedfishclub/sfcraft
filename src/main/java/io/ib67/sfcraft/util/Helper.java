@@ -51,10 +51,10 @@ public class Helper {
     }
 
     public static String cleanFileName(String filename) {
-        var name = PinyinHelper.toPinyin(filename, PinyinStyleEnum.NORMAL,"_");
-        name =  ILLEGAL_CHARACTERS.matcher(name).replaceAll("");
-        if(name.length() > 32){
-            name = name.substring(0,32);
+        var name = PinyinHelper.toPinyin(filename, PinyinStyleEnum.NORMAL, "_");
+        name = ILLEGAL_CHARACTERS.matcher(name).replaceAll("");
+        if (name.length() > 32) {
+            name = name.substring(0, 32);
         }
         return NON_ASCII.matcher(name).replaceAll("");
     }
@@ -95,8 +95,9 @@ public class Helper {
 
     @SneakyThrows
     public static Optional<String> getConfigResource(Path root, String resource) {
-        if (Files.exists(root)) {
-            return Optional.of(Files.readString(root.resolve(resource)));
+        var r = root.resolve(resource);
+        if (Files.exists(r)) {
+            return Optional.of(Files.readString(r));
         }
         return Optional.empty();
     }
