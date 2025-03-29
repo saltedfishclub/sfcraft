@@ -176,10 +176,10 @@ public class CreativeRoomModule extends ServerModule {
     public void onPlayerJoin(ServerPlayerEntity player) {
         player.sendMessage(Text.of("你现在正在创造游乐园中，使用 //schem list 查看可用投影。"));
         player.sendMessage(Text.literal("以下功能现在可用：").withColor(Colors.WHITE)
-                .append(Text.literal("/player /track /summon /setblock /gamerule 及 WorldEdit 的所有命令").withColor(Color.MAGENTA.getRGB()).append("。")));
+                .append(Text.literal("/player /track /summon /setblock 及 WorldEdit 的所有命令").withColor(Color.MAGENTA.getRGB()).append("。")));
         player.sendMessage(Text.of("    "));
-        player.sendMessage(Text.literal("如何上传投影到游乐场: ").withColor(Colors.GRAY)
-                .append(Text.literal("https://github.com/saltedfishclub/sfcraft-schematics").withColor(Colors.GRAY).styled(it -> it.withUnderline(true))));
+        player.sendMessage(Text.literal("上传投影到游乐场(需要权限): ").withColor(Colors.GRAY)
+                .append(Text.literal("/upload schematic").withColor(Colors.GRAY).styled(it -> it.withUnderline(true))));
         player.sendMessage(Text.literal("游乐园中的生物不能逃逸到其他维度。").withColor(Colors.GRAY));
         player.sendMessage(Text.literal("使用 /reco 或重新加入游戏即可离开。").withColor(Colors.GRAY));
         player.changeGameMode(GameMode.CREATIVE);
