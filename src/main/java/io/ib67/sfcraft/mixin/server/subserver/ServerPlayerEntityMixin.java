@@ -17,7 +17,7 @@ import java.util.Set;
 public abstract class ServerPlayerEntityMixin {
     //todo test this
     //todo fix playground operate players in main world
-    @Inject(at=@At("HEAD"), method = "teleport(Lnet/minecraft/server/world/ServerWorld;DDDLjava/util/Set;FFZ)Z")
+    @Inject(at=@At("HEAD"), method = "teleport(Lnet/minecraft/server/world/ServerWorld;DDDLjava/util/Set;FFZ)Z", cancellable = true)
     public void sf$interceptTeleport(ServerWorld world, double destX, double destY, double destZ, Set<PositionFlag> flags, float yaw, float pitch, boolean resetCamera, CallbackInfoReturnable<Boolean> cir) {
         var room = roomRegistry().getRoomBy($this().getUuid());
         if (room != null) {
