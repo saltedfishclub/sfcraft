@@ -9,6 +9,7 @@ import io.ib67.sfcraft.config.SFConfig;
 import io.ib67.sfcraft.geoip.GeoIPService;
 import io.ib67.sfcraft.inject.ConfigResource;
 import io.ib67.sfcraft.inject.ConfigRoot;
+import lombok.SneakyThrows;
 import net.fabricmc.fabric.api.networking.v1.PacketSender;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.minecraft.component.DataComponentTypes;
@@ -24,11 +25,14 @@ import net.minecraft.text.Text;
 
 import java.net.InetSocketAddress;
 import java.net.URI;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Clock;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 import static io.ib67.sfcraft.util.Helper.getConfigResource;
 
@@ -36,33 +40,46 @@ public class WelcomeModule extends ServerModule {
     private static final DateTimeFormatter FMT = DateTimeFormatter.ofPattern("yyyy/MM/dd");
     @Inject
     private SFConfig config;
+    @Inject
+    @ConfigRoot
+    protected Path configRoot;
+    protected Map<String, String> announcements;
 
 
+    @SneakyThrows
     @Override
     public void onInitialize() {
         ServerPlayConnectionEvents.JOIN.register(this::onPlayerJoin);
+        var announcementDir = configRoot.resolve("announcements");
+        if (Files.notExists(announcementDir)) {
+            Files.createDirectory(announcementDir);
+        }
+        announcements = new HashMap<>();
+        for (var ele : Files.list(announcementDir).toList()) {
+            if (!ele.endsWith("txt")) continue;
+            announcements.put("sfwelcome_"+ele.getFileName().toString().replace(".txt", ""), Files.readString(ele).replaceAll("&", "§"));
+        }
     }
 
     public void onPlayerJoin(ServerPlayNetworkHandler serverPlayNetworkHandler, PacketSender
             packetSender, MinecraftServer minecraftServer) {
+        if (!isEnabled()) return;
         var player = serverPlayNetworkHandler.getPlayer();
-        if (!player.getCommandTags().contains("has_joined_before") && isEnabled()) {
-            player.addCommandTag("has_joined_before");
-            player.sendMessage(Text.of("§a§l欢迎加入 SaltedFish Club Server!"));
-            player.sendMessage(Text.of("§a您受本服务器成员邀请加入本服务器，以下是一些注意事项："));
-            player.sendMessage(Text.of(" - 服务器内已有的设施均为其他玩家的财产，(如可以)使用时请注意礼貌"));
-            player.sendMessage(Text.literal(" - 服务器内有一些非原版特性，可以点击此条消息查看 [特性列表]")
-                    .styled(s -> s.withClickEvent(new ClickEvent.OpenUrl(URI.create("https://wiki.sfclub.cc/s/sfcraft-features")))));
-            player.sendMessage(Text.of("§c - 邀请新成员即等同为其作担保"));
-            player.sendMessage(Text.of("§7如果您想邀请朋友加入服务器, 可以向管理员提出申请§7 (需备注正/盗版/小号)"));
-            player.sendMessage(Text.of("§7此外, 本服务器无密码登录，盗版账号安全责任自负"));
+        if (!player.getCommandTags().contains("sf_unlock_recipe")) {
+            player.addCommandTag("sf_unlock_recipe");
             unlockRecipe(player);
+        }
+        for (String s : announcements.keySet()) {
+            if (!player.getCommandTags().contains(s)) {
+                player.addCommandTag(s);
+                s.lines().map(Text::of).forEach(player::sendMessage);
+            }
         }
     }
 
 
     private void unlockRecipe(ServerPlayerEntity player) {
         var recipe = player.getRecipeBook();
-        recipe.unlockRecipes(player.server.getRecipeManager().values(), player);
+        recipe.unlockRecipes(player.getServer().getRecipeManager().values(), player);
     }
 }
