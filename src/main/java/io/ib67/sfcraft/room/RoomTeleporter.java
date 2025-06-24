@@ -52,7 +52,7 @@ public class RoomTeleporter {
                         RoomModule.SIGN_TOPIC,
                         name,
                         0,
-                        System.currentTimeMillis() + 10000,
+                        System.currentTimeMillis() + 60000,
                         requestBuf.array()
                 )
         );
