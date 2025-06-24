@@ -36,7 +36,7 @@ public class BackModule extends ServerModule {
     public int onBack(CommandContext<ServerCommandSource> it) {
         var player = it.getSource().getPlayer();
         var pos = player.getLastDeathPos().get();
-        var wld = player.server.getWorld(pos.dimension());
+        var wld = player.getServer().getWorld(pos.dimension());
         var _pos = pos.pos();
         if (wld == null) return 0;
         var nearby = wld.getClosestPlayer(_pos.getX(), _pos.getY(), _pos.getZ(), 100, true);

@@ -84,7 +84,7 @@ public class CreativeRoomModule extends ServerModule {
     private @NotNull TriState onOtherCommands(@NotNull CommandSource commandSource, @NotNull String s) {
         if (commandSource instanceof ServerCommandSource source && source.getPlayer() != null) {
             var p = source.getPlayer();
-            if (p.getServerWorld().getRegistryKey().equals(CreativeSpaceRoom.WORLD)) {
+            if (p.getWorld().getRegistryKey().equals(CreativeSpaceRoom.WORLD)) {
                 if (BYPASS_PERMISSIONS.contains(s)) {
                     return TriState.TRUE;
                 }
@@ -96,7 +96,7 @@ public class CreativeRoomModule extends ServerModule {
     private @NotNull TriState onWorldEdit(@NotNull CommandSource commandSource, @NotNull String s) {
         if (commandSource instanceof ServerCommandSource source && source.getPlayer() != null) {
             var p = source.getPlayer();
-            if (p.getServerWorld().getRegistryKey().equals(CreativeSpaceRoom.WORLD)) {
+            if (p.getWorld().getRegistryKey().equals(CreativeSpaceRoom.WORLD)) {
                 if (s.startsWith("worldedit") && SFConsts.WORLDEDIT_AT_PLAYGROUND.hasPermission(p)) {
                     return TriState.TRUE;
                 }
@@ -132,10 +132,10 @@ public class CreativeRoomModule extends ServerModule {
         if (src instanceof ServerCommandSource source && source.getPlayer() != null) {
             var p = source.getPlayer();
             var dest = EntityArgumentType.getEntity(ctx, "dest");
-            if (p.getServerWorld().getRegistryKey().equals(CreativeSpaceRoom.WORLD)) {
-                if (dest.getWorld() == p.getServerWorld()) {
+            if (p.getWorld().getRegistryKey().equals(CreativeSpaceRoom.WORLD)) {
+                if (dest.getWorld() == p.getWorld()) {
                     Helper.teleportSafely(
-                            p, p.getServerWorld(),
+                            p, p.getWorld(),
                             dest.getBlockX(), dest.getBlockY(), dest.getBlockZ(),
                             dest.getYaw(), dest.getPitch()
                     );
@@ -152,7 +152,7 @@ public class CreativeRoomModule extends ServerModule {
         if (src instanceof ServerCommandSource source && source.getPlayer() != null) {
             var p = source.getPlayer();
             var mode = ctx.getArgument("mode", GameMode.class);
-            if (p.getServerWorld().getRegistryKey().equals(CreativeSpaceRoom.WORLD)) {
+            if (p.getWorld().getRegistryKey().equals(CreativeSpaceRoom.WORLD)) {
                 p.changeGameMode(mode);
                 p.sendMessage(Text.of("Your gamemode has been changed to " + mode.asString()));
             } else {

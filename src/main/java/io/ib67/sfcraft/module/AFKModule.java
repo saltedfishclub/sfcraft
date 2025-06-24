@@ -6,17 +6,9 @@ import io.ib67.sfcraft.callback.SFCallbacks;
 import io.ib67.sfcraft.inject.MinecraftServerSupplier;
 import io.ib67.sfcraft.module.chat.ChatPrefix;
 import io.ib67.sfcraft.module.chat.ChatPrefixModule;
-import net.fabricmc.fabric.api.networking.v1.PacketSender;
-import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
-import net.minecraft.network.packet.s2c.play.TeamS2CPacket;
-import net.minecraft.scoreboard.Team;
-import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.network.ServerPlayNetworkHandler;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.Colors;
-
-import java.util.Objects;
 
 public class AFKModule extends ServerModule {
     @Inject
@@ -47,7 +39,7 @@ public class AFKModule extends ServerModule {
 
     private void enAFK(ServerPlayerEntity player) {
         chatPrefixModule.applyPrefix(player, prefix);
-        player.server.getPlayerManager().broadcast(
+        player.getServer().getPlayerManager().broadcast(
                 Text.literal(" * " + player.getName().getLiteralString() + " 正在挂机.").withColor(Colors.LIGHT_GRAY),
                 false
         );
@@ -57,7 +49,7 @@ public class AFKModule extends ServerModule {
     public void deAFK(ServerPlayerEntity player) {
         String playerName = player.getName().getLiteralString();
         chatPrefixModule.removePrefix(player, prefix);
-        player.server.getPlayerManager().broadcast(
+        player.getServer().getPlayerManager().broadcast(
                 Text.literal(" * " + playerName + " 回来了.").withColor(Colors.LIGHT_GRAY),
                 false
         );

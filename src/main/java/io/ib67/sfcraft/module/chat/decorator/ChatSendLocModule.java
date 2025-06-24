@@ -41,7 +41,7 @@ public class ChatSendLocModule extends ServerModule implements MessageDecorator 
         var x = sender.getBlockPos().getX();
         var y = sender.getBlockPos().getY();
         var z = sender.getBlockPos().getZ();
-        var key = sender.getServerWorld().getRegistryKey();
+        var key = sender.getWorld().getRegistryKey();
         var world = translate(key);
         return Text
                 .literal(" " + x + ", " + y + ", " + z + world + " ")

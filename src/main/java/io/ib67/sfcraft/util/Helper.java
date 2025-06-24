@@ -43,7 +43,7 @@ public class Helper {
     public static boolean canBack(ServerPlayerEntity player) {
         if (!SFConsts.COMMAND_BACK.hasPermission(player)) return false;
         var pos = player.getLastDeathPos().get();
-        var wld = player.server.getWorld(pos.dimension());
+        var wld = player.getServer().getWorld(pos.dimension());
         var _pos = pos.pos();
         if (wld == null) return false;
         var nearby = wld.getClosestPlayer(_pos.getX(), _pos.getY(), _pos.getZ(), 100, true);

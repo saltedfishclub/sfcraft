@@ -1,6 +1,7 @@
 package io.ib67.sfcraft.mixin.common.fixes;
 
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.LazyEntityReference;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.projectile.ProjectileEntity;
 import net.minecraft.server.world.ServerWorld;
@@ -18,10 +19,8 @@ import java.util.UUID;
 @Mixin(ProjectileEntity.class)
 public class ProjectileEntityMixin {
     @Shadow
-    private @Nullable Entity owner;
-
-    @Shadow
-    private @Nullable UUID ownerUuid;
+    @Nullable
+    protected LazyEntityReference<Entity> owner;
 
     @Unique
     private boolean isPlayer;
@@ -37,20 +36,16 @@ public class ProjectileEntityMixin {
      */
     @Overwrite
     public @Nullable Entity getOwner() {
-        if (this.owner != null && !this.owner.isRemoved()) {
-            return this.owner;
-        } else if (this.ownerUuid != null) {
+        if (this.owner != null) {
+            var ownerUuid = this.owner.getUuid();
             var server = $().getWorld().getServer();
             if (server == null) {
                 return null;
             }
             if (isPlayer) {
-                return server.getPlayerManager().getPlayer(this.ownerUuid);
+                return server.getPlayerManager().getPlayer(ownerUuid);
             } else {
-                for (ServerWorld world : server.getWorlds()) {
-                    var entity = world.getEntity(this.ownerUuid);
-                    if (entity != null) return entity;
-                }
+                return LazyEntityReference.resolve(this.owner, $().getWorld(), Entity.class);
             }
         }
         return null;
