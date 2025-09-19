@@ -55,9 +55,11 @@ public class WelcomeModule extends ServerModule {
             Files.createDirectory(announcementDir);
         }
         announcements = new HashMap<>();
-        for (var ele : Files.list(announcementDir).toList()) {
-            if (!ele.endsWith("txt")) continue;
-            announcements.put("sfwelcome_"+ele.getFileName().toString().replace(".txt", ""), Files.readString(ele).replaceAll("&", "§"));
+        try(var lines = Files.list(announcementDir)){
+            for (var ele : lines.toList()) {
+                if (!ele.toString().endsWith("txt")) continue;
+                announcements.put("sfwelcome_"+ele.getFileName().toString().replace(".txt", ""), Files.readString(ele).replaceAll("&", "§"));
+            }
         }
     }
 
@@ -72,7 +74,7 @@ public class WelcomeModule extends ServerModule {
         for (String s : announcements.keySet()) {
             if (!player.getCommandTags().contains(s)) {
                 player.addCommandTag(s);
-                s.lines().map(Text::of).forEach(player::sendMessage);
+                announcements.get(s).lines().map(Text::of).forEach(player::sendMessage);
             }
         }
     }

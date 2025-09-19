@@ -119,8 +119,9 @@ public class LitematicConverter implements AutoCloseable {
         for (int i = 0; i < paletteNbt.size(); i++) {
             var entry = (NbtCompound) paletteNbt.get(i);
             var name = new StringBuilder(entry.getString("Name").orElseThrow(() -> new IllegalStateException("Name not found")));
-            var properties = entry.getCompound("Properties").orElseThrow(() -> new IllegalStateException("Properties not found"));
-            if (!properties.isEmpty()) {
+            var _properties = entry.getCompound("Properties");
+            if (_properties.isPresent()) {
+                var properties = _properties.get();
                 name.append("[");
                 var props = new ArrayList<String>();
                 for (String key : properties.getKeys()) {

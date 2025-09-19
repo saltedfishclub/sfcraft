@@ -25,9 +25,14 @@ public class ProjectileEntityMixin {
     @Unique
     private boolean isPlayer;
 
-    @Inject(at = @At("HEAD"), method = "setOwner")
+    @Inject(at = @At("HEAD"), method = "setOwner(Lnet/minecraft/entity/Entity;)V")
     private void setOwner(@Nullable Entity owner, CallbackInfo ci) {
         isPlayer = owner instanceof PlayerEntity;
+    }
+
+    @Inject(at=@At("HEAD"), method = "setOwner(Lnet/minecraft/entity/LazyEntityReference;)V")
+    private void setOwner(@Nullable LazyEntityReference<Entity> owner, CallbackInfo ci) {
+        isPlayer = LazyEntityReference.resolve(owner, $().getWorld(), Entity.class) instanceof PlayerEntity;
     }
 
     /**
