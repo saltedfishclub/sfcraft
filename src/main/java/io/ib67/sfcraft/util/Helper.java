@@ -23,6 +23,7 @@ import net.minecraft.util.Colors;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
+import net.minecraft.world.GameMode;
 import net.minecraft.world.World;
 
 import java.net.InetAddress;
@@ -60,6 +61,7 @@ public class Helper {
     }
 
     public static boolean teleportSafely(ServerPlayerEntity player, ServerWorld world, int x, int y, int z, float yaw, float pitch) {
+        if (player.getGameMode() == GameMode.CREATIVE) return true;
         var pos = new BlockPos(x, y, z);
         var stand = world.getBlockState(pos);
         if (!stand.isAir() && !stand.isSolidBlock(world, pos)) {
