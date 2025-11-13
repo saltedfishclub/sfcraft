@@ -35,6 +35,7 @@ dependencies {
     }
     shadow("io.ib67.kiwi:lang:1.2.3-SNAPSHOT")
     shadow('com.github.houbb:pinyin:0.4.0')
+    modImplementation include("eu.pb4:polymer-core:0.13.9+1.21.8")
     shadow('com.google.inject:guice:7.0.0') {
         exclude group: 'com.google.guava', module: 'guava'
         exclude group: 'com.google.guava', module: 'listenablefuture'

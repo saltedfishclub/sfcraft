@@ -26,6 +26,7 @@ import io.ib67.sfcraft.registry.room.SimpleRoomRegistry;
 import io.ib67.sfcraft.room.RoomTeleporter;
 import lombok.extern.log4j.Log4j2;
 import net.minecraft.server.MinecraftServer;
+import sfcraft.GameExtensionModule;
 
 @Log4j2
 public class SFCraftInitializer extends GuiceModInitializer {
@@ -64,6 +65,7 @@ public class SFCraftInitializer extends GuiceModInitializer {
         registerFeature(ChatPrefixModule.class);
         registerFeature(SoundModule.class);
         registerFeature(ChatShowoffModule.class);
+        registerFeature(GameExtensionModule.class);
         registerWebModules();
     }
 
