@@ -28,7 +28,6 @@ dependencies {
     modImplementation 'me.lucko:fabric-permissions-api:0.3.1'
     // Fabric API. This is technically optional, but you probably want it anyway.
     modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
-    shadow('com.maxmind.geoip2:geoip2:4.2.0')
     shadow("io.javalin:javalin:6.4.0")
     shadow('com.github.houbb:pinyin:0.4.0')
     shadow('com.google.inject:guice:7.0.0') {
@@ -50,7 +49,7 @@ remapJar {
     dependsOn(shadowJar)
     mustRunAfter(shadowJar)
     // Set the input jar for the task. Here use the shadow Jar that include the .class of the transitive dependency
-    inputFile = file(shadowJar.archivePath)
+    inputFile = shadowJar.archiveFile
 }
 
 processResources {
