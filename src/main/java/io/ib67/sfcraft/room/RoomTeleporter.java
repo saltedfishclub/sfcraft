@@ -57,7 +57,7 @@ public class RoomTeleporter {
                 )
         );
         networkHandler.send(new StoreCookieS2CPacket(ROOM_COOKIE, cookie), PacketCallbacks.always(() -> {
-            networkHandler.sendPacket(new ServerTransferS2CPacket(config.domain, serverSupplier.get().getServerPort()));
+            networkHandler.sendPacket(new ServerTransferS2CPacket(config.domain, config.port));
         }));
     }
 }
