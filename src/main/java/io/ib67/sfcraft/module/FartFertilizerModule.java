@@ -45,7 +45,8 @@ public class FartFertilizerModule extends ServerModule {
                                         0.4
                                 );
                                 for (ServerPlayer serverPlayerEntity : PlayerLookup.around(wld, blockPos, 6f)) {
-                                    serverPlayerEntity.playNotifySound(
+                                    Helper.playNotifySound(
+                                            serverPlayerEntity,
                                             SoundEvents.COMPOSTER_FILL,
                                             SoundSource.BLOCKS,
                                             ((6 - serverPlayerEntity.distanceTo(player) + 1) / 6) * 50,

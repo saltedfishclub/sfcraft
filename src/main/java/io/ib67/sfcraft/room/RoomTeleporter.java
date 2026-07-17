@@ -13,7 +13,7 @@ import net.minecraft.network.PacketSendListener;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.common.ClientboundStoreCookiePacket;
 import net.minecraft.network.protocol.common.ClientboundTransferPacket;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.CommonColors;
 
@@ -29,7 +29,7 @@ public class RoomTeleporter {
     @Inject
     private SFConfig config;
 
-    public static final ResourceLocation ROOM_COOKIE = ResourceLocation.fromNamespaceAndPath(SFCraft.MOD_ID, "room");
+    public static final Identifier ROOM_COOKIE = Identifier.fromNamespaceAndPath(SFCraft.MOD_ID, "room");
 
     public void teleportTo(Room room, ServerPlayer player) {
         if (roomModule.isVirtual(player.getUUID())) {
@@ -39,7 +39,8 @@ public class RoomTeleporter {
         var finalUuid = roomModule.generateIdForRoom(player.getGameProfile(), player.getName().tryCollapseToString(), room.getServerIdentifier());
         var sess = room.getPlayerManager().createSessionFor(finalUuid);
         var name = player.getName().tryCollapseToString();
-        if (player.getServer().getLevel(sess.getSpawnPosition().dimension()) == null) {
+
+        if (player.level().getServer().getLevel(sess.getSpawnPosition().dimension()) == null) {
             throw new IllegalStateException("world isn't exist");
         }
         var networkHandler = player.connection;

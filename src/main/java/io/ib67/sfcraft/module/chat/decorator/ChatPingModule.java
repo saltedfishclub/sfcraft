@@ -4,6 +4,7 @@ import com.google.inject.Inject;
 import io.ib67.sfcraft.ServerModule;
 import io.ib67.sfcraft.registry.chat.SimpleMessageDecorator;
 import io.ib67.sfcraft.inject.MinecraftServerSupplier;
+import io.ib67.sfcraft.util.Helper;
 import io.ib67.sfcraft.util.SFConsts;
 import org.jetbrains.annotations.Nullable;
 
@@ -51,9 +52,10 @@ public class ChatPingModule extends ServerModule implements ChatDecorator {
         var r = Component.literal(match.replaceAll(it -> this.matchPlayer(it, names, foundPlayers)));
         for (Player foundPlayer : foundPlayers) {
             if (sender != null) {
-                foundPlayer.displayClientMessage(Component.literal(sender.getName().tryCollapseToString() + " 正在叫你。").withColor(CommonColors.LIGHT_GRAY), true);
+                foundPlayer.sendOverlayMessage(Component.literal(sender.getName().tryCollapseToString() + " 正在叫你。").withColor(CommonColors.LIGHT_GRAY));
             }
-            foundPlayer.playNotifySound(
+            Helper.playNotifySound(
+                    (ServerPlayer) foundPlayer,
                     SoundEvents.ITEM_PICKUP,
                     SoundSource.PLAYERS,
                     0.8f,

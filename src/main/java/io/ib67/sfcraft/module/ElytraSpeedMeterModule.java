@@ -52,13 +52,13 @@ public class ElytraSpeedMeterModule extends ServerModule {
             text.append(genPitchMeter(player.getXRot()));
             text.append(" ");
             text.append(generateDurabilityMeter(f, player));
-            player.displayClientMessage(text, true);
+            player.sendOverlayMessage(text);
         } else {
             clean((ServerPlayer) player);
             if (f > THRESHLD_OF_ELYTRA_FLY * 20) {
-                player.displayClientMessage(Component.literal("!! LANDED !!").withColor(CommonColors.GREEN), true);
+                player.sendOverlayMessage(Component.literal("!! LANDED !!").withColor(CommonColors.GREEN));
             } else {
-                player.displayClientMessage(Component.empty(), true);
+                player.sendOverlayMessage(Component.empty());
 
             }
         }

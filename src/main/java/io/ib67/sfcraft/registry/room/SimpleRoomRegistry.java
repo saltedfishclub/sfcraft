@@ -9,12 +9,12 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.Level;
 
 public class SimpleRoomRegistry implements RoomRegistry {
-    private final ConcurrentMap<ResourceLocation, Room> rooms = new ConcurrentHashMap<>();
+    private final ConcurrentMap<Identifier, Room> rooms = new ConcurrentHashMap<>();
     private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
     private final Map<Class<?>, RoomFactory<?>> factories = new HashMap<>();
     private final Set<ResourceKey<Level>> roomWorlds = new HashSet<>();
@@ -25,7 +25,7 @@ public class SimpleRoomRegistry implements RoomRegistry {
     }
 
     @Override
-    public Room getRoomBy(ResourceLocation identifier) {
+    public Room getRoomBy(Identifier identifier) {
         return rooms.get(identifier);
     }
 
@@ -43,7 +43,7 @@ public class SimpleRoomRegistry implements RoomRegistry {
     }
 
     @Override
-    public <T extends Room> T createRoomOf(Class<T> type, ResourceLocation roomId, ServerPlayer issuer, String... arguments) {
+    public <T extends Room> T createRoomOf(Class<T> type, Identifier roomId, ServerPlayer issuer, String... arguments) {
         if (getRoomBy(roomId) != null) {
             throw new IllegalArgumentException("duplicate room id: " + roomId);
         }

@@ -3,7 +3,7 @@ package io.ib67.sfcraft.mixin.server;
 import io.ib67.sfcraft.mixin.common.bridge.ServerWorldBridge;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.level.GameRules;
+import net.minecraft.world.level.gamerules.GameRules;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.AbstractFurnaceBlock;
 import net.minecraft.world.level.block.BaseEntityBlock;
@@ -39,7 +39,7 @@ public abstract class AbstractFurnaceBlockMixin extends BaseEntityBlock {
     private static <E extends AbstractFurnaceBlockEntity> void tickMultiple(Level _world, BlockPos pos, BlockState state, E blockEntity) {
         var world = (ServerLevel) _world;
         AbstractFurnaceBlockEntity.serverTick(world, pos, state, blockEntity);
-        int i = world.getGameRules().getInt(GameRules.RULE_PLAYERS_SLEEPING_PERCENTAGE);
+        int i = world.getGameRules().get(GameRules.PLAYERS_SLEEPING_PERCENTAGE);
         if (((ServerWorldBridge) world).getDEEPSLATE_BRICKS().areEnoughSleeping(i)) {
             AbstractFurnaceBlockEntity.serverTick(world, pos, state, blockEntity); //todo: config support?
             AbstractFurnaceBlockEntity.serverTick(world, pos, state, blockEntity);

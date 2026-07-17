@@ -6,6 +6,7 @@ import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
+import io.ib67.kiwi.tuple.Tuple2;
 import io.ib67.sfcraft.ServerModule;
 import io.ib67.sfcraft.config.SFConfig;
 import io.ib67.sfcraft.inject.MinecraftServerSupplier;
@@ -21,9 +22,8 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.common.ClientboundStoreCookiePacket;
 import net.minecraft.network.protocol.common.ClientboundTransferPacket;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.TicketType;
-import net.minecraft.util.Tuple;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import java.nio.charset.StandardCharsets;
@@ -43,7 +43,7 @@ public class RoomModule extends ServerModule {
     private MinecraftServerSupplier serverSupplier;
     @Inject
     private SFConfig config;
-    private final List<Tuple<ResourceKey<Level>, BlockPos>> pregenQueue = new ArrayList<>();
+    private final List<Tuple2<ResourceKey<Level>, BlockPos>> pregenQueue = new ArrayList<>();
     private final Map<UUID, GameProfile> uuidMapper = new ConcurrentHashMap<>();
 
     @Override
@@ -53,13 +53,15 @@ public class RoomModule extends ServerModule {
 
     @Override
     public void onEnable() {
-        for (Tuple<ResourceKey<Level>, BlockPos> registryKeyBlockPosPair : pregenQueue) {
-            var world = serverSupplier.get().getLevel(registryKeyBlockPosPair.getA());
+        for (Tuple2<ResourceKey<Level>, BlockPos> registryKeyBlockPosPair : pregenQueue) {
+            var world = serverSupplier.get().getLevel(registryKeyBlockPosPair.a());
             if (world == null) {
-                log.warn("Cannot find world {}", registryKeyBlockPosPair.getA());
+                log.warn("Cannot find world {}", registryKeyBlockPosPair.b());
                 continue;
             }
-            world.getChunkSource().addTicketWithRadius(TicketType.START, new ChunkPos(registryKeyBlockPosPair.getB()), 64);
+            var blockPos = registryKeyBlockPosPair.b();
+            var chunkPos = new ChunkPos(blockPos.getX() >> 4, blockPos.getZ() >> 4);
+            world.getChunkSource().addTicketWithRadius(TicketType.PLAYER_SPAWN, chunkPos, 64);
         }
     }
 
@@ -88,10 +90,10 @@ public class RoomModule extends ServerModule {
     }
 
     public void enqueuePregen(ResourceKey<Level> world, BlockPos spawnPos) {
-        pregenQueue.add(new Tuple<>(world, spawnPos));
+        pregenQueue.add(new Tuple2<>(world, spawnPos));
     }
 
-    public UUID generateIdForRoom(GameProfile issuer, String name, ResourceLocation room) {
+    public UUID generateIdForRoom(GameProfile issuer, String name, Identifier room) {
         var uuid = UUID.nameUUIDFromBytes((name + "@" + room.toString()).getBytes(StandardCharsets.UTF_8));
         var result = new UUID(uuid.getMostSignificantBits(), 0);
         if (issuer != null) uuidMapper.put(result, issuer);

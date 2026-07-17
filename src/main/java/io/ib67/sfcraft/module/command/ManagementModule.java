@@ -47,17 +47,17 @@ public class ManagementModule extends ServerModule {
             Commands.CommandSelection env) {
         dispatcher.register(LiteralArgumentBuilder.<CommandSourceStack>literal("sudo")
                 .requires(it -> this.isEnabled())
-                .requires(it -> it.hasPermission(2) && it.getPlayer() != null)
+                .requires(it -> Commands.LEVEL_GAMEMASTERS.check(it.permissions()) && it.getPlayer() != null)
                 .executes(this::enterSudoMode)
         );
         dispatcher.register(LiteralArgumentBuilder.<CommandSourceStack>literal("listperm")
                 .requires(it -> this.isEnabled())
-                .requires(it -> it.hasPermission(2) || SFConsts.COMMAND_LISTPERM.hasPermission(it.getPlayer()))
+                .requires(it -> Commands.LEVEL_GAMEMASTERS.check(it.permissions()) || SFConsts.COMMAND_LISTPERM.hasPermission(it.getPlayer()))
                 .executes(this::listPerms)
         );
         dispatcher.register(LiteralArgumentBuilder.<CommandSourceStack>literal("listgeo")
                 .requires(it -> this.isEnabled())
-                .requires(it -> it.hasPermission(2) || SFConsts.COMMAND_LISTGEO.hasPermission(it.getPlayer()))
+                .requires(it -> Commands.LEVEL_GAMEMASTERS.check(it.permissions()) || SFConsts.COMMAND_LISTGEO.hasPermission(it.getPlayer()))
                 .executes(this::listGeo)
         );
     }
@@ -85,7 +85,7 @@ public class ManagementModule extends ServerModule {
 
     public int enterSudoMode(CommandContext<CommandSourceStack> ctx) {
         var player = ctx.getSource().getPlayer();
-        if (player.getTags().contains(SFConsts.SPECIAL_SUDO)) {
+        if (player.entityTags().contains(SFConsts.SPECIAL_SUDO)) {
             player.removeTag(SFConsts.SPECIAL_SUDO);
             player.sendSystemMessage(Component.nullToEmpty("Sudo is off.").copy().withColor(CommonColors.GREEN));
         } else {

@@ -9,13 +9,13 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.Level;
 
 public class CreativeSpaceRoom implements Room {
-    public static final ResourceKey<Level> WORLD = ResourceKey.create(Registries.DIMENSION, ResourceLocation.fromNamespaceAndPath(SFCraft.MOD_ID, "playground"));
-    public static final ResourceLocation IDENTIFIER = ResourceLocation.fromNamespaceAndPath(SFCraft.MOD_ID, "creative_space");
+    public static final ResourceKey<Level> WORLD = ResourceKey.create(Registries.DIMENSION, Identifier.fromNamespaceAndPath(SFCraft.MOD_ID, "playground"));
+    public static final Identifier IDENTIFIER = Identifier.fromNamespaceAndPath(SFCraft.MOD_ID, "creative_space");
     public static final BlockPos SPAWN_POS = new BlockPos(0, 66, 0);
     @Getter
     private final RoomPlayerManager playerManager;
@@ -32,7 +32,7 @@ public class CreativeSpaceRoom implements Room {
     }
 
     @Override
-    public ResourceLocation getServerIdentifier() {
+    public Identifier getServerIdentifier() {
         return IDENTIFIER;
     }
 }

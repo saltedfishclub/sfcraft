@@ -3,10 +3,10 @@ package io.ib67.sfcraft.subserver;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 public interface Room {
-    ResourceLocation getServerIdentifier();
+    Identifier getServerIdentifier();
 
     RoomPlayerManager getPlayerManager();
 

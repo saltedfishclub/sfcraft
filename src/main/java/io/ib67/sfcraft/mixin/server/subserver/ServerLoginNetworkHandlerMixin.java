@@ -25,6 +25,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.cookie.ClientboundCookieRequestPacket;
 import net.minecraft.network.protocol.cookie.ServerboundCookieResponsePacket;
 import net.minecraft.server.network.ServerLoginPacketListenerImpl;
+import net.minecraft.server.players.NameAndId;
 import net.minecraft.server.players.PlayerList;
 
 import static io.ib67.sfcraft.room.CookieState.*;
@@ -74,7 +75,7 @@ public abstract class ServerLoginNetworkHandlerMixin {
             try {
                 if (packet.payload().length == 0) {
                     // clean reconnect.
-                    LOGGER.info("Player " + authenticatedProfile.getName() + " requested a clean reconnection");
+                    LOGGER.info("Player " + authenticatedProfile.name() + " requested a clean reconnection");
                     clean = true;
                     ci.cancel();
                     return;
@@ -128,8 +129,8 @@ public abstract class ServerLoginNetworkHandlerMixin {
         }
     }
 
-    @Redirect(method = "verifyLoginAndFinishConnectionSetup", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/players/PlayerList;canPlayerLogin(Ljava/net/SocketAddress;Lcom/mojang/authlib/GameProfile;)Lnet/minecraft/network/chat/Component;"))
-    private Component sf$bypassRoomPlayer(PlayerList instance, SocketAddress address, GameProfile profile) {
+    @Redirect(method = "verifyLoginAndFinishConnectionSetup", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/players/PlayerList;canPlayerLogin(Ljava/net/SocketAddress;Lnet/minecraft/server/players/NameAndId;)Lnet/minecraft/network/chat/Component;"))
+    private Component sf$bypassRoomPlayer(PlayerList instance, SocketAddress address, NameAndId profile) {
         if (sf$cookieState == DONE) return null;
         return instance.canPlayerLogin(address, profile);
     }

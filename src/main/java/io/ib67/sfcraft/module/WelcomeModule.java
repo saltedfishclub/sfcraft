@@ -60,12 +60,12 @@ public class WelcomeModule extends ServerModule {
             packetSender, MinecraftServer minecraftServer) {
         if (!isEnabled()) return;
         var player = serverPlayNetworkHandler.getPlayer();
-        if (!player.getTags().contains("sf_unlock_recipe")) {
+        if (!player.entityTags().contains("sf_unlock_recipe")) {
             player.addTag("sf_unlock_recipe");
             unlockRecipe(player);
         }
         for (String s : announcements.keySet()) {
-            if (!player.getTags().contains(s)) {
+            if (!player.entityTags().contains(s)) {
                 player.addTag(s);
                 announcements.get(s).lines().map(Component::nullToEmpty).forEach(player::sendSystemMessage);
             }
@@ -75,6 +75,6 @@ public class WelcomeModule extends ServerModule {
 
     private void unlockRecipe(ServerPlayer player) {
         var recipe = player.getRecipeBook();
-        recipe.addRecipes(player.getServer().getRecipeManager().getRecipes(), player);
+        recipe.addRecipes(player.level().getServer().getRecipeManager().getRecipes(), player);
     }
 }

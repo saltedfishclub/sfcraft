@@ -36,7 +36,7 @@ public class BackModule extends ServerModule {
     public int onBack(CommandContext<CommandSourceStack> it) {
         var player = it.getSource().getPlayer();
         var pos = player.getLastDeathLocation().get();
-        var wld = player.getServer().getLevel(pos.dimension());
+        var wld = player.level().getServer().getLevel(pos.dimension());
         var _pos = pos.pos();
         if (wld == null) return 0;
         var nearby = wld.getNearestPlayer(_pos.getX(), _pos.getY(), _pos.getZ(), 100, true);
@@ -55,7 +55,7 @@ public class BackModule extends ServerModule {
 
     public void onPlayerDeath(Player player, DamageSource damageSource) {
         if (this.isEnabled() && Helper.canBack((ServerPlayer) player)) {
-            player.displayClientMessage(Component.nullToEmpty("Tip: 死亡地点附近有玩家，可以使用 /back 传送到他们那里。（即使在对方也死亡的状态下）"), false);
+            player.sendSystemMessage(Component.nullToEmpty("Tip: 死亡地点附近有玩家，可以使用 /back 传送到他们那里。（即使在对方也死亡的状态下）"));
         }
     }
 }

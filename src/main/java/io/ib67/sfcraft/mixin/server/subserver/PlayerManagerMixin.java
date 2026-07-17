@@ -1,6 +1,5 @@
 package io.ib67.sfcraft.mixin.server.subserver;
 
-import com.mojang.authlib.GameProfile;
 import io.ib67.sfcraft.SFCraft;
 import io.ib67.sfcraft.mixin.common.bridge.ServerChunkManagerBridge;
 import io.ib67.sfcraft.module.RoomModule;
@@ -22,6 +21,7 @@ import net.minecraft.network.Connection;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.network.CommonListenerCookie;
+import net.minecraft.server.players.NameAndId;
 import net.minecraft.server.players.PlayerList;
 import net.minecraft.world.entity.Entity;
 
@@ -58,13 +58,13 @@ public abstract class PlayerManagerMixin {
     }
 
     @Inject(method = "canPlayerLogin", cancellable = true, at = @At("HEAD"))
-    private void sf$bypassJoinLimit(SocketAddress address, GameProfile profile, CallbackInfoReturnable<Component> cir) {
-        if (RoomModule.isVirtual(profile.getId())) cir.setReturnValue(null);
+    private void sf$bypassJoinLimit(SocketAddress address, NameAndId profile, CallbackInfoReturnable<Component> cir) {
+        if (RoomModule.isVirtual(profile.id())) cir.setReturnValue(null);
     }
 
     @Unique
     private void teleportToRoom(ServerPlayer player, GlobalPos spawn) {
-        var world = player.getServer().getLevel(spawn.dimension());
+        var world = player.level().getServer().getLevel(spawn.dimension());
         var pos = spawn.pos();
         ((ServerChunkManagerBridge)world.getChunkSource()).getLevelManager().addPlayer(player.getLastSectionPos(), player);
         player.teleportTo(world, pos.getX(), pos.getY(), pos.getZ(), Set.of(), 0, 0, true);

@@ -3,11 +3,11 @@ package io.ib67.sfcraft.mixin.server;
 import io.ib67.sfcraft.callback.SFCallbacks;
 import io.netty.channel.local.LocalChannel;
 import io.netty.channel.local.LocalServerChannel;
-import net.minecraft.core.UUIDUtil;
 import net.minecraft.network.Connection;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.login.ServerboundHelloPacket;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.players.NameAndId;
 import net.minecraft.server.network.ServerLoginPacketListenerImpl;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
@@ -41,10 +41,11 @@ public abstract class ServerLoginNetworkHandlerMixin {
         if (!(connection.getRemoteAddress() instanceof InetSocketAddress)) {
             return connection.isMemoryConnection(); // 碰上真 isLocal 了
         }
-        var offlineProfile = UUIDUtil.createOfflineProfile(currentPlayer);
+        var offlineProfile = NameAndId.createOffline(currentPlayer);
         boolean _r;
-        if (server.getProfileCache() != null) {
-            _r = server.getProfileCache().get(offlineProfile.getId()).isPresent();
+        var nameCache = server.services().nameToIdCache();
+        if (nameCache != null) {
+            _r = nameCache.get(offlineProfile.id()).isPresent();
         }else{
             var wl = server.getPlayerList().getWhiteList();
             _r = wl.isWhiteListed(offlineProfile);

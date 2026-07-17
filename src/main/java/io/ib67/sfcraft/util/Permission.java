@@ -24,7 +24,7 @@ public record Permission<T extends Entity>(String key, boolean byDefault) {
 
     private boolean check(T t, String permission){
         if(t instanceof Player player) {
-            if (player.getTags().contains(permission)){
+            if (player.entityTags().contains(permission)){
                 return true;
             }
         }

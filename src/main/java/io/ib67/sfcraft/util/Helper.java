@@ -10,9 +10,13 @@ import io.ib67.sfcraft.geoip.GeoIPService;
 import lombok.SneakyThrows;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.protocol.game.ClientboundSoundPacket;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundEvent;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.CropBlock;
@@ -37,7 +41,7 @@ public class Helper {
     public static boolean canBack(ServerPlayer player) {
         if (!SFConsts.COMMAND_BACK.hasPermission(player)) return false;
         var pos = player.getLastDeathLocation().get();
-        var wld = player.getServer().getLevel(pos.dimension());
+        var wld = player.level().getServer().getLevel(pos.dimension());
         var _pos = pos.pos();
         if (wld == null) return false;
         var nearby = wld.getNearestPlayer(_pos.getX(), _pos.getY(), _pos.getZ(), 100, true);
@@ -104,6 +108,20 @@ public class Helper {
     public static boolean canFertilize(Block block) {
         return block instanceof SaplingBlock
                 || block instanceof CropBlock;
+    }
+
+    /**
+     * Plays a sound only to the given player, at their own position.
+     * Reproduces the pre-26.2 {@code ServerPlayer#playNotifySound}.
+     */
+    public static void playNotifySound(ServerPlayer player, SoundEvent sound, SoundSource source, float volume, float pitch) {
+        player.connection.send(new ClientboundSoundPacket(
+                BuiltInRegistries.SOUND_EVENT.wrapAsHolder(sound),
+                source,
+                player.getX(), player.getY(), player.getZ(),
+                volume, pitch,
+                player.getRandom().nextLong()
+        ));
     }
 
     public static String hideIp(InetAddress addr) {

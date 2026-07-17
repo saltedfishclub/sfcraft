@@ -39,7 +39,7 @@ public class AFKModule extends ServerModule {
 
     private void enAFK(ServerPlayer player) {
         chatPrefixModule.applyPrefix(player, prefix);
-        player.getServer().getPlayerList().broadcastSystemMessage(
+        player.level().getServer().getPlayerList().broadcastSystemMessage(
                 Component.literal(" * " + player.getName().tryCollapseToString() + " 正在挂机.").withColor(CommonColors.LIGHT_GRAY),
                 false
         );
@@ -49,7 +49,7 @@ public class AFKModule extends ServerModule {
     public void deAFK(ServerPlayer player) {
         String playerName = player.getName().tryCollapseToString();
         chatPrefixModule.removePrefix(player, prefix);
-        player.getServer().getPlayerList().broadcastSystemMessage(
+        player.level().getServer().getPlayerList().broadcastSystemMessage(
                 Component.literal(" * " + playerName + " 回来了.").withColor(CommonColors.LIGHT_GRAY),
                 false
         );

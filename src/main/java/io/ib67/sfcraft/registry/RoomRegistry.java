@@ -6,18 +6,18 @@ import io.ib67.sfcraft.subserver.RoomSession;
 import java.util.Collection;
 import java.util.UUID;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.Level;
 
 public interface RoomRegistry {
     Collection<? extends Room> getRooms();
 
-    Room getRoomBy(ResourceLocation identifier);
+    Room getRoomBy(Identifier identifier);
 
     RoomSession getRoomBy(UUID player);
 
-    <T extends Room> T createRoomOf(Class<T> type, ResourceLocation roomId, ServerPlayer issuer, String... arguments);
+    <T extends Room> T createRoomOf(Class<T> type, Identifier roomId, ServerPlayer issuer, String... arguments);
 
     boolean isRoomWorld(ResourceKey<Level> world);
 

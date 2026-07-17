@@ -22,7 +22,7 @@ public class SimpleRandomEventRegistry implements RandomEventRegistry {
     private boolean shutdown;
 
     protected SimpleRandomEventRegistry() {
-        ServerTickEvents.END_WORLD_TICK.register(this::afterWorldTick);
+        ServerTickEvents.END_LEVEL_TICK.register(this::afterWorldTick);
         ServerLifecycleEvents.SERVER_STOPPING.register(this::onShutdown);
     }
 
