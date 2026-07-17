@@ -1,13 +1,13 @@
 package io.ib67.sfcraft.mixin.common;
 
-import net.minecraft.entity.mob.MobEntity;
+import net.minecraft.world.entity.Mob;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 
-@Mixin(MobEntity.class)
+@Mixin(Mob.class)
 public abstract class MobEntityMixin {
     @Shadow
-    public boolean cannotDespawn() {
+    public boolean requiresCustomPersistence() {
         throw new AssertionError();
     }
 }

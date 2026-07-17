@@ -1,12 +1,12 @@
 package io.ib67.sfcraft.mixin.common.bridge;
 
-import net.minecraft.server.world.ChunkLevelManager;
-import net.minecraft.server.world.ServerChunkManager;
+import net.minecraft.server.level.DistanceManager;
+import net.minecraft.server.level.ServerChunkCache;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.gen.Accessor;
 
-@Mixin(ServerChunkManager.class)
+@Mixin(ServerChunkCache.class)
 public interface ServerChunkManagerBridge {
-    @Accessor("levelManager")
-    ChunkLevelManager getLevelManager();
+    @Accessor("distanceManager")
+    DistanceManager getLevelManager();
 }

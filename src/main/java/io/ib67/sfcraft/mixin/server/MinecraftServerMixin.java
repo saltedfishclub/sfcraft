@@ -10,7 +10,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 @Mixin(MinecraftServer.class)
 public abstract class MinecraftServerMixin {
 
-    @ModifyConstant(method = "tickWorlds", constant = @Constant(intValue = 20))
+    @ModifyConstant(method = "tickChildren", constant = @Constant(intValue = 20))
     private int speedUpAtNight(int constant) {
         if (MixinHelper.spedUp) {
             return 2;

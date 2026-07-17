@@ -4,21 +4,20 @@ import io.ib67.sfcraft.registry.RoomRegistry;
 import io.ib67.sfcraft.subserver.Room;
 import io.ib67.sfcraft.subserver.RoomFactory;
 import io.ib67.sfcraft.subserver.RoomSession;
-import net.minecraft.registry.RegistryKey;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.util.Identifier;
-import net.minecraft.world.World;
-
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.level.Level;
 
 public class SimpleRoomRegistry implements RoomRegistry {
-    private final ConcurrentMap<Identifier, Room> rooms = new ConcurrentHashMap<>();
+    private final ConcurrentMap<ResourceLocation, Room> rooms = new ConcurrentHashMap<>();
     private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
     private final Map<Class<?>, RoomFactory<?>> factories = new HashMap<>();
-    private final Set<RegistryKey<World>> roomWorlds = new HashSet<>();
+    private final Set<ResourceKey<Level>> roomWorlds = new HashSet<>();
 
     @Override
     public Collection<? extends Room> getRooms() {
@@ -26,7 +25,7 @@ public class SimpleRoomRegistry implements RoomRegistry {
     }
 
     @Override
-    public Room getRoomBy(Identifier identifier) {
+    public Room getRoomBy(ResourceLocation identifier) {
         return rooms.get(identifier);
     }
 
@@ -44,7 +43,7 @@ public class SimpleRoomRegistry implements RoomRegistry {
     }
 
     @Override
-    public <T extends Room> T createRoomOf(Class<T> type, Identifier roomId, ServerPlayerEntity issuer, String... arguments) {
+    public <T extends Room> T createRoomOf(Class<T> type, ResourceLocation roomId, ServerPlayer issuer, String... arguments) {
         if (getRoomBy(roomId) != null) {
             throw new IllegalArgumentException("duplicate room id: " + roomId);
         }
@@ -59,12 +58,12 @@ public class SimpleRoomRegistry implements RoomRegistry {
     }
 
     @Override
-    public boolean isRoomWorld(RegistryKey<World> world) {
+    public boolean isRoomWorld(ResourceKey<Level> world) {
         return roomWorlds.contains(world);
     }
 
     @Override
-    public <T extends Room> void registerRoomType(Class<T> type, RegistryKey<World> worldKey, RoomFactory<T> factory) {
+    public <T extends Room> void registerRoomType(Class<T> type, ResourceKey<Level> worldKey, RoomFactory<T> factory) {
         roomWorlds.add(worldKey);
         factories.put(type, factory);
     }

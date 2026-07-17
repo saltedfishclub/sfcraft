@@ -7,11 +7,10 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
-import net.minecraft.registry.RegistryKey;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.world.World;
-
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.level.Level;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
@@ -35,15 +34,15 @@ public class SimpleRandomEventRegistry implements RandomEventRegistry {
         activeEvents.clear();
     }
 
-    private void afterWorldTick(ServerWorld serverWorld) {
+    private void afterWorldTick(ServerLevel serverWorld) {
         if (shutdown) return;
         triggerEvents(serverWorld);
         clearActiveEvents();
     }
 
-    private void triggerEvents(ServerWorld serverWorld) {
+    private void triggerEvents(ServerLevel serverWorld) {
         for (RegisteredEntry entry : entries) {
-            if (entry.world == serverWorld.getRegistryKey()
+            if (entry.world == serverWorld.dimension()
                     && !entry.started && entry.worldTickPredicate.test(serverWorld)) {
                 var event = entry.event.apply(serverWorld);
                 var ticks = event.start();
@@ -74,7 +73,7 @@ public class SimpleRandomEventRegistry implements RandomEventRegistry {
     }
 
     @Override
-    public void registerEvent(Function<World, RandomEvent> event, RegistryKey<World> world, Predicate<World> worldTickPredicate) {
+    public void registerEvent(Function<Level, RandomEvent> event, ResourceKey<Level> world, Predicate<Level> worldTickPredicate) {
         entries.add(new RegisteredEntry(world, event, worldTickPredicate));
     }
 
@@ -94,9 +93,9 @@ public class SimpleRandomEventRegistry implements RandomEventRegistry {
 
     @RequiredArgsConstructor
     private static final class RegisteredEntry {
-        private final RegistryKey<World> world;
-        private final Function<World, RandomEvent> event;
-        private final Predicate<World> worldTickPredicate;
+        private final ResourceKey<Level> world;
+        private final Function<Level, RandomEvent> event;
+        private final Predicate<Level> worldTickPredicate;
         private boolean started;
     }
 }

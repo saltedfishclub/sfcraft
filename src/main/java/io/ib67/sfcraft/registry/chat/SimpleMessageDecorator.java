@@ -1,31 +1,31 @@
 package io.ib67.sfcraft.registry.chat;
 
-import net.minecraft.network.message.MessageDecorator;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.Text;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
+import net.minecraft.network.chat.ChatDecorator;
+import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerPlayer;
 
-public class SimpleMessageDecorator implements MessageDecorator {
-    protected final List<MessageDecorator> decorators = new ArrayList<>();
+public class SimpleMessageDecorator implements ChatDecorator {
+    protected final List<ChatDecorator> decorators = new ArrayList<>();
 
     protected SimpleMessageDecorator() {
 
     }
 
-    public void registerDecorator(MessageDecorator decorator) {
+    public void registerDecorator(ChatDecorator decorator) {
         decorators.add(decorator);
     }
 
     @Override
-    public Text decorate(@Nullable ServerPlayerEntity sender, Text message) {
-        var targets = new ArrayList<Text>();
+    public Component decorate(@Nullable ServerPlayer sender, Component message) {
+        var targets = new ArrayList<Component>();
         targets.add(message);
-        for (MessageDecorator decorator : decorators) {
-            var newRd = new ArrayList<Text>();
-            for (Text target : targets) {
+        for (ChatDecorator decorator : decorators) {
+            var newRd = new ArrayList<Component>();
+            for (Component target : targets) {
                 var r = decorator.decorate(sender, target);
                 var copy = r.copy();
                 copy.getSiblings().clear();
@@ -34,7 +34,7 @@ public class SimpleMessageDecorator implements MessageDecorator {
             }
             targets = newRd;
         }
-        var result = Text.empty();
+        var result = Component.empty();
         targets.forEach(result::append);
         return result;
     }

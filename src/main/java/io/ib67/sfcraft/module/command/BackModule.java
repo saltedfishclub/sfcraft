@@ -8,14 +8,14 @@ import io.ib67.sfcraft.util.SFConsts;
 import io.ib67.sfcraft.ServerModule;
 import io.ib67.sfcraft.callback.SFCallbacks;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
-import net.minecraft.command.CommandRegistryAccess;
-import net.minecraft.entity.damage.DamageSource;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.server.command.CommandManager;
-import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.Text;
-import net.minecraft.util.Colors;
+import net.minecraft.commands.CommandBuildContext;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.commands.Commands;
+import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.util.CommonColors;
+import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.entity.player.Player;
 
 public class BackModule extends ServerModule {
     @Override
@@ -24,38 +24,38 @@ public class BackModule extends ServerModule {
         CommandRegistrationCallback.EVENT.register(this::registerCommands);
     }
 
-    private void registerCommands(CommandDispatcher<ServerCommandSource> dispatcher, CommandRegistryAccess registryAccess, CommandManager.RegistrationEnvironment registrationEnvironment) {
-        dispatcher.register(LiteralArgumentBuilder.<ServerCommandSource>literal("back")
+    private void registerCommands(CommandDispatcher<CommandSourceStack> dispatcher, CommandBuildContext registryAccess, Commands.CommandSelection registrationEnvironment) {
+        dispatcher.register(LiteralArgumentBuilder.<CommandSourceStack>literal("back")
                 .requires(it -> this.isEnabled())
                 .requires(it -> it.getPlayer() != null)
-                .requires(it -> it.getPlayer().getLastDeathPos().isPresent())
+                .requires(it -> it.getPlayer().getLastDeathLocation().isPresent())
                 .requires(it -> SFConsts.COMMAND_BACK.hasPermission(it.getPlayer()))
                 .executes(this::onBack));
     }
 
-    public int onBack(CommandContext<ServerCommandSource> it) {
+    public int onBack(CommandContext<CommandSourceStack> it) {
         var player = it.getSource().getPlayer();
-        var pos = player.getLastDeathPos().get();
-        var wld = player.getServer().getWorld(pos.dimension());
+        var pos = player.getLastDeathLocation().get();
+        var wld = player.getServer().getLevel(pos.dimension());
         var _pos = pos.pos();
         if (wld == null) return 0;
-        var nearby = wld.getClosestPlayer(_pos.getX(), _pos.getY(), _pos.getZ(), 100, true);
+        var nearby = wld.getNearestPlayer(_pos.getX(), _pos.getY(), _pos.getZ(), 100, true);
         if (nearby != null) {
-            _pos = nearby.getBlockPos();
+            _pos = nearby.blockPosition();
             Helper.teleportSafely(player, wld, _pos.getX(), _pos.getY(), _pos.getZ(),0,0);
         } else {
             if (SFConsts.UNLIMITED_COMMAND_BACK.hasPermission(player)) {
                 Helper.teleportSafely(player, wld, _pos.getX(), _pos.getY(), _pos.getZ(),0,0);
                 return 0;
             }
-            player.sendMessage(Text.of("周围没有玩家。").copy().withColor(Colors.RED));
+            player.sendSystemMessage(Component.nullToEmpty("周围没有玩家。").copy().withColor(CommonColors.RED));
         }
         return 0;
     }
 
-    public void onPlayerDeath(PlayerEntity player, DamageSource damageSource) {
-        if (this.isEnabled() && Helper.canBack((ServerPlayerEntity) player)) {
-            player.sendMessage(Text.of("Tip: 死亡地点附近有玩家，可以使用 /back 传送到他们那里。（即使在对方也死亡的状态下）"), false);
+    public void onPlayerDeath(Player player, DamageSource damageSource) {
+        if (this.isEnabled() && Helper.canBack((ServerPlayer) player)) {
+            player.displayClientMessage(Component.nullToEmpty("Tip: 死亡地点附近有玩家，可以使用 /back 传送到他们那里。（即使在对方也死亡的状态下）"), false);
         }
     }
 }

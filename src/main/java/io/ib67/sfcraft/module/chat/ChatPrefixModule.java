@@ -5,14 +5,13 @@ import io.ib67.sfcraft.ServerModule;
 import io.ib67.sfcraft.inject.MinecraftServerSupplier;
 import net.fabricmc.fabric.api.networking.v1.PacketSender;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.network.packet.Packet;
-import net.minecraft.network.packet.s2c.play.TeamS2CPacket;
-import net.minecraft.scoreboard.Team;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.protocol.Packet;
+import net.minecraft.network.protocol.game.ClientboundSetPlayerTeamPacket;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.network.ServerPlayNetworkHandler;
-import net.minecraft.text.Text;
-
+import net.minecraft.server.network.ServerGamePacketListenerImpl;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.scores.PlayerTeam;
 import java.util.*;
 
 //todo rework
@@ -21,8 +20,8 @@ public class ChatPrefixModule extends ServerModule {
     private MinecraftServerSupplier serverSupplier;
     private volatile ChatPrefix empty;
     private final Map<UUID, SortedSet<ChatPrefix>> playerPrefixes = new HashMap<>();
-    private final Map<String, Team> virtualTeams = new HashMap<>();
-    private final Map<UUID, Team> players = new HashMap<>();
+    private final Map<String, PlayerTeam> virtualTeams = new HashMap<>();
+    private final Map<UUID, PlayerTeam> players = new HashMap<>();
 
     @Override
     public void onInitialize() {
@@ -33,7 +32,7 @@ public class ChatPrefixModule extends ServerModule {
     @Override
     public void onEnable() {
         empty = new ChatPrefix(
-                Text.empty(),
+                Component.empty(),
                 "EMPTY",
                 true,
                 1000
@@ -41,25 +40,25 @@ public class ChatPrefixModule extends ServerModule {
         virtualTeams.put(empty.id(), createTeamFrom(empty));
     }
 
-    private void onDisconnect(ServerPlayNetworkHandler serverPlayNetworkHandler, MinecraftServer minecraftServer) {
+    private void onDisconnect(ServerGamePacketListenerImpl serverPlayNetworkHandler, MinecraftServer minecraftServer) {
         var player = serverPlayNetworkHandler.getPlayer();
         var current = getCurrentPrefix(player);
         if (current != null && current.temporary()) {
-            removeFromTeam(player, players.get(player.getUuid()));
+            removeFromTeam(player, players.get(player.getUUID()));
         }
     }
 
-    private void onJoin(ServerPlayNetworkHandler networkHandler, PacketSender sender, MinecraftServer minecraftServer) {
+    private void onJoin(ServerGamePacketListenerImpl networkHandler, PacketSender sender, MinecraftServer minecraftServer) {
         applyPrefix(networkHandler.getPlayer(), empty);
-        for (Map.Entry<UUID, Team> uuidTeamEntry : players.entrySet()) {
+        for (Map.Entry<UUID, PlayerTeam> uuidTeamEntry : players.entrySet()) {
             var team = uuidTeamEntry.getValue();
-            sender.sendPacket(TeamS2CPacket.updateTeam(team, true));
+            sender.sendPacket(ClientboundSetPlayerTeamPacket.createAddOrModifyPacket(team, true));
         }
     }
 
-    private void onPrefixUpdate(PlayerEntity player) {
-        var lastTeam = players.get(player.getUuid());
-        var current = virtualTeams.get(playerPrefixes.get(player.getUuid()).getFirst().id());
+    private void onPrefixUpdate(Player player) {
+        var lastTeam = players.get(player.getUUID());
+        var current = virtualTeams.get(playerPrefixes.get(player.getUUID()).getFirst().id());
         if (lastTeam == current) return;
         if (lastTeam != null) removeFromTeam(player, lastTeam);
         if (current == null) {
@@ -68,49 +67,49 @@ public class ChatPrefixModule extends ServerModule {
         addToTeam(player, current);
     }
 
-    private void addToTeam(PlayerEntity player, Team team) {
-        var playerName = player.getName().getLiteralString();
+    private void addToTeam(Player player, PlayerTeam team) {
+        var playerName = player.getName().tryCollapseToString();
         if(team == null) return;
-        team.getPlayerList().add(playerName);
-        players.put(player.getUuid(), team);
-        sendToAll(TeamS2CPacket.updateTeam(team, true));
+        team.getPlayers().add(playerName);
+        players.put(player.getUUID(), team);
+        sendToAll(ClientboundSetPlayerTeamPacket.createAddOrModifyPacket(team, true));
     }
 
-    private void removeFromTeam(PlayerEntity player, Team team) {
-        var playerName = player.getName().getLiteralString();
+    private void removeFromTeam(Player player, PlayerTeam team) {
+        var playerName = player.getName().tryCollapseToString();
         if(team == null) return;
-        team.getPlayerList().remove(playerName);
-        sendToAll(TeamS2CPacket.updateTeam(team, true));
+        team.getPlayers().remove(playerName);
+        sendToAll(ClientboundSetPlayerTeamPacket.createAddOrModifyPacket(team, true));
         var current = getCurrentPrefix(player);
         var newTeam = virtualTeams.get(current.id());
         addToTeam(player, newTeam);
     }
 
     private void sendToAll(Packet<?> packet) {
-        serverSupplier.get().getPlayerManager().sendToAll(packet);
+        serverSupplier.get().getPlayerList().broadcastAll(packet);
     }
 
-    public void applyPrefix(PlayerEntity player, ChatPrefix prefix) {
-        if (hasPrefix(player.getUuid(), prefix)) {
+    public void applyPrefix(Player player, ChatPrefix prefix) {
+        if (hasPrefix(player.getUUID(), prefix)) {
             return;
         }
-        playerPrefixes.get(player.getUuid()).add(prefix);
+        playerPrefixes.get(player.getUUID()).add(prefix);
         onPrefixUpdate(player);
     }
 
-    public void removePrefix(PlayerEntity player, ChatPrefix prefix) {
-        if (!hasPrefix(player.getUuid(), prefix)) {
+    public void removePrefix(Player player, ChatPrefix prefix) {
+        if (!hasPrefix(player.getUUID(), prefix)) {
             return;
         }
-        playerPrefixes.get(player.getUuid()).remove(prefix);
+        playerPrefixes.get(player.getUUID()).remove(prefix);
         onPrefixUpdate(player);
     }
 
-    public ChatPrefix getCurrentPrefix(PlayerEntity player) {
-        if (!playerPrefixes.containsKey(player.getUuid())) {
+    public ChatPrefix getCurrentPrefix(Player player) {
+        if (!playerPrefixes.containsKey(player.getUUID())) {
             return null;
         }
-        return playerPrefixes.get(player.getUuid()).first();
+        return playerPrefixes.get(player.getUUID()).first();
 
     }
 
@@ -121,12 +120,12 @@ public class ChatPrefixModule extends ServerModule {
         return playerPrefixes.computeIfAbsent(player, ignored -> new TreeSet<>(List.of(empty))).contains(prefix);
     }
 
-    private Team createTeamFrom(ChatPrefix prefix) {
-        var t = new Team(
+    private PlayerTeam createTeamFrom(ChatPrefix prefix) {
+        var t = new PlayerTeam(
                 serverSupplier.get().getScoreboard(),
                 prefix.id()
         );
-        t.setPrefix(prefix.prefix());
+        t.setPlayerPrefix(prefix.prefix());
         return t;
     }
 }

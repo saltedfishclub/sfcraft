@@ -3,13 +3,12 @@ package io.ib67.sfcraft.mixin.server;
 import io.ib67.sfcraft.callback.SFCallbacks;
 import io.netty.channel.local.LocalChannel;
 import io.netty.channel.local.LocalServerChannel;
-import net.minecraft.network.ClientConnection;
-import net.minecraft.network.packet.c2s.login.LoginHelloC2SPacket;
+import net.minecraft.core.UUIDUtil;
+import net.minecraft.network.Connection;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.protocol.login.ServerboundHelloPacket;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.network.ServerLoginNetworkHandler;
-import net.minecraft.text.Text;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.Uuids;
+import net.minecraft.server.network.ServerLoginPacketListenerImpl;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -21,10 +20,10 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.net.InetSocketAddress;
 
-@Mixin(ServerLoginNetworkHandler.class)
+@Mixin(ServerLoginPacketListenerImpl.class)
 public abstract class ServerLoginNetworkHandlerMixin {
     @Shadow
-    public abstract void disconnect(Text reason);
+    public abstract void disconnect(Component reason);
 
     @Shadow
     @Final
@@ -32,23 +31,23 @@ public abstract class ServerLoginNetworkHandlerMixin {
     @Unique
     private String currentPlayer;
 
-    @Inject(method = "onHello", at = @At("HEAD"))
-    public void onHello(LoginHelloC2SPacket packet, CallbackInfo ci) {
+    @Inject(method = "handleHello", at = @At("HEAD"))
+    public void onHello(ServerboundHelloPacket packet, CallbackInfo ci) {
         currentPlayer = packet.name();
     }
 
-    @Redirect(method = "onHello", at = @At(value = "INVOKE", target = "Lnet/minecraft/network/ClientConnection;isLocal()Z"))
-    public boolean isLocal(ClientConnection connection) {
-        if (!(connection.getAddress() instanceof InetSocketAddress)) {
-            return connection.isLocal(); // 碰上真 isLocal 了
+    @Redirect(method = "handleHello", at = @At(value = "INVOKE", target = "Lnet/minecraft/network/Connection;isMemoryConnection()Z"))
+    public boolean isLocal(Connection connection) {
+        if (!(connection.getRemoteAddress() instanceof InetSocketAddress)) {
+            return connection.isMemoryConnection(); // 碰上真 isLocal 了
         }
-        var offlineProfile = Uuids.getOfflinePlayerProfile(currentPlayer);
+        var offlineProfile = UUIDUtil.createOfflineProfile(currentPlayer);
         boolean _r;
-        if (server.getUserCache() != null) {
-            _r = server.getUserCache().getByUuid(offlineProfile.getId()).isPresent();
+        if (server.getProfileCache() != null) {
+            _r = server.getProfileCache().get(offlineProfile.getId()).isPresent();
         }else{
-            var wl = server.getPlayerManager().getWhitelist();
-            _r = wl.isAllowed(offlineProfile);
+            var wl = server.getPlayerList().getWhiteList();
+            _r = wl.isWhiteListed(offlineProfile);
         }
         SFCallbacks.PRE_LOGIN.invoker().onPlayerPreLogin(currentPlayer, connection, this::disconnect, _r);
         return _r;

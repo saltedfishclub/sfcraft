@@ -2,24 +2,23 @@ package io.ib67.sfcraft.module.randomevt.longnight;
 
 import io.ib67.sfcraft.module.randomevt.RandomEvent;
 import lombok.RequiredArgsConstructor;
-import net.minecraft.text.Text;
-import net.minecraft.util.Colors;
-import net.minecraft.world.World;
-
+import net.minecraft.network.chat.Component;
+import net.minecraft.util.CommonColors;
+import net.minecraft.world.level.Level;
 import java.awt.*;
 
 @RequiredArgsConstructor
 public class DawnAfterLongNightEvent extends RandomEvent {
-    private final World world;
+    private final Level world;
 
     @Override
     public int start() {
         if (LongNightEvent.justExpirencedLongNight) {
             LongNightEvent.justExpirencedLongNight = false;
-            world.getServer().getPlayerManager().broadcast(
-                    Text.literal("\"月亮\"离开了。")
+            world.getServer().getPlayerList().broadcastSystemMessage(
+                    Component.literal("\"月亮\"离开了。")
                             .withColor(new Color(235, 91, 0).getRGB())
-                            .append(Text.literal("（永夜事件结束）").withColor(Colors.LIGHT_GRAY))
+                            .append(Component.literal("（永夜事件结束）").withColor(CommonColors.LIGHT_GRAY))
                     , false);
         }
         return -1;

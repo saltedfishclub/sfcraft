@@ -1,9 +1,8 @@
 package io.ib67.sfcraft.subserver;
 
 import lombok.Getter;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.util.math.GlobalPos;
-
+import net.minecraft.core.GlobalPos;
+import net.minecraft.server.level.ServerPlayer;
 import java.util.UUID;
 
 public abstract class RoomSession {
@@ -18,7 +17,7 @@ public abstract class RoomSession {
 
     public abstract void onPlayerLogin(UUID uuid);
 
-    public abstract void onPlayerJoin(ServerPlayerEntity player);
+    public abstract void onPlayerJoin(ServerPlayer player);
 
-    public abstract void onPlayerQuit(ServerPlayerEntity player);
+    public abstract void onPlayerQuit(ServerPlayer player);
 }

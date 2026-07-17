@@ -4,23 +4,22 @@ import io.netty.buffer.Unpooled;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import lombok.extern.log4j.Log4j2;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtElement;
-import net.minecraft.nbt.NbtSizeTracker;
-import net.minecraft.network.PacketByteBuf;
-import net.minecraft.util.math.Vec3i;
-
+import net.minecraft.core.Vec3i;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtAccounter;
+import net.minecraft.nbt.Tag;
+import net.minecraft.network.FriendlyByteBuf;
 import java.io.InputStream;
 
 @Log4j2
 public class LitematicConverterV3 extends LitematicConverter {
-    public LitematicConverterV3(InputStream input, NbtSizeTracker sizeTracker) {
+    public LitematicConverterV3(InputStream input, NbtAccounter sizeTracker) {
         super(input, sizeTracker);
     }
 
     @Override
-    protected NbtCompound convertRegionToSchematic(int dataVersion, NbtCompound region) {
-        var schematicsTag = new NbtCompound();
+    protected CompoundTag convertRegionToSchematic(int dataVersion, CompoundTag region) {
+        var schematicsTag = new CompoundTag();
 
         // prepare metadata
         var size = readSizeTuple(region);
@@ -39,30 +38,30 @@ public class LitematicConverterV3 extends LitematicConverter {
         var wePalette = convertToWEPalette(paletteNbt);
         var tileEntities = region.getListOrEmpty("TileEntities");
 
-        var blocksNbt = new NbtCompound();
+        var blocksNbt = new CompoundTag();
         blocksNbt.put("Palette", wePalette);
         var weBlockData = convertToWEBlocks(size, region);
         blocksNbt.putByteArray("Data", weBlockData);
         blocksNbt.put("BlockEntities", convertToWETileEntities(tileEntities));
         validateData(wePalette, weBlockData, Math.abs(size.x()), Math.abs(size.z()));
         schematicsTag.put("Blocks", blocksNbt);
-        var schematicsRoot = new NbtCompound();
+        var schematicsRoot = new CompoundTag();
         schematicsRoot.put("Schematic", schematicsTag);
         return schematicsRoot;
     }
 
     private void validateData(
-            NbtCompound wePalette,
+            CompoundTag wePalette,
             byte[] weBlockData,
             int width,
             int length
     ) {
         log.info("Validating schematic");
         // find invalid palette ids
-        var buf = new PacketByteBuf(Unpooled.wrappedBuffer(weBlockData));
+        var buf = new FriendlyByteBuf(Unpooled.wrappedBuffer(weBlockData));
         var paletteIds = new Int2ObjectOpenHashMap<>();
         var touchedIds = new IntOpenHashSet();
-        for (String key : wePalette.getKeys()) {
+        for (String key : wePalette.keySet()) {
             paletteIds.put(
                     wePalette.getInt(key)
                             .orElseThrow(() -> new IllegalStateException("Cannot find key " + key + " in palette from worldedit schematic"))
@@ -97,18 +96,18 @@ public class LitematicConverterV3 extends LitematicConverter {
     }
 
     @Override
-    protected NbtElement convertToWeMeta(SizeTuple size, NbtCompound region) {
-        var pos = (NbtCompound) region.get("Position");
+    protected Tag convertToWeMeta(SizeTuple size, CompoundTag region) {
+        var pos = (CompoundTag) region.get("Position");
         if (pos == null) {
             throw new IllegalStateException("Cannot find Position");
         }
-        var worldEditNbt = new NbtCompound();
+        var worldEditNbt = new CompoundTag();
         worldEditNbt.putIntArray("Origin", new int[]{
                 pos.getInt("x").orElseThrow() + (size.x() < 0 ? size.x() + 1 : 0),
                 pos.getInt("y").orElseThrow() + (size.y() < 0 ? size.y() + 1 : 0),
                 pos.getInt("z").orElseThrow() + (size.z() < 0 ? size.z() + 1 : 0)
         });
-        var Metadata = new NbtCompound();
+        var Metadata = new CompoundTag();
         Metadata.put("WorldEdit", worldEditNbt);
         Metadata.putLong("Date", System.currentTimeMillis());
 

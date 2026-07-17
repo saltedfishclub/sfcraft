@@ -1,13 +1,13 @@
 package io.ib67.sfcraft.module.chat;
 
-import net.minecraft.text.Text;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Comparator;
 import java.util.Objects;
+import net.minecraft.network.chat.Component;
 
 public record ChatPrefix(
-        Text prefix,
+        Component prefix,
         String id,
         boolean temporary,
         int priority

@@ -3,14 +3,9 @@ package io.ib67.sfcraft.room.create;
 import io.ib67.sfcraft.module.room.CreativeRoomModule;
 import io.ib67.sfcraft.subserver.Room;
 import io.ib67.sfcraft.subserver.RoomSession;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.Text;
-import net.minecraft.util.Colors;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.GlobalPos;
-import net.minecraft.world.GameMode;
-
 import java.util.UUID;
+import net.minecraft.core.GlobalPos;
+import net.minecraft.server.level.ServerPlayer;
 
 public class CreativePlayerSession extends RoomSession {
     private final GlobalPos spawn;
@@ -26,7 +21,7 @@ public class CreativePlayerSession extends RoomSession {
     }
 
     @Override
-    public void onPlayerJoin(ServerPlayerEntity player) {
+    public void onPlayerJoin(ServerPlayer player) {
         module.onPlayerJoin(player);
     }
 
@@ -41,7 +36,7 @@ public class CreativePlayerSession extends RoomSession {
     }
 
     @Override
-    public void onPlayerQuit(ServerPlayerEntity player) {
+    public void onPlayerQuit(ServerPlayer player) {
         module.onPlayerQuit(player);
     }
 }

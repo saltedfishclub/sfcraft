@@ -28,7 +28,7 @@ public class MotdModule extends ServerModule {
 
     @Override
     public void onEnable() {
-        originalMotd = minecraftServer.get().getServerMotd();
+        originalMotd = minecraftServer.get().getMotd();
         minecraftServer.get().setMotd(motd);
     }
 

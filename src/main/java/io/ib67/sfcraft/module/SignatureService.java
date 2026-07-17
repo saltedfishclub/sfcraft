@@ -5,8 +5,8 @@ import io.ib67.sfcraft.config.SFConfig;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import lombok.SneakyThrows;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.network.codec.PacketCodecs;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
 import org.apache.commons.lang3.RandomStringUtils;
 
 import javax.crypto.SecretKeyFactory;
@@ -63,12 +63,12 @@ public class SignatureService {
             long validUntil,
             byte[] data
     ) {
-        public static final PacketCodec<ByteBuf, Signature> PACKET_CODEC = PacketCodec.tuple(
-                PacketCodecs.STRING, Signature::topic,
-                PacketCodecs.STRING, Signature::issuer,
-                PacketCodecs.VAR_INT, Signature::permission,
-                PacketCodecs.VAR_LONG, Signature::validUntil,
-                PacketCodecs.BYTE_ARRAY, Signature::data,
+        public static final StreamCodec<ByteBuf, Signature> PACKET_CODEC = StreamCodec.composite(
+                ByteBufCodecs.STRING_UTF8, Signature::topic,
+                ByteBufCodecs.STRING_UTF8, Signature::issuer,
+                ByteBufCodecs.VAR_INT, Signature::permission,
+                ByteBufCodecs.VAR_LONG, Signature::validUntil,
+                ByteBufCodecs.BYTE_ARRAY, Signature::data,
                 Signature::new
         );
 

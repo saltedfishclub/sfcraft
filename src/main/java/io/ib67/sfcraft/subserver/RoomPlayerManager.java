@@ -1,12 +1,11 @@
 package io.ib67.sfcraft.subserver;
 
-import net.minecraft.server.network.ServerPlayerEntity;
-
 import java.util.List;
 import java.util.UUID;
+import net.minecraft.server.level.ServerPlayer;
 
 public interface RoomPlayerManager {
-    List<ServerPlayerEntity> getJoinedPlayers();
+    List<ServerPlayer> getJoinedPlayers();
 
     List<RoomSession> getSessions();
 
@@ -14,5 +13,5 @@ public interface RoomPlayerManager {
 
     RoomSession getSessionBy(UUID uuid);
 
-    ServerPlayerEntity getPlayer(UUID uuid);
+    ServerPlayer getPlayer(UUID uuid);
 }

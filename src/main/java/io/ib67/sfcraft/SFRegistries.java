@@ -2,14 +2,14 @@ package io.ib67.sfcraft;
 
 import net.fabricmc.fabric.api.event.registry.FabricRegistryBuilder;
 import net.fabricmc.fabric.api.event.registry.RegistryAttribute;
-import net.minecraft.item.Item;
-import net.minecraft.registry.Registry;
-import net.minecraft.registry.RegistryKey;
-import net.minecraft.util.Identifier;
+import net.minecraft.core.Registry;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.Item;
 
 public class SFRegistries {
     public static final Registry<Item> ITEMS = FabricRegistryBuilder
-            .<Item>createSimple(RegistryKey.ofRegistry(Identifier.of(SFCraft.MOD_ID, "item")))
+            .<Item>createSimple(ResourceKey.createRegistryKey(ResourceLocation.fromNamespaceAndPath(SFCraft.MOD_ID, "item")))
             .attribute(RegistryAttribute.MODDED)
             .buildAndRegister();
 }

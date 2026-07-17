@@ -1,15 +1,14 @@
 package io.ib67.sfcraft.util;
 
-import net.minecraft.nbt.NbtElement;
-import net.minecraft.nbt.NbtList;
-
 import java.io.DataOutput;
 import java.io.IOException;
 import java.util.List;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.Tag;
 
-public class TypedNbtList extends NbtList {
+public class TypedNbtList extends ListTag {
     private final byte heldType;
-    public TypedNbtList(List<NbtElement> list, byte type) {
+    public TypedNbtList(List<Tag> list, byte type) {
         super(list);
         this.heldType = type;
     }
@@ -19,7 +18,7 @@ public class TypedNbtList extends NbtList {
         output.writeByte(heldType);
         output.writeInt(this.size());
 
-        for (NbtElement nbtElement : this) {
+        for (Tag nbtElement : this) {
             nbtElement.write(output);
         }
     }

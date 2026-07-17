@@ -23,21 +23,17 @@ import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.networking.v1.PacketSender;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.fabric.api.util.TriState;
-import net.minecraft.command.CommandRegistryAccess;
-import net.minecraft.command.CommandSource;
-import net.minecraft.command.EntitySelector;
-import net.minecraft.command.argument.EntityArgumentType;
-import net.minecraft.command.argument.GameModeArgumentType;
-import net.minecraft.network.packet.s2c.play.TeamS2CPacket;
-import net.minecraft.scoreboard.Team;
+import net.minecraft.commands.CommandBuildContext;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.commands.Commands;
+import net.minecraft.commands.SharedSuggestionProvider;
+import net.minecraft.commands.arguments.EntityArgument;
+import net.minecraft.commands.arguments.GameModeArgument;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.command.CommandManager;
-import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.server.network.ServerPlayNetworkHandler;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.Text;
-import net.minecraft.util.Colors;
-import net.minecraft.world.GameMode;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.util.CommonColors;
+import net.minecraft.world.level.GameType;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
@@ -66,7 +62,7 @@ public class CreativeRoomModule extends ServerModule {
     @Override
     public void onInitialize() {
         prefix = new ChatPrefix(
-                Text.literal("[PLAYGRD] ").withColor(Colors.LIGHT_YELLOW),
+                Component.literal("[PLAYGRD] ").withColor(CommonColors.SOFT_YELLOW),
                 "playgrd",
                 true,
                 20
@@ -81,10 +77,10 @@ public class CreativeRoomModule extends ServerModule {
         roomModule.enqueuePregen(CreativeSpaceRoom.WORLD, CreativeSpaceRoom.SPAWN_POS);
     }
 
-    private @NotNull TriState onOtherCommands(@NotNull CommandSource commandSource, @NotNull String s) {
-        if (commandSource instanceof ServerCommandSource source && source.getPlayer() != null) {
+    private @NotNull TriState onOtherCommands(@NotNull SharedSuggestionProvider commandSource, @NotNull String s) {
+        if (commandSource instanceof CommandSourceStack source && source.getPlayer() != null) {
             var p = source.getPlayer();
-            if (p.getWorld().getRegistryKey().equals(CreativeSpaceRoom.WORLD)) {
+            if (p.level().dimension().equals(CreativeSpaceRoom.WORLD)) {
                 if (BYPASS_PERMISSIONS.contains(s)) {
                     return TriState.TRUE;
                 }
@@ -93,10 +89,10 @@ public class CreativeRoomModule extends ServerModule {
         return TriState.DEFAULT;
     }
 
-    private @NotNull TriState onWorldEdit(@NotNull CommandSource commandSource, @NotNull String s) {
-        if (commandSource instanceof ServerCommandSource source && source.getPlayer() != null) {
+    private @NotNull TriState onWorldEdit(@NotNull SharedSuggestionProvider commandSource, @NotNull String s) {
+        if (commandSource instanceof CommandSourceStack source && source.getPlayer() != null) {
             var p = source.getPlayer();
-            if (p.getWorld().getRegistryKey().equals(CreativeSpaceRoom.WORLD)) {
+            if (p.level().dimension().equals(CreativeSpaceRoom.WORLD)) {
                 if (s.startsWith("worldedit") && SFConsts.WORLDEDIT_AT_PLAYGROUND.hasPermission(p)) {
                     return TriState.TRUE;
                 }
@@ -105,89 +101,89 @@ public class CreativeRoomModule extends ServerModule {
         return TriState.DEFAULT;
     }
 
-    private void registerCommand(CommandDispatcher<ServerCommandSource> dispatcher,
-                                 CommandRegistryAccess registry, CommandManager.RegistrationEnvironment env) {
+    private void registerCommand(CommandDispatcher<CommandSourceStack> dispatcher,
+                                 CommandBuildContext registry, Commands.CommandSelection env) {
         dispatcher.register(
-                LiteralArgumentBuilder.<ServerCommandSource>literal("playgrd")
-                        .requires(it -> it.isExecutedByPlayer() && SFConsts.COMMAND_PLAYGROUND.hasPermission(it.getPlayer()))
+                LiteralArgumentBuilder.<CommandSourceStack>literal("playgrd")
+                        .requires(it -> it.isPlayer() && SFConsts.COMMAND_PLAYGROUND.hasPermission(it.getPlayer()))
                         .executes(this::gotoPlayground)
         );
         dispatcher.register(
-                CommandManager.literal("gm")
-                        .then(CommandManager.argument("mode", GameModeArgumentType.gameMode())
-                                .requires(it -> it.isExecutedByPlayer() && SFConsts.COMMAND_PLAYGROUND_GAMEMODE.hasPermission(it.getPlayer()))
+                Commands.literal("gm")
+                        .then(Commands.argument("mode", GameModeArgument.gameMode())
+                                .requires(it -> it.isPlayer() && SFConsts.COMMAND_PLAYGROUND_GAMEMODE.hasPermission(it.getPlayer()))
                                 .executes(this::onGameMode)
                         )
         );
         dispatcher.register(
-                CommandManager.literal("pt")
-                        .then(CommandManager.argument("dest", EntityArgumentType.entity())
-                                .requires(it -> it.isExecutedByPlayer() && SFConsts.COMMAND_PLAYGROUND_TELEPORT.hasPermission(it.getPlayer()))
+                Commands.literal("pt")
+                        .then(Commands.argument("dest", EntityArgument.entity())
+                                .requires(it -> it.isPlayer() && SFConsts.COMMAND_PLAYGROUND_TELEPORT.hasPermission(it.getPlayer()))
                                 .executes(this::onTeleport))
         );
     }
 
-    private int onTeleport(CommandContext<ServerCommandSource> ctx) throws CommandSyntaxException {
+    private int onTeleport(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
         var src = ctx.getSource();
-        if (src instanceof ServerCommandSource source && source.getPlayer() != null) {
+        if (src instanceof CommandSourceStack source && source.getPlayer() != null) {
             var p = source.getPlayer();
-            var dest = EntityArgumentType.getEntity(ctx, "dest");
-            if (p.getWorld().getRegistryKey().equals(CreativeSpaceRoom.WORLD)) {
-                if (dest.getWorld() == p.getWorld()) {
+            var dest = EntityArgument.getEntity(ctx, "dest");
+            if (p.level().dimension().equals(CreativeSpaceRoom.WORLD)) {
+                if (dest.level() == p.level()) {
                     Helper.teleportSafely(
-                            p, p.getWorld(),
+                            p, p.level(),
                             dest.getBlockX(), dest.getBlockY(), dest.getBlockZ(),
-                            dest.getYaw(), dest.getPitch()
+                            dest.getYRot(), dest.getXRot()
                     );
                     return Command.SINGLE_SUCCESS;
                 }
             }
-            p.sendMessage(Text.of("You and target must be in playground!"));
+            p.sendSystemMessage(Component.nullToEmpty("You and target must be in playground!"));
         }
         return Command.SINGLE_SUCCESS;
     }
 
-    private int onGameMode(CommandContext<ServerCommandSource> ctx) {
+    private int onGameMode(CommandContext<CommandSourceStack> ctx) {
         var src = ctx.getSource();
-        if (src instanceof ServerCommandSource source && source.getPlayer() != null) {
+        if (src instanceof CommandSourceStack source && source.getPlayer() != null) {
             var p = source.getPlayer();
-            var mode = ctx.getArgument("mode", GameMode.class);
-            if (p.getWorld().getRegistryKey().equals(CreativeSpaceRoom.WORLD)) {
-                p.changeGameMode(mode);
-                p.sendMessage(Text.of("Your gamemode has been changed to " + mode.asString()));
+            var mode = ctx.getArgument("mode", GameType.class);
+            if (p.level().dimension().equals(CreativeSpaceRoom.WORLD)) {
+                p.setGameMode(mode);
+                p.sendSystemMessage(Component.nullToEmpty("Your gamemode has been changed to " + mode.getSerializedName()));
             } else {
-                p.sendMessage(Text.of("You can only use this in playground!"));
+                p.sendSystemMessage(Component.nullToEmpty("You can only use this in playground!"));
             }
         }
         return Command.SINGLE_SUCCESS;
     }
 
-    private int gotoPlayground(CommandContext<ServerCommandSource> serverCommandSourceCommandContext) {
+    private int gotoPlayground(CommandContext<CommandSourceStack> serverCommandSourceCommandContext) {
         var player = serverCommandSourceCommandContext.getSource().getPlayer();
         try {
             teleporter.teleportTo(room, player);
         } catch (Exception e) {
-            player.networkHandler.disconnect(Text.of(e.getMessage()));
+            player.connection.disconnect(Component.nullToEmpty(e.getMessage()));
             e.printStackTrace();
         }
         return 0;
     }
 
-    public void onPlayerJoin(ServerPlayerEntity player) {
-        player.sendMessage(Text.of("你现在正在创造游乐园中，使用 //schem list 查看可用投影。"));
-        player.sendMessage(Text.literal("以下功能现在可用：").withColor(Colors.WHITE)
-                .append(Text.literal("/player /track /summon /setblock /gamerule 及 WorldEdit 的所有命令").withColor(Color.MAGENTA.getRGB()).append("。")));
-        player.sendMessage(Text.of("    "));
-        player.sendMessage(Text.literal("如何上传投影到游乐场: ").withColor(Colors.GRAY)
-                .append(Text.literal("https://github.com/saltedfishclub/sfcraft-schematics").withColor(Colors.GRAY).styled(it -> it.withUnderline(true))));
-        player.sendMessage(Text.literal("游乐园中的生物不能逃逸到其他维度。").withColor(Colors.GRAY));
-        player.sendMessage(Text.literal("使用 /reco 或重新加入游戏即可离开。").withColor(Colors.GRAY));
-        player.changeGameMode(GameMode.CREATIVE);
+    public void onPlayerJoin(ServerPlayer player) {
+        player.sendSystemMessage(Component.nullToEmpty("你现在正在创造游乐园中，使用 //schem list 查看可用投影。"));
+        player.sendSystemMessage(Component.literal("以下功能现在可用：").withColor(CommonColors.WHITE)
+                .append(Component.literal("/player /track /summon /setblock /gamerule 及 WorldEdit 的所有命令").withColor(Color.MAGENTA.getRGB()).append("。")));
+        player.sendSystemMessage(Component.nullToEmpty("    "));
+        player.sendSystemMessage(Component.literal("如何上传投影到游乐场: ").withColor(CommonColors.GRAY)
+                .append(Component.literal("https://github.com/saltedfishclub/sfcraft-schematics").withColor(CommonColors.GRAY).withStyle(it -> it.withUnderlined(true))));
+        player.sendSystemMessage(Component.literal("游乐园中的生物不能逃逸到其他维度。").withColor(CommonColors.GRAY));
+        player.sendSystemMessage(Component.literal("使用 /reco 或重新加入游戏即可离开。").withColor(CommonColors.GRAY));
+        player.setGameMode(GameType.CREATIVE);
 
         chatPrefixModule.applyPrefix(player, prefix);
     }
 
-    public void onPlayerQuit(ServerPlayerEntity player) {
+    public void onPlayerQuit(ServerPlayer player) {
         chatPrefixModule.removePrefix(player, prefix);
     }
 }

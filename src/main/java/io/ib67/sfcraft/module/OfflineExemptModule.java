@@ -12,15 +12,14 @@ import io.ib67.sfcraft.callback.SFCallbacks;
 import io.ib67.sfcraft.config.SFConfig;
 import lombok.Setter;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
-import net.minecraft.command.CommandRegistryAccess;
-import net.minecraft.network.ClientConnection;
-import net.minecraft.server.WhitelistEntry;
-import net.minecraft.server.command.CommandManager;
-import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.text.Text;
-import net.minecraft.util.Colors;
-import net.minecraft.util.Uuids;
-
+import net.minecraft.commands.CommandBuildContext;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.commands.Commands;
+import net.minecraft.core.UUIDUtil;
+import net.minecraft.network.Connection;
+import net.minecraft.network.chat.Component;
+import net.minecraft.server.players.UserWhiteListEntry;
+import net.minecraft.util.CommonColors;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -40,46 +39,46 @@ public class OfflineExemptModule extends ServerModule {
         CommandRegistrationCallback.EVENT.register(this::registerCommand);
     }
 
-    private void registerCommand(CommandDispatcher<ServerCommandSource> dispatcher, CommandRegistryAccess registryAccess, CommandManager.RegistrationEnvironment registrationEnvironment) {
+    private void registerCommand(CommandDispatcher<CommandSourceStack> dispatcher, CommandBuildContext registryAccess, Commands.CommandSelection registrationEnvironment) {
         dispatcher.register(
-                LiteralArgumentBuilder.<ServerCommandSource>literal("addwl")
+                LiteralArgumentBuilder.<CommandSourceStack>literal("addwl")
                         .requires(i -> isEnabled())
-                        .requires(it -> it.hasPermissionLevel(2) || SFConsts.COMMAND_ADDWL.hasPermission(it.getPlayer()))
-                        .then(RequiredArgumentBuilder.<ServerCommandSource, String>argument("player", StringArgumentType.string())
+                        .requires(it -> it.hasPermission(2) || SFConsts.COMMAND_ADDWL.hasPermission(it.getPlayer()))
+                        .then(RequiredArgumentBuilder.<CommandSourceStack, String>argument("player", StringArgumentType.string())
                                 .executes(it -> this.addPlayerOffline(it.getSource(), it.getArgument("player", String.class))))
 
         );
-        dispatcher.register(LiteralArgumentBuilder.<ServerCommandSource>literal("listoffline")
+        dispatcher.register(LiteralArgumentBuilder.<CommandSourceStack>literal("listoffline")
                 .requires(i -> isEnabled())
-                .requires(it -> it.hasPermissionLevel(2) || SFConsts.COMMAND_LISTOFFLINE.hasPermission(it.getPlayer()))
+                .requires(it -> it.hasPermission(2) || SFConsts.COMMAND_LISTOFFLINE.hasPermission(it.getPlayer()))
                 .executes(this::listOffline)
         );
     }
 
-    public int addPlayerOffline(ServerCommandSource source, String player) {
+    public int addPlayerOffline(CommandSourceStack source, String player) {
         player = player.trim();
-        var pm = source.getServer().getPlayerManager();
-        var wl = pm.getWhitelist();
-        if (List.of(wl.getNames()).contains(player)) {
-            source.sendError(Text.of(player + " is already whitelisted or this id is conflict with a online user."));
+        var pm = source.getServer().getPlayerList();
+        var wl = pm.getWhiteList();
+        if (List.of(wl.getUserList()).contains(player)) {
+            source.sendFailure(Component.nullToEmpty(player + " is already whitelisted or this id is conflict with a online user."));
             return 0;
         }
-        var profile = Uuids.getOfflinePlayerProfile(player);
-        wl.add(new WhitelistEntry(profile));
-        var uc = source.getServer().getUserCache();
+        var profile = UUIDUtil.createOfflineProfile(player);
+        wl.add(new UserWhiteListEntry(profile));
+        var uc = source.getServer().getProfileCache();
         if (uc != null) uc.add(profile);
-        source.sendMessage(Text.of("[" + profile.getName() + "/" + profile.getId() + "]" + " is added!"));
+        source.sendSystemMessage(Component.nullToEmpty("[" + profile.getName() + "/" + profile.getId() + "]" + " is added!"));
         return 0;
     }
 
-    public int listOffline(CommandContext<ServerCommandSource> ctx) {
+    public int listOffline(CommandContext<CommandSourceStack> ctx) {
         var source = ctx.getSource();
         var server = source.getServer();
-        var wl = server.getPlayerManager().getWhitelist();
-        var names = wl.getNames();
-        source.sendMessage(Text.of("Offline Users:").copy().withColor(Colors.GREEN));
-        var r = Stream.of(names).filter(name -> wl.isAllowed(Uuids.getOfflinePlayerProfile(name))).collect(Collectors.joining(", "));
-        source.sendMessage(Text.of(r.isEmpty() ? "No offline users found in whitelist." : r));
+        var wl = server.getPlayerList().getWhiteList();
+        var names = wl.getUserList();
+        source.sendSystemMessage(Component.nullToEmpty("Offline Users:").copy().withColor(CommonColors.GREEN));
+        var r = Stream.of(names).filter(name -> wl.isWhiteListed(UUIDUtil.createOfflineProfile(name))).collect(Collectors.joining(", "));
+        source.sendSystemMessage(Component.nullToEmpty(r.isEmpty() ? "No offline users found in whitelist." : r));
         return 0;
     }
 
@@ -93,9 +92,9 @@ public class OfflineExemptModule extends ServerModule {
         state = temporallyState || config.enableOfflineExempt;
     }
 
-    private void onPreLogin(String s, ClientConnection connection, Consumer<Text> textConsumer, boolean offline) {
+    private void onPreLogin(String s, Connection connection, Consumer<Component> textConsumer, boolean offline) {
         if (!state && offline) {
-            textConsumer.accept(Text.of("§c盗版赦免现已关闭"));
+            textConsumer.accept(Component.nullToEmpty("§c盗版赦免现已关闭"));
         }
     }
 }

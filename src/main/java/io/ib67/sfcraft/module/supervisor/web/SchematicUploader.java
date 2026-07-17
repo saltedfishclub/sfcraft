@@ -19,14 +19,14 @@ import io.netty.buffer.Unpooled;
 import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
-import net.minecraft.command.CommandRegistryAccess;
+import net.minecraft.commands.CommandBuildContext;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.commands.Commands;
+import net.minecraft.nbt.NbtAccounter;
 import net.minecraft.nbt.NbtIo;
-import net.minecraft.nbt.NbtSizeTracker;
-import net.minecraft.server.command.CommandManager;
-import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.ClickEvent;
-import net.minecraft.text.Text;
+import net.minecraft.network.chat.ClickEvent;
+import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerPlayer;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
@@ -55,22 +55,22 @@ public class SchematicUploader extends WebHandler {
         CommandRegistrationCallback.EVENT.register(this::registerCommand);
     }
 
-    private void registerCommand(CommandDispatcher<ServerCommandSource> dispatcher, CommandRegistryAccess registry, CommandManager.RegistrationEnvironment env) {
-        dispatcher.register(CommandManager.literal("upload").then(
-                CommandManager.literal("schematic")
+    private void registerCommand(CommandDispatcher<CommandSourceStack> dispatcher, CommandBuildContext registry, Commands.CommandSelection env) {
+        dispatcher.register(Commands.literal("upload").then(
+                Commands.literal("schematic")
                         .executes(this::onRequestSchematic)
         ));
     }
 
-    private int onRequestSchematic(CommandContext<ServerCommandSource> context) {
+    private int onRequestSchematic(CommandContext<CommandSourceStack> context) {
         var source = context.getSource();
-        if (source.isExecutedByPlayer() && !SFConsts.COMMAND_UPLOAD_SCHEMATIC.hasPermission(source.getPlayer())) {
-            source.sendMessage(Text.literal("你没有使用上传功能的权限！请联系管理员申请"));
+        if (source.isPlayer() && !SFConsts.COMMAND_UPLOAD_SCHEMATIC.hasPermission(source.getPlayer())) {
+            source.sendSystemMessage(Component.literal("你没有使用上传功能的权限！请联系管理员申请"));
             return Command.SINGLE_SUCCESS;
         }
-        var url = generateSchematicUrl(source.isExecutedByPlayer() ? source.getPlayer().getName().getLiteralString() : "CONSOLE");
-        source.sendMessage(Text.literal("Click this URL to upload schematic files.").withColor(Color.GREEN.getRGB()));
-        source.sendMessage(Text.literal(url).styled(it -> it.withClickEvent(new ClickEvent.OpenUrl(URI.create(url)))));
+        var url = generateSchematicUrl(source.isPlayer() ? source.getPlayer().getName().tryCollapseToString() : "CONSOLE");
+        source.sendSystemMessage(Component.literal("Click this URL to upload schematic files.").withColor(Color.GREEN.getRGB()));
+        source.sendSystemMessage(Component.literal(url).withStyle(it -> it.withClickEvent(new ClickEvent.OpenUrl(URI.create(url)))));
         return Command.SINGLE_SUCCESS;
     }
 
@@ -139,14 +139,14 @@ public class SchematicUploader extends WebHandler {
         if (fileName.length() <= 10) return;
         var baseFileName = Helper.cleanFileName(fileName.substring(0, fileName.length() - 10));
         var sign = context.<SignatureService.Signature>attribute("sign");
-        var player = serverSupplier.get().getPlayerManager().getPlayer(sign.issuer());
+        var player = serverSupplier.get().getPlayerList().getPlayerByName(sign.issuer());
         log.info("Handling file {} from player {}", fileName, sign.issuer());
         if (fileName.endsWith(".schematic") || fileName.endsWith(".schem")) {
             Files.write(SCHEMATIC_DIR.resolve(baseFileName + ".schematic"), file.content().readAllBytes());
             log.info("Saved " + fileName + " as a schematic.");
             sendSuccess(player, baseFileName);
         } else if (fileName.endsWith(".litematic")) {
-            try (var converter = new LitematicConverterV3(file.content(), new NbtSizeTracker(config.maxSchematicSize, 64))) {
+            try (var converter = new LitematicConverterV3(file.content(), new NbtAccounter(config.maxSchematicSize, 64))) {
                 converter.read((name, nbt) -> {
                     name = baseFileName + "-" + Helper.cleanFileName(name) + ".schematic";
                     try {
@@ -169,12 +169,12 @@ public class SchematicUploader extends WebHandler {
         context.result("Uploaded!");
     }
 
-    private static void sendSuccess(ServerPlayerEntity player, String fileName) {
+    private static void sendSuccess(ServerPlayer player, String fileName) {
         if (player == null) {
             return;
         }
-        player.sendMessage(Text.literal("Schematic " + fileName + " has been saved! Use //schem list to find it").withColor(Color.GREEN.getRGB()));
-        player.sendMessage(Text.literal("Or you can click this").styled(it -> it.withUnderline(true).withClickEvent(
+        player.sendSystemMessage(Component.literal("Schematic " + fileName + " has been saved! Use //schem list to find it").withColor(Color.GREEN.getRGB()));
+        player.sendSystemMessage(Component.literal("Or you can click this").withStyle(it -> it.withUnderlined(true).withClickEvent(
                 new ClickEvent.SuggestCommand("//schem load " + fileName)
         )));
     }

@@ -13,15 +13,14 @@ import io.ib67.sfcraft.ServerModule;
 import lombok.SneakyThrows;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
-import net.minecraft.command.CommandRegistryAccess;
+import net.minecraft.commands.CommandBuildContext;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.commands.Commands;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.command.CommandManager;
-import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.server.network.ServerPlayNetworkHandler;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.Text;
-import net.minecraft.util.Colors;
-
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.network.ServerGamePacketListenerImpl;
+import net.minecraft.util.CommonColors;
 import java.lang.reflect.Field;
 import java.net.Inet4Address;
 import java.net.InetAddress;
@@ -38,72 +37,72 @@ public class ManagementModule extends ServerModule {
         ServerPlayConnectionEvents.DISCONNECT.register(this::onDisconnect);
     }
 
-    private void onDisconnect(ServerPlayNetworkHandler serverPlayNetworkHandler, MinecraftServer minecraftServer) {
-        serverPlayNetworkHandler.getPlayer().removeCommandTag(SFConsts.SPECIAL_SUDO);
+    private void onDisconnect(ServerGamePacketListenerImpl serverPlayNetworkHandler, MinecraftServer minecraftServer) {
+        serverPlayNetworkHandler.getPlayer().removeTag(SFConsts.SPECIAL_SUDO);
     }
 
     private void registerCommands(
-            CommandDispatcher<ServerCommandSource> dispatcher,
-            CommandRegistryAccess registryAccess,
-            CommandManager.RegistrationEnvironment env) {
-        dispatcher.register(LiteralArgumentBuilder.<ServerCommandSource>literal("sudo")
+            CommandDispatcher<CommandSourceStack> dispatcher,
+            CommandBuildContext registryAccess,
+            Commands.CommandSelection env) {
+        dispatcher.register(LiteralArgumentBuilder.<CommandSourceStack>literal("sudo")
                 .requires(it -> this.isEnabled())
-                .requires(it -> it.hasPermissionLevel(2) && it.getPlayer() != null)
+                .requires(it -> it.hasPermission(2) && it.getPlayer() != null)
                 .executes(this::enterSudoMode)
         );
-        dispatcher.register(LiteralArgumentBuilder.<ServerCommandSource>literal("listperm")
+        dispatcher.register(LiteralArgumentBuilder.<CommandSourceStack>literal("listperm")
                 .requires(it -> this.isEnabled())
-                .requires(it -> it.hasPermissionLevel(2) || SFConsts.COMMAND_LISTPERM.hasPermission(it.getPlayer()))
+                .requires(it -> it.hasPermission(2) || SFConsts.COMMAND_LISTPERM.hasPermission(it.getPlayer()))
                 .executes(this::listPerms)
         );
-        dispatcher.register(LiteralArgumentBuilder.<ServerCommandSource>literal("listgeo")
+        dispatcher.register(LiteralArgumentBuilder.<CommandSourceStack>literal("listgeo")
                 .requires(it -> this.isEnabled())
-                .requires(it -> it.hasPermissionLevel(2) || SFConsts.COMMAND_LISTGEO.hasPermission(it.getPlayer()))
+                .requires(it -> it.hasPermission(2) || SFConsts.COMMAND_LISTGEO.hasPermission(it.getPlayer()))
                 .executes(this::listGeo)
         );
     }
 
-    private int listGeo(CommandContext<ServerCommandSource> ctx) {
+    private int listGeo(CommandContext<CommandSourceStack> ctx) {
         var src = ctx.getSource();
         var server = src.getServer();
-        src.sendMessage(Text.of("List of player with cities:"));
-        for (ServerPlayerEntity serverPlayerEntity : server.getPlayerManager().getPlayerList()) {
+        src.sendSystemMessage(Component.nullToEmpty("List of player with cities:"));
+        for (ServerPlayer serverPlayerEntity : server.getPlayerList().getPlayers()) {
             try {
-                var addr = InetAddress.getByName(serverPlayerEntity.getIp());
+                var addr = InetAddress.getByName(serverPlayerEntity.getIpAddress());
                 var city = geoIPService.cityOf(addr);
-                src.sendMessage(
-                        Text.literal(" - ")
-                                .append(Text.literal("[" + city.getName() + "] ").withColor(Colors.BLUE))
-                                .append(Text.literal(serverPlayerEntity.getName().getLiteralString()))
-                                .append(Text.literal(" (" + Helper.hideIp(addr) + ")").withColor(Colors.LIGHT_GRAY))
+                src.sendSystemMessage(
+                        Component.literal(" - ")
+                                .append(Component.literal("[" + city.getName() + "] ").withColor(CommonColors.BLUE))
+                                .append(Component.literal(serverPlayerEntity.getName().tryCollapseToString()))
+                                .append(Component.literal(" (" + Helper.hideIp(addr) + ")").withColor(CommonColors.LIGHT_GRAY))
                 );
             } catch (GeoIp2Exception | UnknownHostException e) {
-                src.sendMessage(Text.literal(" - [FAILED TO FETCH] " + serverPlayerEntity.getName().getLiteralString()).withColor(Colors.LIGHT_RED));
+                src.sendSystemMessage(Component.literal(" - [FAILED TO FETCH] " + serverPlayerEntity.getName().tryCollapseToString()).withColor(CommonColors.SOFT_RED));
             }
         }
         return 0;
     }
 
-    public int enterSudoMode(CommandContext<ServerCommandSource> ctx) {
+    public int enterSudoMode(CommandContext<CommandSourceStack> ctx) {
         var player = ctx.getSource().getPlayer();
-        if (player.getCommandTags().contains(SFConsts.SPECIAL_SUDO)) {
-            player.removeCommandTag(SFConsts.SPECIAL_SUDO);
-            player.sendMessage(Text.of("Sudo is off.").copy().withColor(Colors.GREEN));
+        if (player.getTags().contains(SFConsts.SPECIAL_SUDO)) {
+            player.removeTag(SFConsts.SPECIAL_SUDO);
+            player.sendSystemMessage(Component.nullToEmpty("Sudo is off.").copy().withColor(CommonColors.GREEN));
         } else {
-            player.addCommandTag(SFConsts.SPECIAL_SUDO);
-            player.sendMessage(Text.of("Sudo is on.").copy().withColor(Colors.GREEN));
+            player.addTag(SFConsts.SPECIAL_SUDO);
+            player.sendSystemMessage(Component.nullToEmpty("Sudo is on.").copy().withColor(CommonColors.GREEN));
         }
         return 0;
     }
 
     @SneakyThrows
-    public int listPerms(CommandContext<ServerCommandSource> ctx) {
+    public int listPerms(CommandContext<CommandSourceStack> ctx) {
         var src = ctx.getSource();
-        src.sendMessage(Text.of("Permissions: ").copy().withColor(Colors.GREEN));
+        src.sendSystemMessage(Component.nullToEmpty("Permissions: ").copy().withColor(CommonColors.GREEN));
         for (Field declaredField : SFConsts.class.getDeclaredFields()) {
             if (Permission.class.isAssignableFrom(declaredField.getType())) {
                 var permission = (Permission<?>) declaredField.get(null);
-                src.sendMessage(Text.of(" - " + permission.key() + " " + (permission.byDefault() ? "(default)" : "")));
+                src.sendSystemMessage(Component.nullToEmpty(" - " + permission.key() + " " + (permission.byDefault() ? "(default)" : "")));
             }
         }
         return 0;

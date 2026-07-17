@@ -1,8 +1,8 @@
 package io.ib67.sfcraft.subserver;
 
-import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.level.ServerPlayer;
 
 @FunctionalInterface
 public interface RoomFactory<T extends Room> {
-    T create(ServerPlayerEntity issuer, String[] arguments);
+    T create(ServerPlayer issuer, String[] arguments);
 }

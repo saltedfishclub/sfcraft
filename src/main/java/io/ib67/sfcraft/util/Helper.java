@@ -8,24 +8,17 @@ import io.ib67.sfcraft.SFCraft;
 import io.ib67.sfcraft.config.SFConfig;
 import io.ib67.sfcraft.geoip.GeoIPService;
 import lombok.SneakyThrows;
-import net.minecraft.block.Block;
-import net.minecraft.block.CropBlock;
-import net.minecraft.block.Fertilizable;
-import net.minecraft.block.SaplingBlock;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.fluid.EmptyFluid;
-import net.minecraft.fluid.LavaFluid;
-import net.minecraft.fluid.WaterFluid;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.text.Text;
-import net.minecraft.util.Colors;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
-import net.minecraft.world.GameMode;
-import net.minecraft.world.World;
-
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.level.GameType;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.CropBlock;
+import net.minecraft.world.level.block.SaplingBlock;
+import net.minecraft.world.level.material.EmptyFluid;
+import net.minecraft.world.level.material.WaterFluid;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
@@ -41,13 +34,13 @@ public class Helper {
     private static final Pattern NON_ASCII = Pattern.compile("[^a-zA-Z0-9_+()]");
     public static final char COLOR = '§';
 
-    public static boolean canBack(ServerPlayerEntity player) {
+    public static boolean canBack(ServerPlayer player) {
         if (!SFConsts.COMMAND_BACK.hasPermission(player)) return false;
-        var pos = player.getLastDeathPos().get();
-        var wld = player.getServer().getWorld(pos.dimension());
+        var pos = player.getLastDeathLocation().get();
+        var wld = player.getServer().getLevel(pos.dimension());
         var _pos = pos.pos();
         if (wld == null) return false;
-        var nearby = wld.getClosestPlayer(_pos.getX(), _pos.getY(), _pos.getZ(), 100, true);
+        var nearby = wld.getNearestPlayer(_pos.getX(), _pos.getY(), _pos.getZ(), 100, true);
         return nearby != null;
     }
 
@@ -60,37 +53,37 @@ public class Helper {
         return NON_ASCII.matcher(name).replaceAll("");
     }
 
-    public static boolean teleportSafely(ServerPlayerEntity player, ServerWorld world, int x, int y, int z, float yaw, float pitch) {
-        if (player.getGameMode() == GameMode.CREATIVE) return true;
+    public static boolean teleportSafely(ServerPlayer player, ServerLevel world, int x, int y, int z, float yaw, float pitch) {
+        if (player.gameMode() == GameType.CREATIVE) return true;
         var pos = new BlockPos(x, y, z);
         var stand = world.getBlockState(pos);
-        if (!stand.isAir() && !stand.isSolidBlock(world, pos)) {
+        if (!stand.isAir() && !stand.isRedstoneConductor(world, pos)) {
             // check block type
-            var fluid = stand.getFluidState().getFluid();
+            var fluid = stand.getFluidState().getType();
             if (!(fluid instanceof EmptyFluid) && !(fluid instanceof WaterFluid)) {
-                player.sendMessage(Text.literal("§c传送目的地具有非水流体, 因此拒绝传送。"));
+                player.sendSystemMessage(Component.literal("§c传送目的地具有非水流体, 因此拒绝传送。"));
                 return false;
             }
         }
         var groundPos = new BlockPos(x, y - 1, z);
         var ground = world.getBlockState(groundPos);
-        if (!ground.hasSolidTopSurface(world, groundPos, player)
-                && !stand.isSolidSurface(world, pos, player, Direction.DOWN)) {
-            player.sendMessage(Text.literal("§c传送目的地没有可靠落地点，且为非空气方块, 因此拒绝传送。"));
+        if (!ground.entityCanStandOn(world, groundPos, player)
+                && !stand.entityCanStandOnFace(world, pos, player, Direction.DOWN)) {
+            player.sendSystemMessage(Component.literal("§c传送目的地没有可靠落地点，且为非空气方块, 因此拒绝传送。"));
             return false;
         } else {
             var deltaY = 0.0;
             var deltaX = 0.5;
             var deltaZ = 0.5;
             if (!stand.isAir()) {
-                deltaY = stand.getCollisionShape(world, pos).getMax(Direction.Axis.Y);
+                deltaY = stand.getCollisionShape(world, pos).max(Direction.Axis.Y);
                 deltaY = Double.isFinite(deltaY) ? deltaY + 0.1 : 0;
-                deltaX = stand.getCollisionShape(world, pos).getMax(Direction.Axis.X);
+                deltaX = stand.getCollisionShape(world, pos).max(Direction.Axis.X);
                 deltaX = Double.isFinite(deltaX) ? deltaX / 2 : 0.5;
-                deltaZ = stand.getCollisionShape(world, pos).getMax(Direction.Axis.X);
+                deltaZ = stand.getCollisionShape(world, pos).max(Direction.Axis.X);
                 deltaZ = Double.isFinite(deltaZ) ? deltaZ / 2 : 0.5;
             }
-            player.teleport(world, x + deltaX, y + deltaY, z + deltaZ, Set.of(), yaw, pitch, true);
+            player.teleportTo(world, x + deltaX, y + deltaY, z + deltaZ, Set.of(), yaw, pitch, true);
         }
         return true;
     }

@@ -3,16 +3,15 @@ package io.ib67.sfcraft.callback;
 import com.mojang.datafixers.util.Either;
 import net.fabricmc.fabric.api.event.Event;
 import net.fabricmc.fabric.api.event.EventFactory;
-import net.minecraft.entity.damage.DamageSource;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.network.ClientConnection;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.Connection;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.protocol.status.ServerStatus;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.ServerMetadata;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.Text;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Unit;
-import net.minecraft.util.math.BlockPos;
-
+import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.entity.player.Player;
 import java.util.function.Consumer;
 
 import static io.ib67.sfcraft.callback.Utility.*;
@@ -39,35 +38,35 @@ public interface SFCallbacks {
             l -> (p, s) -> forEach(l, i -> i.onAFKStatus(p, s)));
 
     interface PlayerAFKCallback {
-        void onAFKStatus(ServerPlayerEntity player, boolean inAFK);
+        void onAFKStatus(ServerPlayer player, boolean inAFK);
     }
 
     interface PlayerFlyingCallback {
-        void onFlyingTick(PlayerEntity player, long flyingTick, boolean flying);
+        void onFlyingTick(Player player, long flyingTick, boolean flying);
     }
 
     interface PlayerSneakingCallback {
-        void onSneaking(PlayerEntity player, boolean sneak);
+        void onSneaking(Player player, boolean sneak);
     }
 
     interface PlayerIdlingCallback {
-        void onSwitchIdle(ServerPlayerEntity player, boolean afk);
+        void onSwitchIdle(ServerPlayer player, boolean afk);
     }
 
     interface ServerMotdCallback {
-        ServerMetadata onMotd(MinecraftServer server, ClientConnection connection);
+        ServerStatus onMotd(MinecraftServer server, Connection connection);
     }
 
     interface PlayerDeathCallback {
-        void onPlayerDeath(PlayerEntity player, DamageSource damageSource);
+        void onPlayerDeath(Player player, DamageSource damageSource);
     }
 
     interface PlayerPreLoginCallback {
-        void onPlayerPreLogin(String currentPlayer, ClientConnection connection, Consumer<Text> disconnect, boolean offline);
+        void onPlayerPreLogin(String currentPlayer, Connection connection, Consumer<Component> disconnect, boolean offline);
     }
 
     interface PlayerSleepCallback {
 
-        Either<PlayerEntity.SleepFailureReason, Unit> onPlayerSleep(PlayerEntity player, BlockPos pos);
+        Either<Player.BedSleepingProblem, Unit> onPlayerSleep(Player player, BlockPos pos);
     }
 }

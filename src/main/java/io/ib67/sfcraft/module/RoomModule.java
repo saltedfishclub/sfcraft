@@ -12,21 +12,20 @@ import io.ib67.sfcraft.inject.MinecraftServerSupplier;
 import io.ib67.sfcraft.registry.RoomRegistry;
 import lombok.extern.log4j.Log4j2;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
-import net.minecraft.command.CommandRegistryAccess;
-import net.minecraft.network.PacketCallbacks;
-import net.minecraft.network.packet.s2c.common.ServerTransferS2CPacket;
-import net.minecraft.network.packet.s2c.common.StoreCookieS2CPacket;
-import net.minecraft.registry.RegistryKey;
-import net.minecraft.server.command.CommandManager;
-import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.server.world.ChunkTicketType;
-import net.minecraft.text.Text;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.Pair;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.ChunkPos;
-import net.minecraft.world.World;
-
+import net.minecraft.commands.CommandBuildContext;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.commands.Commands;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.PacketSendListener;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.protocol.common.ClientboundStoreCookiePacket;
+import net.minecraft.network.protocol.common.ClientboundTransferPacket;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.TicketType;
+import net.minecraft.util.Tuple;
+import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.Level;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -44,7 +43,7 @@ public class RoomModule extends ServerModule {
     private MinecraftServerSupplier serverSupplier;
     @Inject
     private SFConfig config;
-    private final List<Pair<RegistryKey<World>, BlockPos>> pregenQueue = new ArrayList<>();
+    private final List<Tuple<ResourceKey<Level>, BlockPos>> pregenQueue = new ArrayList<>();
     private final Map<UUID, GameProfile> uuidMapper = new ConcurrentHashMap<>();
 
     @Override
@@ -54,45 +53,45 @@ public class RoomModule extends ServerModule {
 
     @Override
     public void onEnable() {
-        for (Pair<RegistryKey<World>, BlockPos> registryKeyBlockPosPair : pregenQueue) {
-            var world = serverSupplier.get().getWorld(registryKeyBlockPosPair.getLeft());
+        for (Tuple<ResourceKey<Level>, BlockPos> registryKeyBlockPosPair : pregenQueue) {
+            var world = serverSupplier.get().getLevel(registryKeyBlockPosPair.getA());
             if (world == null) {
-                log.warn("Cannot find world {}", registryKeyBlockPosPair.getLeft());
+                log.warn("Cannot find world {}", registryKeyBlockPosPair.getA());
                 continue;
             }
-            world.getChunkManager().addTicket(ChunkTicketType.START, new ChunkPos(registryKeyBlockPosPair.getRight()), 64);
+            world.getChunkSource().addTicketWithRadius(TicketType.START, new ChunkPos(registryKeyBlockPosPair.getB()), 64);
         }
     }
 
-    private void registerCommand(CommandDispatcher<ServerCommandSource> serverCommandSourceCommandDispatcher, CommandRegistryAccess commandRegistryAccess, CommandManager.RegistrationEnvironment registrationEnvironment) {
+    private void registerCommand(CommandDispatcher<CommandSourceStack> serverCommandSourceCommandDispatcher, CommandBuildContext commandRegistryAccess, Commands.CommandSelection registrationEnvironment) {
         serverCommandSourceCommandDispatcher.register(
-                LiteralArgumentBuilder.<ServerCommandSource>literal("reco")
-                        .requires(it -> it.isExecutedByPlayer() && COMMAND_RECO.hasPermission(it.getPlayer()))
+                LiteralArgumentBuilder.<CommandSourceStack>literal("reco")
+                        .requires(it -> it.isPlayer() && COMMAND_RECO.hasPermission(it.getPlayer()))
                         .executes(this::onCleanReconnect)
         );
     }
 
-    private int onCleanReconnect(CommandContext<ServerCommandSource> serverCommandSourceCommandContext) {
+    private int onCleanReconnect(CommandContext<CommandSourceStack> serverCommandSourceCommandContext) {
         var player = serverCommandSourceCommandContext.getSource().getPlayer();
         if (player == null) {
             return 0;
         }
-        if (!isVirtual(player.getUuid())) {
-            player.sendMessage(Text.literal("你不在任何 \"房间\" 内。"));
+        if (!isVirtual(player.getUUID())) {
+            player.sendSystemMessage(Component.literal("你不在任何 \"房间\" 内。"));
             return 0;
         }
-        var networkHandler = player.networkHandler;
-        networkHandler.send(new StoreCookieS2CPacket(ROOM_COOKIE, EMPTY), PacketCallbacks.always(() -> {
-            networkHandler.sendPacket(new ServerTransferS2CPacket(config.domain, serverSupplier.get().getServerPort()));
+        var networkHandler = player.connection;
+        networkHandler.send(new ClientboundStoreCookiePacket(ROOM_COOKIE, EMPTY), PacketSendListener.thenRun(() -> {
+            networkHandler.send(new ClientboundTransferPacket(config.domain, serverSupplier.get().getPort()));
         }));
         return 1;
     }
 
-    public void enqueuePregen(RegistryKey<World> world, BlockPos spawnPos) {
-        pregenQueue.add(new Pair<>(world, spawnPos));
+    public void enqueuePregen(ResourceKey<Level> world, BlockPos spawnPos) {
+        pregenQueue.add(new Tuple<>(world, spawnPos));
     }
 
-    public UUID generateIdForRoom(GameProfile issuer, String name, Identifier room) {
+    public UUID generateIdForRoom(GameProfile issuer, String name, ResourceLocation room) {
         var uuid = UUID.nameUUIDFromBytes((name + "@" + room.toString()).getBytes(StandardCharsets.UTF_8));
         var result = new UUID(uuid.getMostSignificantBits(), 0);
         if (issuer != null) uuidMapper.put(result, issuer);

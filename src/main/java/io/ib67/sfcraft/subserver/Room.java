@@ -1,15 +1,12 @@
 package io.ib67.sfcraft.subserver;
 
-import net.minecraft.network.packet.s2c.common.StoreCookieS2CPacket;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.math.GlobalPos;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
+import net.minecraft.resources.ResourceLocation;
 
 public interface Room {
-    Identifier getServerIdentifier();
+    ResourceLocation getServerIdentifier();
 
     RoomPlayerManager getPlayerManager();
 

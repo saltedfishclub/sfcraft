@@ -8,12 +8,6 @@ import io.ib67.sfcraft.registry.RoomRegistry;
 import io.ib67.sfcraft.room.CookieState;
 import io.ib67.sfcraft.room.RequestedRoom;
 import io.netty.buffer.Unpooled;
-import net.minecraft.network.ClientConnection;
-import net.minecraft.network.packet.c2s.common.CookieResponseC2SPacket;
-import net.minecraft.network.packet.s2c.common.CookieRequestS2CPacket;
-import net.minecraft.server.PlayerManager;
-import net.minecraft.server.network.ServerLoginNetworkHandler;
-import net.minecraft.text.Text;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.spongepowered.asm.mixin.Final;
@@ -26,26 +20,32 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.net.SocketAddress;
+import net.minecraft.network.Connection;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.protocol.cookie.ClientboundCookieRequestPacket;
+import net.minecraft.network.protocol.cookie.ServerboundCookieResponsePacket;
+import net.minecraft.server.network.ServerLoginPacketListenerImpl;
+import net.minecraft.server.players.PlayerList;
 
 import static io.ib67.sfcraft.room.CookieState.*;
 import static io.ib67.sfcraft.room.RoomTeleporter.ROOM_COOKIE;
 
-@Mixin(ServerLoginNetworkHandler.class)
+@Mixin(ServerLoginPacketListenerImpl.class)
 public abstract class ServerLoginNetworkHandlerMixin {
     @Shadow
-    abstract void startVerify(GameProfile profile);
+    abstract void startClientVerification(GameProfile profile);
 
     @Shadow
-    private @Nullable GameProfile profile;
+    private @Nullable GameProfile authenticatedProfile;
     @Shadow
     @Final
     private boolean transferred;
     @Shadow
     @Final
-    private ClientConnection connection;
+    private Connection connection;
 
     @Shadow
-    public abstract void disconnect(Text reason);
+    public abstract void disconnect(Component reason);
 
     @Shadow
     @Final
@@ -61,12 +61,12 @@ public abstract class ServerLoginNetworkHandlerMixin {
     void restoreVerify(CallbackInfo ci) {
         if ((sf$cookieState == SENT && sf$room != null) || (clean && sf$cookieState != DONE)) {
             sf$cookieState = CookieState.RECV;
-            startVerify(this.profile);
+            startClientVerification(this.authenticatedProfile);
         }
     }
 
-    @Inject(method = "onCookieResponse", at = @At("HEAD"), cancellable = true)
-    private void sf$onRoomId(CookieResponseC2SPacket packet, CallbackInfo ci) {
+    @Inject(method = "handleCookieResponse", at = @At("HEAD"), cancellable = true)
+    private void sf$onRoomId(ServerboundCookieResponsePacket packet, CallbackInfo ci) {
         if (packet.key().equals(ROOM_COOKIE)) {
             if (sf$cookieState != SENT) throw new IllegalStateException("Protocol error");
             var roomSvc = SFCraft.getInjector().getInstance(RoomModule.class);
@@ -74,7 +74,7 @@ public abstract class ServerLoginNetworkHandlerMixin {
             try {
                 if (packet.payload().length == 0) {
                     // clean reconnect.
-                    LOGGER.info("Player " + profile.getName() + " requested a clean reconnection");
+                    LOGGER.info("Player " + authenticatedProfile.getName() + " requested a clean reconnection");
                     clean = true;
                     ci.cancel();
                     return;
@@ -83,7 +83,7 @@ public abstract class ServerLoginNetworkHandlerMixin {
                 this.sf$room = RequestedRoom.PACKET_CODEC.decode(Unpooled.wrappedBuffer(sign.data()));
             } catch (Exception t) {
                 LOGGER.error("Failed to read cookie: {0}", t);
-                this.disconnect(Text.of("Protocol error."));
+                this.disconnect(Component.nullToEmpty("Protocol error."));
                 ci.cancel();
                 return;
             }
@@ -91,29 +91,29 @@ public abstract class ServerLoginNetworkHandlerMixin {
         ci.cancel();
     }
 
-    @Inject(method = "startVerify", at = @At("HEAD"), cancellable = true)
+    @Inject(method = "startClientVerification", at = @At("HEAD"), cancellable = true)
     void sf$makeTransferPlayerProfile(GameProfile profile, CallbackInfo ci) {
         if (transferred && !clean) {
             switch (this.sf$cookieState) {
                 case NOT_SENT -> {
-                    this.profile = profile;
-                    this.connection.send(new CookieRequestS2CPacket(ROOM_COOKIE));
+                    this.authenticatedProfile = profile;
+                    this.connection.send(new ClientboundCookieRequestPacket(ROOM_COOKIE));
                     this.sf$cookieState = SENT;
                 }
                 case RECV -> {
                     var ssr = SFCraft.getInjector().getInstance(RoomRegistry.class);
                     var room = ssr.getRoomBy(sf$room.identifier());
                     if (room != null) {
-                        this.profile = new GameProfile(sf$room.profileUuid(), sf$room.profileName());
+                        this.authenticatedProfile = new GameProfile(sf$room.profileUuid(), sf$room.profileName());
                         var session = room.getPlayerManager().getSessionBy(sf$room.profileUuid());
                         if (session == null) {
-                            disconnect(Text.of("Session isn't exists."));
+                            disconnect(Component.nullToEmpty("Session isn't exists."));
                             ci.cancel();
                             return;
                         }
                         session.onPlayerLogin(sf$room.profileUuid());
                         this.sf$cookieState = DONE;
-                        this.startVerify(this.profile);
+                        this.startClientVerification(this.authenticatedProfile);
                         ci.cancel();
                         return;
                     }
@@ -128,9 +128,9 @@ public abstract class ServerLoginNetworkHandlerMixin {
         }
     }
 
-    @Redirect(method = "tickVerify", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/PlayerManager;checkCanJoin(Ljava/net/SocketAddress;Lcom/mojang/authlib/GameProfile;)Lnet/minecraft/text/Text;"))
-    private Text sf$bypassRoomPlayer(PlayerManager instance, SocketAddress address, GameProfile profile) {
+    @Redirect(method = "verifyLoginAndFinishConnectionSetup", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/players/PlayerList;canPlayerLogin(Ljava/net/SocketAddress;Lcom/mojang/authlib/GameProfile;)Lnet/minecraft/network/chat/Component;"))
+    private Component sf$bypassRoomPlayer(PlayerList instance, SocketAddress address, GameProfile profile) {
         if (sf$cookieState == DONE) return null;
-        return instance.checkCanJoin(address, profile);
+        return instance.canPlayerLogin(address, profile);
     }
 }

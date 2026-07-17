@@ -1,8 +1,8 @@
 plugins {
     id 'maven-publish'
-    id("io.freefair.lombok") version "8.6"
+    id("io.freefair.lombok") version "9.5.0"
     id("com.gradleup.shadow") version "9.3.1"
-    id 'fabric-loom' version '1.10.1'
+    id 'fabric-loom' version '1.17-SNAPSHOT'
 }
 
 version = project.mod_version
@@ -23,7 +23,7 @@ repositories {
 dependencies {
     // To change the versions see the gradle.properties file1
     minecraft "com.mojang:minecraft:${project.minecraft_version}"
-    mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
+    mappings loom.officialMojangMappings()
     modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
     modImplementation 'me.lucko:fabric-permissions-api:0.3.1'
     // Fabric API. This is technically optional, but you probably want it anyway.

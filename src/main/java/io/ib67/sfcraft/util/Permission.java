@@ -1,9 +1,8 @@
 package io.ib67.sfcraft.util;
 
 import me.lucko.fabric.api.permissions.v0.Permissions;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.PlayerEntity;
-
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.player.Player;
 import java.util.Objects;
 
 public record Permission<T extends Entity>(String key, boolean byDefault) {
@@ -24,8 +23,8 @@ public record Permission<T extends Entity>(String key, boolean byDefault) {
     }
 
     private boolean check(T t, String permission){
-        if(t instanceof PlayerEntity player) {
-            if (player.getCommandTags().contains(permission)){
+        if(t instanceof Player player) {
+            if (player.getTags().contains(permission)){
                 return true;
             }
         }

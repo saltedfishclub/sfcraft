@@ -12,17 +12,10 @@ import io.ib67.sfcraft.inject.ConfigRoot;
 import lombok.SneakyThrows;
 import net.fabricmc.fabric.api.networking.v1.PacketSender;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
-import net.minecraft.component.DataComponentTypes;
-import net.minecraft.component.type.WrittenBookContentComponent;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.network.ServerPlayNetworkHandler;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.ClickEvent;
-import net.minecraft.text.RawFilteredPair;
-import net.minecraft.text.Text;
-
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.network.ServerGamePacketListenerImpl;
 import java.net.InetSocketAddress;
 import java.net.URI;
 import java.nio.file.Files;
@@ -63,25 +56,25 @@ public class WelcomeModule extends ServerModule {
         }
     }
 
-    public void onPlayerJoin(ServerPlayNetworkHandler serverPlayNetworkHandler, PacketSender
+    public void onPlayerJoin(ServerGamePacketListenerImpl serverPlayNetworkHandler, PacketSender
             packetSender, MinecraftServer minecraftServer) {
         if (!isEnabled()) return;
         var player = serverPlayNetworkHandler.getPlayer();
-        if (!player.getCommandTags().contains("sf_unlock_recipe")) {
-            player.addCommandTag("sf_unlock_recipe");
+        if (!player.getTags().contains("sf_unlock_recipe")) {
+            player.addTag("sf_unlock_recipe");
             unlockRecipe(player);
         }
         for (String s : announcements.keySet()) {
-            if (!player.getCommandTags().contains(s)) {
-                player.addCommandTag(s);
-                announcements.get(s).lines().map(Text::of).forEach(player::sendMessage);
+            if (!player.getTags().contains(s)) {
+                player.addTag(s);
+                announcements.get(s).lines().map(Component::nullToEmpty).forEach(player::sendSystemMessage);
             }
         }
     }
 
 
-    private void unlockRecipe(ServerPlayerEntity player) {
+    private void unlockRecipe(ServerPlayer player) {
         var recipe = player.getRecipeBook();
-        recipe.unlockRecipes(player.getServer().getRecipeManager().values(), player);
+        recipe.addRecipes(player.getServer().getRecipeManager().getRecipes(), player);
     }
 }

@@ -5,13 +5,6 @@ import io.ib67.sfcraft.ServerModule;
 import io.ib67.sfcraft.registry.chat.SimpleMessageDecorator;
 import io.ib67.sfcraft.inject.MinecraftServerSupplier;
 import io.ib67.sfcraft.util.SFConsts;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.network.message.MessageDecorator;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.sound.SoundCategory;
-import net.minecraft.sound.SoundEvents;
-import net.minecraft.text.Text;
-import net.minecraft.util.Colors;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.HashSet;
@@ -19,8 +12,15 @@ import java.util.List;
 import java.util.Set;
 import java.util.regex.MatchResult;
 import java.util.regex.Pattern;
+import net.minecraft.network.chat.ChatDecorator;
+import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.util.CommonColors;
+import net.minecraft.world.entity.player.Player;
 
-public class ChatPingModule extends ServerModule implements MessageDecorator {
+public class ChatPingModule extends ServerModule implements ChatDecorator {
     private static final Pattern PING = Pattern.compile("(@[\\w]+)?"); //todo remove the need of prefix
     @Inject
     MinecraftServerSupplier serverSupplier;
@@ -33,7 +33,7 @@ public class ChatPingModule extends ServerModule implements MessageDecorator {
     }
 
     @Override
-    public Text decorate(@Nullable ServerPlayerEntity sender, Text message) {
+    public Component decorate(@Nullable ServerPlayer sender, Component message) {
         if (!isEnabled()) {
             return message;
         }
@@ -42,20 +42,20 @@ public class ChatPingModule extends ServerModule implements MessageDecorator {
                 return message;
             }
         }
-        var text = message.getLiteralString();
+        var text = message.tryCollapseToString();
         if (text == null) return message;
         var match = PING.matcher(text);
         if (!match.find()) return message;
-        var foundPlayers = new HashSet<PlayerEntity>();
+        var foundPlayers = new HashSet<Player>();
         var names = List.of(serverSupplier.get().getPlayerNames());
-        var r = Text.literal(match.replaceAll(it -> this.matchPlayer(it, names, foundPlayers)));
-        for (PlayerEntity foundPlayer : foundPlayers) {
+        var r = Component.literal(match.replaceAll(it -> this.matchPlayer(it, names, foundPlayers)));
+        for (Player foundPlayer : foundPlayers) {
             if (sender != null) {
-                foundPlayer.sendMessage(Text.literal(sender.getName().getLiteralString() + " 正在叫你。").withColor(Colors.LIGHT_GRAY), true);
+                foundPlayer.displayClientMessage(Component.literal(sender.getName().tryCollapseToString() + " 正在叫你。").withColor(CommonColors.LIGHT_GRAY), true);
             }
-            foundPlayer.playSoundToPlayer(
-                    SoundEvents.ENTITY_ITEM_PICKUP,
-                    SoundCategory.PLAYERS,
+            foundPlayer.playNotifySound(
+                    SoundEvents.ITEM_PICKUP,
+                    SoundSource.PLAYERS,
                     0.8f,
                     0.5f
             );
@@ -63,14 +63,14 @@ public class ChatPingModule extends ServerModule implements MessageDecorator {
         return r;
     }
 
-    private String matchPlayer(MatchResult match, List<String> playerNames, Set<PlayerEntity> foundPlayers) {
+    private String matchPlayer(MatchResult match, List<String> playerNames, Set<Player> foundPlayers) {
         for (int i = 0; i < match.groupCount(); i++) {
             var r = match.group();
             if (r.isEmpty()) continue;
             final var d = r.substring(1);
             return playerNames.stream()
                     .filter(it -> it.toLowerCase().startsWith(d))
-                    .peek(it -> foundPlayers.add(serverSupplier.get().getPlayerManager().getPlayer(it)))
+                    .peek(it -> foundPlayers.add(serverSupplier.get().getPlayerList().getPlayerByName(it)))
                     .findFirst()
                     .orElse(r);
         }

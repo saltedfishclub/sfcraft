@@ -6,9 +6,8 @@ import io.ib67.sfcraft.subserver.RoomSession;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.Getter;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.util.math.GlobalPos;
-
+import net.minecraft.core.GlobalPos;
+import net.minecraft.server.level.ServerPlayer;
 import java.util.*;
 
 public abstract class SimpleRoomPlayerManager implements RoomPlayerManager {
@@ -20,7 +19,7 @@ public abstract class SimpleRoomPlayerManager implements RoomPlayerManager {
     }
 
     @Override
-    public List<ServerPlayerEntity> getJoinedPlayers() {
+    public List<ServerPlayer> getJoinedPlayers() {
         return onlinePlayers.values().stream().map(it -> it.player).toList();
     }
 
@@ -49,7 +48,7 @@ public abstract class SimpleRoomPlayerManager implements RoomPlayerManager {
     }
 
     @Override
-    public ServerPlayerEntity getPlayer(UUID uuid) {
+    public ServerPlayer getPlayer(UUID uuid) {
         return onlinePlayers.get(uuid).getPlayer();
     }
 
@@ -72,14 +71,14 @@ public abstract class SimpleRoomPlayerManager implements RoomPlayerManager {
         }
 
         @Override
-        public void onPlayerJoin(ServerPlayerEntity player) {
-            onlinePlayers.get(player.getUuid()).setPlayer(player);
+        public void onPlayerJoin(ServerPlayer player) {
+            onlinePlayers.get(player.getUUID()).setPlayer(player);
             session.onPlayerJoin(player);
         }
 
         @Override
-        public void onPlayerQuit(ServerPlayerEntity player) {
-            onlinePlayers.remove(player.getUuid());
+        public void onPlayerQuit(ServerPlayer player) {
+            onlinePlayers.remove(player.getUUID());
             session.onPlayerQuit(player);
         }
     }
@@ -87,7 +86,7 @@ public abstract class SimpleRoomPlayerManager implements RoomPlayerManager {
     @Data
     @AllArgsConstructor
     class PlayerEntry {
-        private ServerPlayerEntity player;
+        private ServerPlayer player;
         private RoomSession session;
     }
 }

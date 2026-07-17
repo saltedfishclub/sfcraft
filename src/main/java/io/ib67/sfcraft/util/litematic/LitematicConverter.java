@@ -5,7 +5,7 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import lombok.SneakyThrows;
 import net.minecraft.nbt.*;
-import net.minecraft.network.PacketByteBuf;
+import net.minecraft.network.FriendlyByteBuf;
 import org.apache.commons.compress.utils.Lists;
 
 import java.io.InputStream;
@@ -16,20 +16,20 @@ import java.util.stream.Collectors;
 
 /**
  * A cleaned up version of https://github.com/GoldenDelicios/Lite2Edit
- * Uses {@link NbtCompound} from Minecraft.
+ * Uses {@link CompoundTag} from Minecraft.
  */
 public class LitematicConverter implements AutoCloseable {
     protected final InputStream input;
-    protected final NbtSizeTracker sizeTracker;
+    protected final NbtAccounter sizeTracker;
 
-    public LitematicConverter(InputStream input, NbtSizeTracker sizeTracker) {
+    public LitematicConverter(InputStream input, NbtAccounter sizeTracker) {
         this.input = input;
         this.sizeTracker = sizeTracker;
     }
 
     @SneakyThrows
     public void read(
-            BiConsumer<String, NbtCompound> schematicOutput
+            BiConsumer<String, CompoundTag> schematicOutput
     ) {
         var root = NbtIo.readCompressed(input, sizeTracker);
         var dataVersion = root.getInt("MinecraftDataVersion")
@@ -37,7 +37,7 @@ public class LitematicConverter implements AutoCloseable {
         var regionsNbt = root.getCompound("Regions")
                 .orElseThrow(() -> new IllegalStateException("Regions not found"));
         var i = 0;
-        for (String regionName : regionsNbt.getKeys()) {
+        for (String regionName : regionsNbt.keySet()) {
             var compound = regionsNbt.getCompound(regionName)
                     .orElseThrow(() -> new IllegalStateException("Region " + regionName + " not found"));
             var j = i++;
@@ -46,8 +46,8 @@ public class LitematicConverter implements AutoCloseable {
         }
     }
 
-    protected NbtCompound convertRegionToSchematic(int dataVersion, NbtCompound region) {
-        var worldEditTag = new NbtCompound();
+    protected CompoundTag convertRegionToSchematic(int dataVersion, CompoundTag region) {
+        var worldEditTag = new CompoundTag();
 
         // prepare metadata
         var size = readSizeTuple(region);
@@ -62,20 +62,20 @@ public class LitematicConverter implements AutoCloseable {
         // block & tile entities
         var paletteNbt = region.getListOrEmpty("BlockStatePalette");
         var wePalette = convertToWEPalette(paletteNbt);
-        worldEditTag.putInt("PaletteMax", wePalette.getKeys().size());
+        worldEditTag.putInt("PaletteMax", wePalette.keySet().size());
         worldEditTag.put("Palette", wePalette);
         var tileEntities = region.getListOrEmpty("TileEntities");
         worldEditTag.put("BlockEntities", convertToWETileEntities(tileEntities));
         worldEditTag.putInt("Version", 2);
         worldEditTag.putIntArray("Offset", new int[3]);
         worldEditTag.putByteArray("BlockData", convertToWEBlocks(size, region));
-        var schematicsRoot = new NbtCompound();
+        var schematicsRoot = new CompoundTag();
         schematicsRoot.put("Schematic", worldEditTag);
         return schematicsRoot;
     }
 
-    protected SizeTuple readSizeTuple(NbtCompound region) {
-        var size = (NbtCompound) region.get("Size");
+    protected SizeTuple readSizeTuple(CompoundTag region) {
+        var size = (CompoundTag) region.get("Size");
         if (size == null) {
             throw new IllegalStateException("Size not found");
         }
@@ -88,12 +88,12 @@ public class LitematicConverter implements AutoCloseable {
         return new SizeTuple(sizeX, sizeY, sizeZ);
     }
 
-    protected NbtList convertToWETileEntities(NbtList tileEntities) {
-        var weTEs = new TypedNbtList(Lists.newArrayList(), NbtElement.COMPOUND_TYPE);
+    protected ListTag convertToWETileEntities(ListTag tileEntities) {
+        var weTEs = new TypedNbtList(Lists.newArrayList(), Tag.TAG_COMPOUND);
 
-        for (NbtElement _tileEntity : tileEntities) {
-            var weTE = new NbtCompound();
-            var tE = (NbtCompound) _tileEntity;
+        for (Tag _tileEntity : tileEntities) {
+            var weTE = new CompoundTag();
+            var tE = (CompoundTag) _tileEntity;
             weTE.putIntArray("Pos", new int[]{
                     tE.getInt("x")
                             .orElseThrow(() -> new IllegalStateException("Pos X not found")),
@@ -114,17 +114,17 @@ public class LitematicConverter implements AutoCloseable {
         return weTEs;
     }
 
-    protected NbtCompound convertToWEPalette(NbtList paletteNbt) {
-        var wePalette = new NbtCompound();
+    protected CompoundTag convertToWEPalette(ListTag paletteNbt) {
+        var wePalette = new CompoundTag();
         for (int i = 0; i < paletteNbt.size(); i++) {
-            var entry = (NbtCompound) paletteNbt.get(i);
+            var entry = (CompoundTag) paletteNbt.get(i);
             var name = new StringBuilder(entry.getString("Name").orElseThrow(() -> new IllegalStateException("Name not found")));
             var _properties = entry.getCompound("Properties");
             if (_properties.isPresent()) {
                 var properties = _properties.get();
                 name.append("[");
                 var props = new ArrayList<String>();
-                for (String key : properties.getKeys()) {
+                for (String key : properties.keySet()) {
                     props.add(key + "=" + properties.getString(key));
                 }
                 name.append(String.join(",", props));
@@ -135,25 +135,25 @@ public class LitematicConverter implements AutoCloseable {
         return wePalette;
     }
 
-    protected NbtElement convertToWeMeta(SizeTuple size, NbtCompound region) {
-        var pos = (NbtCompound) region.get("Position");
+    protected Tag convertToWeMeta(SizeTuple size, CompoundTag region) {
+        var pos = (CompoundTag) region.get("Position");
         if (pos == null){
             throw new IllegalStateException("Pos not found");
         }
-        var nbt = new NbtCompound();
+        var nbt = new CompoundTag();
         nbt.putInt("WEOffsetX", pos.getInt("x").orElseThrow() + (size.x < 0 ? size.x + 1 : 0));
         nbt.putInt("WEOffsetY", pos.getInt("y").orElseThrow() + (size.y < 0 ? size.y + 1 : 0));
         nbt.putInt("WEOffsetZ", pos.getInt("z").orElseThrow() + (size.z < 0 ? size.z + 1 : 0));
         return nbt;
     }
 
-    protected byte[] convertToWEBlocks(SizeTuple size, NbtCompound region) {
+    protected byte[] convertToWEBlocks(SizeTuple size, CompoundTag region) {
         var blockCount = Math.abs(size.x * size.y * size.z);
         var blockStates = region.getLongArray("BlockStates").orElse(new long[0]);
         int bitsPerBlock = region.getListOrEmpty("BlockStatePalette").size();
         bitsPerBlock = Math.max(2, Integer.SIZE - Integer.numberOfLeadingZeros(bitsPerBlock - 1));
         int maxEntryValue = (1 << bitsPerBlock) - 1;
-        var buffer = new PacketByteBuf(Unpooled.buffer());
+        var buffer = new FriendlyByteBuf(Unpooled.buffer());
         for (int index = 0; index < blockCount; index++) {
             int startBit = index * bitsPerBlock;
             int startLongIndex = startBit / 64;

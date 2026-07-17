@@ -4,27 +4,27 @@ import io.ib67.sfcraft.ServerModule;
 import io.ib67.sfcraft.callback.SFCallbacks;
 import it.unimi.dsi.fastutil.objects.*;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
-import net.minecraft.entity.EquipmentSlot;
-import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.network.ServerPlayNetworkHandler;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.MutableText;
-import net.minecraft.text.Text;
-import net.minecraft.util.Colors;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.network.ServerGamePacketListenerImpl;
+import net.minecraft.util.CommonColors;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.player.Player;
 
 public class ElytraSpeedMeterModule extends ServerModule {
     private static final int BAR_LEN = 20;
     private static final int MAX_NORMAL_SPEED = 6;
     private static final int THRESHLD_OF_ELYTRA_FLY = 8;
-    private static final Text[] ELYTRA_DURABILITY = new Text[100];
-    private final Object2ObjectMap<PlayerEntity, BlockPos> playerFlyMap = new Object2ObjectOpenHashMap<>();
-    private final Object2FloatMap<PlayerEntity> lastMeasuredSpeed = new Object2FloatOpenHashMap<>();
+    private static final Component[] ELYTRA_DURABILITY = new Component[100];
+    private final Object2ObjectMap<Player, BlockPos> playerFlyMap = new Object2ObjectOpenHashMap<>();
+    private final Object2FloatMap<Player> lastMeasuredSpeed = new Object2FloatOpenHashMap<>();
 
     static {
         for (int i = 1; i <= 100; i++) {
-            ELYTRA_DURABILITY[i - 1] = Text.literal("ELYTRA: " + i + "%").withColor(getDamageColor(i));
+            ELYTRA_DURABILITY[i - 1] = Component.literal("ELYTRA: " + i + "%").withColor(getDamageColor(i));
         }
     }
 
@@ -34,68 +34,68 @@ public class ElytraSpeedMeterModule extends ServerModule {
         ServerPlayConnectionEvents.DISCONNECT.register(this::onDisconnect);
     }
 
-    private void onDisconnect(ServerPlayNetworkHandler serverPlayNetworkHandler, MinecraftServer minecraftServer) {
+    private void onDisconnect(ServerGamePacketListenerImpl serverPlayNetworkHandler, MinecraftServer minecraftServer) {
         clean(serverPlayNetworkHandler.getPlayer());
     }
 
-    private void clean(ServerPlayerEntity player) {
+    private void clean(ServerPlayer player) {
         playerFlyMap.remove(player);
         lastMeasuredSpeed.removeFloat(player);
     }
 
-    private void onFlying(PlayerEntity player, long f, boolean b) {
+    private void onFlying(Player player, long f, boolean b) {
         if (f < THRESHLD_OF_ELYTRA_FLY * 20) {
             return;
         }
         if (b) {
-            var text = Text.literal("");
-            text.append(genPitchMeter(player.getPitch()));
+            var text = Component.literal("");
+            text.append(genPitchMeter(player.getXRot()));
             text.append(" ");
             text.append(generateDurabilityMeter(f, player));
-            player.sendMessage(text, true);
+            player.displayClientMessage(text, true);
         } else {
-            clean((ServerPlayerEntity) player);
+            clean((ServerPlayer) player);
             if (f > THRESHLD_OF_ELYTRA_FLY * 20) {
-                player.sendMessage(Text.literal("!! LANDED !!").withColor(Colors.GREEN), true);
+                player.displayClientMessage(Component.literal("!! LANDED !!").withColor(CommonColors.GREEN), true);
             } else {
-                player.sendMessage(Text.empty(), true);
+                player.displayClientMessage(Component.empty(), true);
 
             }
         }
     }
 
-    private Text genPitchMeter(float pitch) {
-        MutableText text;
+    private Component genPitchMeter(float pitch) {
+        MutableComponent text;
         var display = (Math.ceil(Math.abs(pitch) * 100) / 100);
         if (pitch < 0) { // 朝上
-            text = Text.literal(" 🡹 " + display + "°");
+            text = Component.literal(" 🡹 " + display + "°");
         } else {
-            text = Text.literal(" 🡻 " + display + "°");
+            text = Component.literal(" 🡻 " + display + "°");
         }
         if (pitch > 75) {
-            text.withColor(Colors.LIGHT_RED);
+            text.withColor(CommonColors.SOFT_RED);
         }
         return text;
     }
 
-    private Text generateDurabilityMeter(long f, PlayerEntity player) {
-        var stack = player.getEquippedStack(EquipmentSlot.CHEST);
-        if (stack.isDamageable() && stack.isDamaged()) {
-            var remaining = stack.getMaxDamage() - stack.getDamage();
+    private Component generateDurabilityMeter(long f, Player player) {
+        var stack = player.getItemBySlot(EquipmentSlot.CHEST);
+        if (stack.isDamageableItem() && stack.isDamaged()) {
+            var remaining = stack.getMaxDamage() - stack.getDamageValue();
             var percent = (int) Math.ceil(((double) remaining / stack.getMaxDamage()) * 100);
             return ELYTRA_DURABILITY[Math.max(percent - 1, 0)];
         }
-        return Text.literal("ELYTRA: INFINITY").withColor(Colors.BLUE);
+        return Component.literal("ELYTRA: INFINITY").withColor(CommonColors.BLUE);
     }
 
     private static int getDamageColor(int percent) {
         if (percent > 70) {
-            return Colors.GREEN;
+            return CommonColors.GREEN;
         } else if (percent > 50) {
-            return Colors.LIGHT_YELLOW;
+            return CommonColors.SOFT_YELLOW;
         } else if (percent > 30) {
-            return Colors.LIGHT_RED;
+            return CommonColors.SOFT_RED;
         }
-        return Colors.RED;
+        return CommonColors.RED;
     }
 }

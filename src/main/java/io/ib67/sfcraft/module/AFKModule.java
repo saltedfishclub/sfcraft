@@ -6,9 +6,9 @@ import io.ib67.sfcraft.callback.SFCallbacks;
 import io.ib67.sfcraft.inject.MinecraftServerSupplier;
 import io.ib67.sfcraft.module.chat.ChatPrefix;
 import io.ib67.sfcraft.module.chat.ChatPrefixModule;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.Text;
-import net.minecraft.util.Colors;
+import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.util.CommonColors;
 
 public class AFKModule extends ServerModule {
     @Inject
@@ -21,7 +21,7 @@ public class AFKModule extends ServerModule {
     public void onInitialize() {
         SFCallbacks.PLAYER_IDLE.register(this::onAFK);
         prefix = new ChatPrefix(
-                Text.literal("[挂机] ").withColor(Colors.LIGHT_GRAY),
+                Component.literal("[挂机] ").withColor(CommonColors.LIGHT_GRAY),
                 "afk",
                 true,
                 10
@@ -29,7 +29,7 @@ public class AFKModule extends ServerModule {
     }
 
 
-    private void onAFK(ServerPlayerEntity player, boolean afk) {
+    private void onAFK(ServerPlayer player, boolean afk) {
         if (afk) {
             enAFK(player);
         } else {
@@ -37,20 +37,20 @@ public class AFKModule extends ServerModule {
         }
     }
 
-    private void enAFK(ServerPlayerEntity player) {
+    private void enAFK(ServerPlayer player) {
         chatPrefixModule.applyPrefix(player, prefix);
-        player.getServer().getPlayerManager().broadcast(
-                Text.literal(" * " + player.getName().getLiteralString() + " 正在挂机.").withColor(Colors.LIGHT_GRAY),
+        player.getServer().getPlayerList().broadcastSystemMessage(
+                Component.literal(" * " + player.getName().tryCollapseToString() + " 正在挂机.").withColor(CommonColors.LIGHT_GRAY),
                 false
         );
         SFCallbacks.PLAYER_AFK.invoker().onAFKStatus(player, true);
     }
 
-    public void deAFK(ServerPlayerEntity player) {
-        String playerName = player.getName().getLiteralString();
+    public void deAFK(ServerPlayer player) {
+        String playerName = player.getName().tryCollapseToString();
         chatPrefixModule.removePrefix(player, prefix);
-        player.getServer().getPlayerManager().broadcast(
-                Text.literal(" * " + playerName + " 回来了.").withColor(Colors.LIGHT_GRAY),
+        player.getServer().getPlayerList().broadcastSystemMessage(
+                Component.literal(" * " + playerName + " 回来了.").withColor(CommonColors.LIGHT_GRAY),
                 false
         );
         SFCallbacks.PLAYER_AFK.invoker().onAFKStatus(player, false);

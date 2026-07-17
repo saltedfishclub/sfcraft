@@ -9,13 +9,13 @@ import io.ib67.sfcraft.module.SignatureService;
 import io.ib67.sfcraft.registry.RoomRegistry;
 import io.ib67.sfcraft.subserver.Room;
 import io.netty.buffer.Unpooled;
-import net.minecraft.network.PacketCallbacks;
-import net.minecraft.network.packet.s2c.common.ServerTransferS2CPacket;
-import net.minecraft.network.packet.s2c.common.StoreCookieS2CPacket;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.Text;
-import net.minecraft.util.Colors;
-import net.minecraft.util.Identifier;
+import net.minecraft.network.PacketSendListener;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.protocol.common.ClientboundStoreCookiePacket;
+import net.minecraft.network.protocol.common.ClientboundTransferPacket;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.util.CommonColors;
 
 public class RoomTeleporter {
     @Inject
@@ -29,21 +29,21 @@ public class RoomTeleporter {
     @Inject
     private SFConfig config;
 
-    public static final Identifier ROOM_COOKIE = Identifier.of(SFCraft.MOD_ID, "room");
+    public static final ResourceLocation ROOM_COOKIE = ResourceLocation.fromNamespaceAndPath(SFCraft.MOD_ID, "room");
 
-    public void teleportTo(Room room, ServerPlayerEntity player) {
-        if (roomModule.isVirtual(player.getUuid())) {
-            player.sendMessage(Text.literal("您已经在某个房间里了").withColor(Colors.LIGHT_RED));
+    public void teleportTo(Room room, ServerPlayer player) {
+        if (roomModule.isVirtual(player.getUUID())) {
+            player.sendSystemMessage(Component.literal("您已经在某个房间里了").withColor(CommonColors.SOFT_RED));
             return;
         }
-        var finalUuid = roomModule.generateIdForRoom(player.getGameProfile(), player.getName().getLiteralString(), room.getServerIdentifier());
+        var finalUuid = roomModule.generateIdForRoom(player.getGameProfile(), player.getName().tryCollapseToString(), room.getServerIdentifier());
         var sess = room.getPlayerManager().createSessionFor(finalUuid);
-        var name = player.getName().getLiteralString();
-        if (player.getServer().getWorld(sess.getSpawnPosition().dimension()) == null) {
+        var name = player.getName().tryCollapseToString();
+        if (player.getServer().getLevel(sess.getSpawnPosition().dimension()) == null) {
             throw new IllegalStateException("world isn't exist");
         }
-        var networkHandler = player.networkHandler;
-        networkHandler.reconfigure();
+        var networkHandler = player.connection;
+        networkHandler.switchToConfig();
         var request = new RequestedRoom(room.getServerIdentifier(), name, finalUuid);
         var requestBuf = Unpooled.buffer();
         RequestedRoom.PACKET_CODEC.encode(requestBuf, request);
@@ -56,8 +56,8 @@ public class RoomTeleporter {
                         requestBuf.array()
                 )
         );
-        networkHandler.send(new StoreCookieS2CPacket(ROOM_COOKIE, cookie), PacketCallbacks.always(() -> {
-            networkHandler.sendPacket(new ServerTransferS2CPacket(config.domain, config.port));
+        networkHandler.send(new ClientboundStoreCookiePacket(ROOM_COOKIE, cookie), PacketSendListener.thenRun(() -> {
+            networkHandler.send(new ClientboundTransferPacket(config.domain, config.port));
         }));
     }
 }
