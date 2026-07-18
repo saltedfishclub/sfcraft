@@ -9,10 +9,16 @@ import org.spongepowered.asm.mixin.injection.*;
 
 @Mixin(ServerLevel.class)
 public abstract class ServerWorldMixin {
+
     @ModifyArg(method = "tickTime", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/storage/ServerLevelData;setGameTime(J)V"))
     public long setTimeOfDay(long timeOfDay) {
-        int i = ((ServerLevel) (Object) this).getGameRules().get(GameRules.PLAYERS_SLEEPING_PERCENTAGE);
+        var _this = ((ServerLevel) (Object) this);
+        int i = _this.getGameRules().get(GameRules.PLAYERS_SLEEPING_PERCENTAGE);
         if (((ServerWorldBridge) this).getSleepStatus().areEnoughSleeping(i)) {
+            var dt = _this.dimensionTypeRegistration();
+            var clock = dt.value().defaultClock();
+            if(clock.isEmpty()) return timeOfDay;
+            _this.clockManager().addTicks(clock.get(), 10);
             MixinHelper.spedUp = true;
             return timeOfDay + 10;
         }

@@ -14,6 +14,9 @@ import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.NonNull;
+
+import java.net.URI;
 
 public class ChatSendLocModule extends ServerModule implements ChatDecorator {
     @Inject
@@ -25,7 +28,7 @@ public class ChatSendLocModule extends ServerModule implements ChatDecorator {
     }
 
     @Override
-    public Component decorate(@Nullable ServerPlayer sender, Component message) {
+    public @NonNull Component decorate(@Nullable ServerPlayer sender, @NonNull Component message) {
         if (!isEnabled()) return message;
         if (sender != null) {
             if (!SFConsts.USE_BROADCAST_LOCATION.hasPermission(sender)) {
@@ -46,7 +49,9 @@ public class ChatSendLocModule extends ServerModule implements ChatDecorator {
         return Component
                 .literal(" " + x + ", " + y + ", " + z + world + " ")
                 .withColor(Helper.fromRgb(63, 254, 254))
-                .withStyle(style -> style.withClickEvent(new ClickEvent.RunCommand("/gps " + key + " " + x + " " + y + " " + z)));
+                .withStyle(style -> style.withClickEvent(new ClickEvent.OpenUrl(URI.create(
+                        "https://mc.sfclub.cc/map/?world=" + key.identifier().toString().replace(':', '_') + "&zoom=5&x=" + x + "&z=" + z
+                ))));
     }
 
     private static String translate(ResourceKey<Level> registryKey) {

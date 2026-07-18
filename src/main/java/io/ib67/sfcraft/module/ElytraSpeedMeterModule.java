@@ -15,8 +15,6 @@ import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.player.Player;
 
 public class ElytraSpeedMeterModule extends ServerModule {
-    private static final int BAR_LEN = 20;
-    private static final int MAX_NORMAL_SPEED = 6;
     private static final int THRESHLD_OF_ELYTRA_FLY = 8;
     private static final Component[] ELYTRA_DURABILITY = new Component[100];
     private final Object2ObjectMap<Player, BlockPos> playerFlyMap = new Object2ObjectOpenHashMap<>();

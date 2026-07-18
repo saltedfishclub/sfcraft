@@ -39,7 +39,7 @@ public class BackModule extends ServerModule {
         var wld = player.level().getServer().getLevel(pos.dimension());
         var _pos = pos.pos();
         if (wld == null) return 0;
-        var nearby = wld.getNearestPlayer(_pos.getX(), _pos.getY(), _pos.getZ(), 100, true);
+        var nearby = wld.getNearestPlayer(_pos.getX(), _pos.getY(), _pos.getZ(), 200, true);
         if (nearby != null) {
             _pos = nearby.blockPosition();
             Helper.teleportSafely(player, wld, _pos.getX(), _pos.getY(), _pos.getZ(),0,0);

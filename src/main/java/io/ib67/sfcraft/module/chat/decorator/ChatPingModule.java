@@ -20,9 +20,10 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.CommonColors;
 import net.minecraft.world.entity.player.Player;
+import org.jspecify.annotations.NonNull;
 
 public class ChatPingModule extends ServerModule implements ChatDecorator {
-    private static final Pattern PING = Pattern.compile("(@[\\w]+)?"); //todo remove the need of prefix
+    private static final Pattern PING = Pattern.compile("(@[\\w]+)?");
     @Inject
     MinecraftServerSupplier serverSupplier;
     @Inject
@@ -34,7 +35,7 @@ public class ChatPingModule extends ServerModule implements ChatDecorator {
     }
 
     @Override
-    public Component decorate(@Nullable ServerPlayer sender, Component message) {
+    public @NonNull Component decorate(@Nullable ServerPlayer sender, @NonNull Component message) {
         if (!isEnabled()) {
             return message;
         }
@@ -69,7 +70,7 @@ public class ChatPingModule extends ServerModule implements ChatDecorator {
         for (int i = 0; i < match.groupCount(); i++) {
             var r = match.group();
             if (r.isEmpty()) continue;
-            final var d = r.substring(1);
+            final var d = r.substring(1).toLowerCase();
             return playerNames.stream()
                     .filter(it -> it.toLowerCase().startsWith(d))
                     .peek(it -> foundPlayers.add(serverSupplier.get().getPlayerList().getPlayerByName(it)))
