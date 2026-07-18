@@ -1,0 +1,20 @@
+{
+  "wants": {
+    "id": "minecraft:fire_charge",
+    "count": 4
+  },
+  "additional_wants": {
+    "id": "minecraft:emerald",
+    "count": {
+      "type": "minecraft:uniform",
+      "min": 1.0,
+      "max": 8.0
+    }
+  },
+  "gives": {
+    "id": "sfcraft:bomb",
+    "count": 4
+  },
+  "max_uses": 12,
+  "reputation_discount": 0.2
+}

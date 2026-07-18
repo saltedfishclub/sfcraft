@@ -1,47 +1,42 @@
 package sfcraft;
 
 import io.ib67.sfcraft.SFCraft;
-import net.fabricmc.fabric.api.object.builder.v1.block.entity.FabricBlockEntityTypeBuilder;
-import net.minecraft.block.AbstractBlock;
-import net.minecraft.block.Block;
-import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.block.entity.BlockEntityType;
-import net.minecraft.item.BlockItem;
-import net.minecraft.item.Item;
-import net.minecraft.registry.Registries;
-import net.minecraft.registry.Registry;
-import net.minecraft.registry.RegistryKey;
-import net.minecraft.registry.RegistryKeys;
-import net.minecraft.sound.BlockSoundGroup;
-import net.minecraft.util.Identifier;
-import sfcraft.blocks.AccelerateBubble;
+import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.SoundType;
+import net.minecraft.world.level.block.state.BlockBehaviour;
+import sfcraft.blocks.AmethystCauldronBlock;
+import sfcraft.blocks.GravityCrystalBlock;
 
 import java.util.function.Function;
 
 public class SFBlocks {
-    public static final Block ACCELERATE_BUBBLE = register(
-            "accelerate_bubble_block",
-            AccelerateBubble::new,
-            AbstractBlock.Settings.create().sounds(BlockSoundGroup.NETHER_BRICKS)
+    public static final Block AMETHYST_CAULDRON = register(
+            "amethyst_cauldron",
+            AmethystCauldronBlock::new,
+            BlockBehaviour.Properties.of()
+                    .strength(2.0F)
+                    .sound(SoundType.METAL)
+                    .noOcclusion()
     );
-    public static void initialize(){}
+    public static final Block GRAVITY_CRYSTAL = register(
+            "gravity_crystal",
+            GravityCrystalBlock::new,
+            BlockBehaviour.Properties.of()
+                    .strength(50.0F, 1200.0F)
+                    .sound(SoundType.AMETHYST)
+                    .lightLevel(state -> Math.min(15, state.getValue(GravityCrystalBlock.CHARGE) * 4))
+    );
 
-    private static Block register(
-            String name,
-            Function<AbstractBlock.Settings, Block> blockFactory,
-            AbstractBlock.Settings settings
-    ) {
-        RegistryKey<Block> blockKey = keyOfBlock(name);
-        Block block = blockFactory.apply(settings.registryKey(blockKey));
-        return Registry.register(Registries.BLOCK, blockKey, block);
+    public static void initialize() {
     }
 
-    private static RegistryKey<Block> keyOfBlock(String name) {
-        return RegistryKey.of(RegistryKeys.BLOCK, Identifier.of(SFCraft.MOD_ID, name));
+    private static Block register(String name, Function<BlockBehaviour.Properties, Block> factory, BlockBehaviour.Properties properties) {
+        var key = ResourceKey.create(Registries.BLOCK, Identifier.fromNamespaceAndPath(SFCraft.MOD_ID, name));
+        return Registry.register(BuiltInRegistries.BLOCK, key, factory.apply(properties.setId(key)));
     }
-
-    private static RegistryKey<Item> keyOfItem(String name) {
-        return RegistryKey.of(RegistryKeys.ITEM, Identifier.of(SFCraft.MOD_ID, name));
-    }
-
 }

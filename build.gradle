@@ -18,6 +18,7 @@ repositories {
         name "kalculosSnapshots"
         url "https://repo.sfclub.cc/snapshots"
     }
+    maven { url 'https://maven.nucleoid.xyz' } // You should have it
 }
 
 dependencies {
@@ -35,7 +36,8 @@ dependencies {
     }
     shadow("io.ib67.kiwi:lang:1.2.3-SNAPSHOT")
     shadow('com.github.houbb:pinyin:0.4.0')
-    modImplementation include("eu.pb4:polymer-core:0.13.9+1.21.8")
+    implementation include("eu.pb4:polymer-core:0.17.3+26.2")
+    implementation include("eu.pb4:polymer-virtual-entity:0.17.3+26.2")
     shadow('com.google.inject:guice:7.0.0') {
         exclude group: 'com.google.guava', module: 'guava'
         exclude group: 'com.google.guava', module: 'listenablefuture'

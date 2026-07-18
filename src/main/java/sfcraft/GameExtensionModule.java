@@ -1,13 +1,16 @@
 package sfcraft;
 
 import io.ib67.sfcraft.ServerModule;
-import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
+import sfcraft.cauldron.CauldronRecipes;
 
 public class GameExtensionModule extends ServerModule {
     @Override
     public void onInitialize() {
-        SFBlockEntities.initialize();
         SFBlocks.initialize();
+        SFBlockEntities.initialize();
         SFItems.initialize();
+        SFEntities.initialize();
+        CauldronRecipes.bootstrap();
+        SFLoot.registerModifiers();
     }
 }

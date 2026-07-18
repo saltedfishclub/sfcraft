@@ -1,0 +1,9 @@
+{
+  "type": "minecraft:smelting",
+  "ingredient": "sfcraft:amethyst_cauldron_blank",
+  "result": {
+    "id": "sfcraft:amethyst_cauldron"
+  },
+  "experience": 0.5,
+  "cookingtime": 200
+}
