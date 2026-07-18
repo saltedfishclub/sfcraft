@@ -40,19 +40,19 @@ public class MaxMindGeoIPService implements Module, GeoIPService {
     @Override
     @SneakyThrows
     public Clock clockOf(InetAddress address) throws GeoIp2Exception {
-        return Clock.system(TimeZone.getTimeZone(databaseReader.city(address).getLocation().getTimeZone()).toZoneId());
+        return Clock.system(TimeZone.getTimeZone(databaseReader.city(address).location().timeZone()).toZoneId());
     }
 
     @Override
     @SneakyThrows
     public City cityOf(InetAddress address) throws GeoIp2Exception {
-        return databaseReader.city(address).getCity();
+        return databaseReader.city(address).city();
     }
 
     @Override
     @SneakyThrows
     public Country countryOf(InetAddress address) throws GeoIp2Exception {
-        return databaseReader.country(address).getCountry();
+        return databaseReader.country(address).country();
     }
 
     @SneakyThrows

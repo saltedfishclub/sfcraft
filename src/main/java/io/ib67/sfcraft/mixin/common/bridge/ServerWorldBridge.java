@@ -8,5 +8,5 @@ import org.spongepowered.asm.mixin.gen.Accessor;
 @Mixin(ServerLevel.class)
 public interface ServerWorldBridge {
     @Accessor
-    SleepStatus getDEEPSLATE_BRICKS();
+    SleepStatus getSleepStatus();
 }

@@ -29,9 +29,11 @@ dependencies {
     // modImplementation so Loom loads it as a mod in the dev runtime; plain
     // implementation only adds it to the classpath, so Loader can't find the `fabric` mod.
     implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
-    shadow('com.maxmind.geoip2:geoip2:4.2.0')
-    shadow("io.javalin:javalin:6.4.0")
-    include(implementation "io.ib67.kiwi:lang:1.2.3-SNAPSHOT")
+    shadow('com.maxmind.geoip2:geoip2:5.2.0')
+    shadow("io.javalin:javalin:7.2.2") {
+        exclude group: "org.eclipse.jetty.ee10", module: "jetty-ee10-annotations"
+    }
+    shadow("io.ib67.kiwi:lang:1.2.3-SNAPSHOT")
     shadow('com.github.houbb:pinyin:0.4.0')
     shadow('com.google.inject:guice:7.0.0') {
         exclude group: 'com.google.guava', module: 'guava'
@@ -44,6 +46,7 @@ configurations.implementation.extendsFrom(configurations.shadow)
 shadowJar {
     configurations = [project.configurations.shadow]
     exclude("META-INF")
+    relocate 'kotlin', 'sfcraft-kotlin'
 }
 
 processResources {

@@ -12,7 +12,7 @@ public abstract class ServerWorldMixin {
     @ModifyArg(method = "tickTime", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/storage/ServerLevelData;setGameTime(J)V"))
     public long setTimeOfDay(long timeOfDay) {
         int i = ((ServerLevel) (Object) this).getGameRules().get(GameRules.PLAYERS_SLEEPING_PERCENTAGE);
-        if (((ServerWorldBridge) this).getDEEPSLATE_BRICKS().areEnoughSleeping(i)) {
+        if (((ServerWorldBridge) this).getSleepStatus().areEnoughSleeping(i)) {
             MixinHelper.spedUp = true;
             return timeOfDay + 10;
         }

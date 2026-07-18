@@ -24,12 +24,12 @@ public abstract class ServerPlayNetworkHandlerMixin {
      * @author icybear
      * @reason small method, overwrite to reduce overhead
      */
-    @Redirect(method = "method_44900", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/MinecraftServer;getChatDecorator()Lnet/minecraft/network/chat/ChatDecorator;"))
+    @Redirect(method = "lambda$handleChat$0", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/MinecraftServer;getChatDecorator()Lnet/minecraft/network/chat/ChatDecorator;"))
     public ChatDecorator getMessageDecorator(MinecraftServer instance) {
         return SFCraft.getInjector().getInstance(SimpleMessageDecorator.class);
     }
 
-    @Redirect(method = "tick", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/network/ServerGamePacketListenerImpl;disconnect(Lnet/minecraft/network/chat/Component;)V", ordinal = 2))
+    @Redirect(method = "tick", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/network/ServerGamePacketListenerImpl;disconnect(Lnet/minecraft/network/chat/Component;)V"))
     public void onPlayerIdling(ServerGamePacketListenerImpl instance, Component text) {
         ((ServerPlayerBridge) instance.player).setLastActionTime(Long.MAX_VALUE);
         SFCallbacks.PLAYER_IDLE.invoker().onSwitchIdle(instance.player, true);

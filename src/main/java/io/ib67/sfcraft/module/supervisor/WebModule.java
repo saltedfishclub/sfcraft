@@ -17,13 +17,14 @@ public class WebModule extends ServerModule {
 
     @Override
     public void onEnable() {
-        javalin = Javalin.create(cfg -> cfg.useVirtualThreads = false);
         var moduleManager = SFCraft.getInjector().getInstance(ModuleManager.class);
-        for (ServerModule module : moduleManager.getModules()) {
-            if(module instanceof WebHandler webHandler) {
-                webHandler.register(javalin);
+        javalin = Javalin.create(cfg -> {
+            for (ServerModule module : moduleManager.getModules()) {
+                if(module instanceof WebHandler webHandler) {
+                    webHandler.register(cfg);
+                }
             }
-        }
+        });
         Thread.ofVirtual().name("SFCraft API Web").start(() -> javalin.start(config.httpPort));
     }
 

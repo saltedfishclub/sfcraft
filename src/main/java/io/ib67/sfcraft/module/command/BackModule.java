@@ -27,14 +27,14 @@ public class BackModule extends ServerModule {
     private void registerCommands(CommandDispatcher<CommandSourceStack> dispatcher, CommandBuildContext registryAccess, Commands.CommandSelection registrationEnvironment) {
         dispatcher.register(LiteralArgumentBuilder.<CommandSourceStack>literal("back")
                 .requires(it -> this.isEnabled())
-                .requires(it -> it.getPlayer() != null)
-                .requires(it -> it.getPlayer().getLastDeathLocation().isPresent())
+                .requires(it -> it.getPlayer() != null && it.getPlayer().getLastDeathLocation().isPresent())
                 .requires(it -> SFConsts.COMMAND_BACK.hasPermission(it.getPlayer()))
                 .executes(this::onBack));
     }
 
     public int onBack(CommandContext<CommandSourceStack> it) {
         var player = it.getSource().getPlayer();
+        if (player == null) return 0;
         var pos = player.getLastDeathLocation().get();
         var wld = player.level().getServer().getLevel(pos.dimension());
         var _pos = pos.pos();

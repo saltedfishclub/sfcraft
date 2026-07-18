@@ -3,6 +3,7 @@ package io.ib67.sfcraft.mixin.server.subserver;
 import com.mojang.datafixers.DataFixer;
 import io.ib67.sfcraft.module.RoomModule;
 import io.ib67.sfcraft.util.Helper;
+import net.minecraft.server.players.NameAndId;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -41,9 +42,9 @@ public class PlayerSaveHandlerMixin {
         }
     }
 
-    @Redirect(at = @At(value = "FIELD", target = "Lnet/minecraft/world/level/storage/PlayerDataStorage;playerDir:Ljava/io/File;"), method = "load(Lnet/minecraft/world/entity/player/Player;Ljava/lang/String;)Ljava/util/Optional;")
-    private File sf$saveGetPlayerFolder(PlayerDataStorage instance, Player player) {
-        if (RoomModule.isVirtual(player.getUUID())) {
+    @Redirect(at = @At(value = "FIELD", target = "Lnet/minecraft/world/level/storage/PlayerDataStorage;playerDir:Ljava/io/File;"), method = "Lnet/minecraft/world/level/storage/PlayerDataStorage;load(Lnet/minecraft/server/players/NameAndId;Ljava/lang/String;)Ljava/util/Optional;")
+    private File sf$saveGetPlayerFolder(PlayerDataStorage instance, NameAndId player) {
+        if (RoomModule.isVirtual(player.id())) {
             return virtualPlayerFolder;
         } else {
             return this.playerDir;

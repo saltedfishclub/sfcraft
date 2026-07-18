@@ -40,7 +40,7 @@ public abstract class AbstractFurnaceBlockMixin extends BaseEntityBlock {
         var world = (ServerLevel) _world;
         AbstractFurnaceBlockEntity.serverTick(world, pos, state, blockEntity);
         int i = world.getGameRules().get(GameRules.PLAYERS_SLEEPING_PERCENTAGE);
-        if (((ServerWorldBridge) world).getDEEPSLATE_BRICKS().areEnoughSleeping(i)) {
+        if (((ServerWorldBridge) world).getSleepStatus().areEnoughSleeping(i)) {
             AbstractFurnaceBlockEntity.serverTick(world, pos, state, blockEntity); //todo: config support?
             AbstractFurnaceBlockEntity.serverTick(world, pos, state, blockEntity);
         }

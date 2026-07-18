@@ -13,7 +13,6 @@
     "common.PlayerEntityMixin",
     "common.ZombieMixin",
     "common.bridge.EntityBridge",
-    "common.bridge.ItemBridge",
     "common.bridge.ServerChunkManagerBridge",
     "common.bridge.ServerPlayerBridge",
     "common.bridge.ServerWorldBridge",

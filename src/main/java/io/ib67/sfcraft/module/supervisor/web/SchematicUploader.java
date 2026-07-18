@@ -9,10 +9,9 @@ import io.ib67.sfcraft.inject.MinecraftServerSupplier;
 import io.ib67.sfcraft.module.SignatureService;
 import io.ib67.sfcraft.module.supervisor.WebHandler;
 import io.ib67.sfcraft.util.Helper;
-import io.ib67.sfcraft.util.Permission;
 import io.ib67.sfcraft.util.SFConsts;
 import io.ib67.sfcraft.util.litematic.LitematicConverterV3;
-import io.javalin.Javalin;
+import io.javalin.config.JavalinConfig;
 import io.javalin.http.Context;
 import io.javalin.http.UploadedFile;
 import io.netty.buffer.Unpooled;
@@ -75,8 +74,8 @@ public class SchematicUploader extends WebHandler {
     }
 
     @Override
-    public void register(Javalin javalin) {
-        javalin.options("/api/schematics/{name}", this::onUploadOptions).put("/api/schematics/{name}", this::uploadSchematic);
+    public void register(JavalinConfig javalin) {
+        javalin.routes.options("/api/schematics/{name}", this::onUploadOptions).put("/api/schematics/{name}", this::uploadSchematic);
     }
 
     public String generateSchematicUrl(String issuer) {

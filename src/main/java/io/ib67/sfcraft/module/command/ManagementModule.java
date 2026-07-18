@@ -72,7 +72,7 @@ public class ManagementModule extends ServerModule {
                 var city = geoIPService.cityOf(addr);
                 src.sendSystemMessage(
                         Component.literal(" - ")
-                                .append(Component.literal("[" + city.getName() + "] ").withColor(CommonColors.BLUE))
+                                .append(Component.literal("[" + city.name() + "] ").withColor(CommonColors.BLUE))
                                 .append(Component.literal(serverPlayerEntity.getName().tryCollapseToString()))
                                 .append(Component.literal(" (" + Helper.hideIp(addr) + ")").withColor(CommonColors.LIGHT_GRAY))
                 );

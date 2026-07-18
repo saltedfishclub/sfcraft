@@ -1,7 +1,6 @@
 package io.ib67.sfcraft.mixin.common;
 
 import net.minecraft.world.entity.monster.zombie.Zombie;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import org.spongepowered.asm.mixin.Mixin;

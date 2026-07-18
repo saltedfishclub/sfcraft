@@ -15,6 +15,7 @@ public record Permission<T extends Entity>(String key, boolean byDefault) {
     }
 
     public boolean hasPermission(T t) {
+        if(t == null) return false;
         if (check(t, SFConsts.SPECIAL_SUDO)) return true;
         if (byDefault) {
             return !check(t, "-"+key);
@@ -23,6 +24,7 @@ public record Permission<T extends Entity>(String key, boolean byDefault) {
     }
 
     private boolean check(T t, String permission){
+        if(t == null) return false;
         if(t instanceof Player player) {
             if (player.entityTags().contains(permission)){
                 return true;
