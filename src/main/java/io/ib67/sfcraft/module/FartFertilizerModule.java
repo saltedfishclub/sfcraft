@@ -28,8 +28,8 @@ public class FartFertilizerModule extends ServerModule {
             var dlta = Math.min(System.currentTimeMillis() - lastSneak, 100);
             if (player.getRandom().nextIntBetweenInclusive(50, 150) > dlta) {
                 var playerPos = player.blockPosition();
-                var start = playerPos.offset(-2, 0, -2);
-                var end = playerPos.offset(2, 1, 2);
+                var start = playerPos.offset(-5, -2, -5);
+                var end = playerPos.offset(5, 2, 5);
                 for (int dX = 0; dX < end.getX() - start.getX(); dX++) {
                     for (int dZ = 0; dZ < end.getZ() - start.getZ(); dZ++) {
                         for (int dY = 0; dY < end.getY() - start.getY(); dY++) {
