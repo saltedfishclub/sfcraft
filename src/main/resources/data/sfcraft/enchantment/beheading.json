@@ -1,7 +1,8 @@
 {
   "anvil_cost": 4,
   "description": {
-    "text": "斩首"
+    "translate": "enchantment.sfcraft.beheading",
+    "fallback": "斩首"
   },
   "max_cost": {
     "base": 65,

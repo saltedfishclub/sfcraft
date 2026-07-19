@@ -3,6 +3,7 @@ package io.ib67.sfcraft.module;
 import com.google.inject.Inject;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
+import io.ib67.sfcraft.callback.SFConfigReload;
 import io.ib67.sfcraft.inject.MinecraftServerSupplier;
 import io.ib67.sfcraft.util.Helper;
 import io.ib67.sfcraft.ServerModule;
@@ -24,6 +25,12 @@ public class MotdModule extends ServerModule {
     @Override
     public void onInitialize() {
         motd = getMotd(configRoot);
+        SFConfigReload.EVENT.register(() -> {
+            motd = getMotd(configRoot);
+            if (isEnabled()) {
+                minecraftServer.get().setMotd(motd);
+            }
+        });
     }
 
     @Override
