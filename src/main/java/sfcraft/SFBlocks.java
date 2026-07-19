@@ -22,6 +22,7 @@ public class SFBlocks {
                     .strength(2.0F)
                     .sound(SoundType.METAL)
                     .noOcclusion()
+                    .lightLevel(state -> 10)
     );
     public static final Block GRAVITY_CRYSTAL = register(
             "gravity_crystal",

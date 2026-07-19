@@ -36,8 +36,11 @@ dependencies {
     }
     shadow("io.ib67.kiwi:lang:1.2.3-SNAPSHOT")
     shadow('com.github.houbb:pinyin:0.4.0')
-    implementation include("eu.pb4:polymer-core:0.17.3+26.2")
-    implementation include("eu.pb4:polymer-virtual-entity:0.17.3+26.2")
+    def polymerVersion = "0.17.3+26.2"
+    implementation include("eu.pb4:polymer-core:$polymerVersion")
+    implementation include("eu.pb4:polymer-virtual-entity:$polymerVersion")
+    implementation include("eu.pb4:polymer-resource-pack:$polymerVersion")
+    implementation include("eu.pb4:polymer-blocks:$polymerVersion")
     shadow('com.google.inject:guice:7.0.0') {
         exclude group: 'com.google.guava', module: 'guava'
         exclude group: 'com.google.guava', module: 'listenablefuture'
@@ -86,6 +89,19 @@ java {
     // if it is present.
     // If you remove this line, sources will not be generated.
     withSourcesJar()
+}
+
+tasks.register("packageTestResources", Zip) {
+    archiveFileName = "resources.zip"
+    destinationDirectory = layout.projectDirectory.dir("run/world")
+
+    from("src/main/resources/assets/sfcraft") {
+        into("assets/sfcraft")
+    }
+}
+
+runServer {
+    dependsOn packageTestResources
 }
 
 loom {

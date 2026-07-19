@@ -1,5 +1,6 @@
 package sfcraft.blocks;
 
+import lombok.Getter;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.chat.Component;
@@ -21,6 +22,7 @@ import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.AABB;
 import org.jetbrains.annotations.Nullable;
+import sfcraft.GameConfig;
 import sfcraft.SFBlockEntities;
 import sfcraft.cauldron.CauldronRecipe;
 import sfcraft.cauldron.CauldronRecipes;
@@ -29,8 +31,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class AmethystCauldronBlockEntity extends BlockEntity {
-    public static final int MAX_ITEMS = 4;
-
+    @Getter
     private final List<ItemStack> contents = new ArrayList<>();
     @Nullable
     private CauldronRecipe activeRecipe;
@@ -38,10 +39,6 @@ public class AmethystCauldronBlockEntity extends BlockEntity {
 
     public AmethystCauldronBlockEntity(BlockPos pos, BlockState state) {
         super(SFBlockEntities.AMETHYST_CAULDRON, pos, state);
-    }
-
-    public List<ItemStack> getContents() {
-        return contents;
     }
 
     public boolean isReacting() {
@@ -56,7 +53,9 @@ public class AmethystCauldronBlockEntity extends BlockEntity {
                     pos.getX() + 0.5, pos.getY() + 1.0, pos.getZ() + 0.5,
                     1, 0.35, 0.25, 0.35, 0.02);
         }
-        cauldron.absorbItems(serverLevel, pos);
+        if (time % 4 == 0){
+            cauldron.absorbItems(serverLevel, pos);
+        }
         if (cauldron.activeRecipe != null) {
             serverLevel.sendParticles(cauldron.activeRecipe.reactionParticle(),
                     pos.getX() + 0.5, pos.getY() + 1.2, pos.getZ() + 0.5,
@@ -64,13 +63,16 @@ public class AmethystCauldronBlockEntity extends BlockEntity {
             if (--cauldron.reactionTicksLeft <= 0) {
                 cauldron.finishReaction(serverLevel, pos, state);
             }
+        } else {
+            if(time % 4 == 0) cauldron.tryAutoStart(serverLevel, pos, state);
         }
     }
 
     private void absorbItems(ServerLevel level, BlockPos pos) {
-        if (activeRecipe != null || contents.size() >= MAX_ITEMS) return;
+        int maxItems = GameConfig.get().cauldron.maxItems;
+        if (activeRecipe != null || contents.size() >= maxItems) return;
         for (var itemEntity : level.getEntitiesOfClass(ItemEntity.class, new AABB(pos))) {
-            if (contents.size() >= MAX_ITEMS) break;
+            if (contents.size() >= maxItems) break;
             var stack = itemEntity.getItem();
             if (stack.isEmpty()) continue;
             contents.add(stack.copy());
@@ -80,34 +82,44 @@ public class AmethystCauldronBlockEntity extends BlockEntity {
         }
     }
 
-    public InteractionResult tryStartReaction(ItemStack catalyst, Player player) {
-        if (level == null || catalyst.isEmpty() || !CauldronRecipes.isCatalyst(catalyst)) {
-            return InteractionResult.PASS;
-        }
-        if (activeRecipe != null) {
-            sendHint(player, "反应正在进行中");
-            return InteractionResult.FAIL;
-        }
-        var match = CauldronRecipes.match(contents, catalyst);
-        if (match.isEmpty()) {
-            sendHint(player, "锅内的原料不满足反应条件");
-            return InteractionResult.FAIL;
-        }
+    /**
+     * 每 tick 检查: 锅内物品凑齐某配方且满足水/加热条件时自动开始反应。
+     * 凑齐但缺条件时冒烟提示"就差水或加热"。
+     */
+    private void tryAutoStart(ServerLevel level, BlockPos pos, BlockState state) {
+        if (contents.isEmpty()) return;
+        var match = CauldronRecipes.match(contents);
+        if (match.isEmpty()) return;
         var recipe = match.get();
-        if (recipe.needsWater() && !getBlockState().getValue(AmethystCauldronBlock.HAS_WATER)) {
-            sendHint(player, "反应需要锅内有水");
-            return InteractionResult.FAIL;
-        }
-        if (recipe.needsHeat() && !isHeated(level, getBlockPos())) {
-            sendHint(player, "反应需要在锅下方加热(火焰/岩浆块/熔岩)");
-            return InteractionResult.FAIL;
-        }
-        if (!player.hasInfiniteMaterials()) {
-            catalyst.shrink(1);
+        boolean ready = (!recipe.needsWater() || state.getValue(AmethystCauldronBlock.HAS_WATER))
+                && (!recipe.needsHeat() || isHeated(level, pos));
+        if (!ready) {
+            if (level.getGameTime() % 16 == 0) {
+                level.sendParticles(ParticleTypes.SMOKE,
+                        pos.getX() + 0.5, pos.getY() + 1.0, pos.getZ() + 0.5,
+                        2, 0.2, 0.1, 0.2, 0.01);
+            }
+            return;
         }
         activeRecipe = recipe;
         reactionTicksLeft = recipe.reactionTicks();
-        level.playSound(null, getBlockPos(), SoundEvents.AMETHYST_BLOCK_RESONATE, SoundSource.BLOCKS, 1.0F, 0.8F);
+        level.playSound(null, pos, SoundEvents.AMETHYST_BLOCK_RESONATE, SoundSource.BLOCKS, 1.0F, 0.8F);
+        setChanged();
+    }
+
+    /** 空手右键: 取回最后放入的一个原料(后进先出);反应进行中禁止取出。 */
+    public InteractionResult retrieveLast(Player player) {
+        if (level == null) return InteractionResult.PASS;
+        if (activeRecipe != null) {
+            sendHint(player, "反应进行中,无法取出原料");
+            return InteractionResult.FAIL;
+        }
+        if (contents.isEmpty()) return InteractionResult.PASS;
+        var stack = contents.removeLast();
+        if (!player.getInventory().add(stack)) {
+            player.drop(stack, false);
+        }
+        level.playSound(null, getBlockPos(), SoundEvents.ITEM_FRAME_REMOVE_ITEM, SoundSource.BLOCKS, 0.6F, 1.0F);
         setChanged();
         return InteractionResult.SUCCESS_SERVER;
     }
@@ -129,7 +141,7 @@ public class AmethystCauldronBlockEntity extends BlockEntity {
         setChanged();
     }
 
-    public static boolean isHeated(Level level, BlockPos pos) {
+    public static boolean isHeated(Level level, BlockPos pos) { // CLAUDE this method should be private
         var below = pos.below();
         var belowState = level.getBlockState(below);
         return belowState.is(Blocks.FIRE)

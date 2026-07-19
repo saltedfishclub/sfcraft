@@ -1,0 +1,21 @@
+{
+  "anvil_cost": 4,
+  "description": {
+    "text": "斩首"
+  },
+  "max_cost": {
+    "base": 65,
+    "per_level_above_first": 9
+  },
+  "max_level": 3,
+  "min_cost": {
+    "base": 15,
+    "per_level_above_first": 9
+  },
+  "primary_items": "#minecraft:enchantable/sweeping",
+  "slots": [
+    "mainhand"
+  ],
+  "supported_items": "#minecraft:enchantable/sweeping",
+  "weight": 2
+}

@@ -22,12 +22,8 @@ public final class CauldronRecipes {
         RECIPES.add(recipe);
     }
 
-    public static Optional<CauldronRecipe> match(List<ItemStack> contents, ItemStack catalyst) {
-        return RECIPES.stream().filter(recipe -> recipe.matches(contents, catalyst)).findFirst();
-    }
-
-    public static boolean isCatalyst(ItemStack stack) {
-        return RECIPES.stream().anyMatch(recipe -> recipe.catalyst().test(stack));
+    public static Optional<CauldronRecipe> match(List<ItemStack> contents) {
+        return RECIPES.stream().filter(recipe -> recipe.matches(contents)).findFirst();
     }
 
     public static int indexOf(CauldronRecipe recipe) {
@@ -39,15 +35,22 @@ public final class CauldronRecipes {
         return index >= 0 && index < RECIPES.size() ? RECIPES.get(index) : null;
     }
 
+    /** 重新构建配方表(/sfcraft reload 时调用,使 reactionTicks 等配置生效)。 */
+    public static void rebuild() {
+        RECIPES.clear();
+        bootstrap();
+    }
+
     public static void bootstrap() {
-        // 已绑定的珍珠信物 + 回响碎片(催化剂) + 水 + 加热 → 反向珍珠信物
+        // 锅里丢入: 已绑定的珍珠信物 + 回响碎片(催化剂) + 水 + 加热 → 反向珍珠信物
         register(new CauldronRecipe(
-                List.of(stack -> stack.is(SFItems.PEARL_TOKEN) && PearlTokenItem.getOwnerId(stack) != null),
-                stack -> stack.is(Items.ECHO_SHARD),
+                List.of(
+                        stack -> stack.is(SFItems.PEARL_TOKEN) && PearlTokenItem.getOwnerId(stack) != null,
+                        stack -> stack.is(Items.ECHO_SHARD)),
                 true,
                 true,
                 new DustColorTransitionOptions(0x006D6D, 0x000000, 1.0F),
-                100,
+                sfcraft.GameConfig.get().cauldron.reactionTicks,
                 contents -> {
                     var token = contents.stream()
                             .filter(stack -> stack.is(SFItems.PEARL_TOKEN))

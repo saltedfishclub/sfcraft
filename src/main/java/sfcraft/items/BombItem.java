@@ -15,8 +15,6 @@ import net.minecraft.world.level.Level;
 import sfcraft.entity.BombEntity;
 
 public class BombItem extends Item implements PolymerItem {
-    private static final int THROW_COOLDOWN_TICKS = 10;
-
     private final BombEntity.BombType type;
     private final Item visualItem;
 
@@ -43,7 +41,7 @@ public class BombItem extends Item implements PolymerItem {
                 return bomb;
             }, serverLevel, stack, player, 0.0F, 1.5F, 1.0F);
         }
-        player.getCooldowns().addCooldown(stack, THROW_COOLDOWN_TICKS);
+        player.getCooldowns().addCooldown(stack, sfcraft.GameConfig.get().bomb.throwCooldownTicks);
         stack.consume(1, player);
         return InteractionResult.SUCCESS_SERVER;
     }

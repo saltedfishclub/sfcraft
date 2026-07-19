@@ -1,4 +1,4 @@
-MIT License
+MIT License and ARR for assets
 
 Copyright (c) 2024 SaltedFish Club
 
@@ -10,7 +10,10 @@ copies of the Software, and to permit persons to whom the Software is
 furnished to do so, subject to the following conditions:
 
 The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+copies or substantial portions of the Software. The above copyright notice DOES
+NOT APPLY TO artworks and assets included in the Software (./src/main/resources/assets),
+which are subject to ALL RIGHT RESERVED by iceBear67.
+
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,

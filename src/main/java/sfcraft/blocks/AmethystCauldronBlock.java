@@ -31,6 +31,7 @@ import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.NonNull;
 import sfcraft.SFBlockEntities;
 
 public class AmethystCauldronBlock extends BaseEntityBlock implements PolymerBlock, BlockWithElementHolder {
@@ -43,7 +44,7 @@ public class AmethystCauldronBlock extends BaseEntityBlock implements PolymerBlo
     }
 
     @Override
-    protected MapCodec<? extends BaseEntityBlock> codec() {
+    protected @NonNull MapCodec<? extends BaseEntityBlock> codec() {
         return CODEC;
     }
 
@@ -76,8 +77,8 @@ public class AmethystCauldronBlock extends BaseEntityBlock implements PolymerBlo
     }
 
     @Override
-    protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos,
-                                          Player player, InteractionHand hand, BlockHitResult hit) {
+    protected @NonNull InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos,
+                                                   Player player, InteractionHand hand, BlockHitResult hit) {
         if (level.isClientSide()) return InteractionResult.SUCCESS;
         if (stack.is(Items.WATER_BUCKET)) {
             if (state.getValue(HAS_WATER)) return InteractionResult.FAIL;
@@ -88,8 +89,16 @@ public class AmethystCauldronBlock extends BaseEntityBlock implements PolymerBlo
             level.playSound(null, pos, SoundEvents.BUCKET_EMPTY, SoundSource.BLOCKS, 1.0F, 1.0F);
             return InteractionResult.SUCCESS_SERVER;
         }
+        // 其余物品不再手持触发反应: 把配方所需物品(含回响碎片催化剂)丢进锅里即可自动开始。
+        return InteractionResult.PASS;
+    }
+
+    @Override
+    protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos,
+                                               Player player, BlockHitResult hit) {
+        if (level.isClientSide()) return InteractionResult.SUCCESS;
         if (level.getBlockEntity(pos) instanceof AmethystCauldronBlockEntity cauldron) {
-            return cauldron.tryStartReaction(stack, player);
+            return cauldron.retrieveLast(player);
         }
         return InteractionResult.PASS;
     }
@@ -101,7 +110,10 @@ public class AmethystCauldronBlock extends BaseEntityBlock implements PolymerBlo
 
     @Override
     public Vec3 getElementHolderOffset(ServerLevel world, BlockPos pos, BlockState initialBlockState) {
-        return new Vec3(0.5, 0.85, 0.5);
+        // CLAUDE, cache this constant
+        // Polymer 会把该偏移加到方块中心(Vec3.atCenterOf), 因此这里是相对中心的偏移:
+        // 结果约为 (x+0.5, y+0.55, z+0.5), 即锅内水中、锅沿以下、水平居中。
+        return new Vec3(0.0, 0.05, 0.0);
     }
 
     @Override

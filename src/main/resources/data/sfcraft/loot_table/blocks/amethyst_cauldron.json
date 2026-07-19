@@ -33,17 +33,11 @@
               "children": [
                 {
                   "type": "minecraft:item",
-                  "name": "minecraft:iron_ingot",
-                  "functions": [
-                    {
-                      "function": "minecraft:set_count",
-                      "count": 7
-                    }
-                  ]
+                  "name": "minecraft:iron_ingot"
                 },
                 {
                   "type": "minecraft:item",
-                  "name": "minecraft:amethyst_block"
+                  "name": "minecraft:amethyst_shard"
                 }
               ]
             }

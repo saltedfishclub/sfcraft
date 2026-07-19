@@ -19,6 +19,8 @@
     "common.bridge.ServerWorldBridge",
     "common.fixes.EndermanEntityMixin",
     "common.fixes.LivingEntityMixin",
+    "common.mount.HoglinMountMixin",
+    "common.mount.RavagerMountMixin",
     "server.AbstractFurnaceBlockMixin",
     "server.LegacyQueryHandlerMixin",
     "server.MinecraftServerMixin",

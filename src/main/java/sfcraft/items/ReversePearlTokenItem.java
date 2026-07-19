@@ -24,11 +24,8 @@ import java.util.Set;
 import java.util.UUID;
 
 public class ReversePearlTokenItem extends Item implements PolymerItem {
-    public static final String USES_KEY = "sfcraft_uses";
+    // 冷却由本类自行实现:在 CUSTOM_DATA 内记录上次使用的时间戳
     public static final String LAST_USE_KEY = "sfcraft_last_use";
-    public static final int MAX_USES = 8;
-    private static final long COOLDOWN_MS = 5 * 60 * 1000;
-    private static final int COOLDOWN_TICKS = 5 * 60 * 20;
 
     public ReversePearlTokenItem(Properties properties) {
         super(properties);
@@ -36,17 +33,17 @@ public class ReversePearlTokenItem extends Item implements PolymerItem {
 
     @Override
     public Item getPolymerItem(ItemStack stack, PacketContext context) {
-        return Items.ENDER_EYE;
+        return Items.FISHING_ROD;
     }
 
     public static ItemStack createBound(UUID ownerId, String ownerName) {
+        // 满耐久出品(damage 默认为 0),使用次数完全由耐久承载
         var stack = new ItemStack(sfcraft.SFItems.REVERSE_PEARL_TOKEN);
         CustomData.update(DataComponents.CUSTOM_DATA, stack, tag -> {
             tag.putString(PearlTokenItem.OWNER_KEY, ownerId.toString());
             tag.putString(PearlTokenItem.OWNER_NAME_KEY, ownerName);
-            tag.putInt(USES_KEY, MAX_USES);
         });
-        updateLore(stack, ownerName, MAX_USES);
+        updateLore(stack, ownerName);
         return stack;
     }
 
@@ -61,11 +58,13 @@ public class ReversePearlTokenItem extends Item implements PolymerItem {
             return InteractionResult.FAIL;
         }
 
+        var config = sfcraft.GameConfig.get().reverseToken;
+        // 自实现冷却:比对上次使用时间戳,未到冷却时间则拒绝
         var data = stack.get(DataComponents.CUSTOM_DATA);
         var tag = data == null ? null : data.copyTag();
         long now = System.currentTimeMillis();
         long lastUse = tag == null ? 0 : tag.getLongOr(LAST_USE_KEY, 0L);
-        long remainingMs = COOLDOWN_MS - (now - lastUse);
+        long remainingMs = config.cooldownSeconds * 1000L - (now - lastUse);
         if (remainingMs > 0) {
             serverPlayer.sendOverlayMessage(Component.literal("信物冷却中,还需 " + (remainingMs / 1000 + 1) + " 秒"));
             return InteractionResult.FAIL;
@@ -89,25 +88,24 @@ public class ReversePearlTokenItem extends Item implements PolymerItem {
         owner.sendSystemMessage(Component.literal(
                 serverPlayer.getGameProfile().name() + " 使用反向珍珠信物来到了你身边"));
 
-        int uses = (tag == null ? MAX_USES : tag.getIntOr(USES_KEY, MAX_USES)) - 1;
-        if (uses <= 0) {
-            stack.shrink(1);
+        // 记录本次使用时间戳(冷却),再扣除耐久(使用次数)
+        CustomData.update(DataComponents.CUSTOM_DATA, stack, t -> t.putLong(LAST_USE_KEY, now));
+        stack.hurtAndBreak(1, serverPlayer, hand);
+        if (stack.isEmpty()) {
             serverPlayer.sendOverlayMessage(Component.literal("信物已耗尽,化为了灰烬"));
         } else {
-            CustomData.update(DataComponents.CUSTOM_DATA, stack, t -> {
-                t.putInt(USES_KEY, uses);
-                t.putLong(LAST_USE_KEY, now);
-            });
-            updateLore(stack, ownerName, uses);
-            serverPlayer.getCooldowns().addCooldown(stack, COOLDOWN_TICKS);
-            serverPlayer.sendOverlayMessage(Component.literal("剩余使用次数: " + uses + "/" + MAX_USES));
+            updateLore(stack, ownerName);
+            int remaining = stack.getMaxDamage() - stack.getDamageValue();
+            serverPlayer.sendOverlayMessage(Component.literal("剩余使用次数: " + remaining + "/" + stack.getMaxDamage()));
         }
         return InteractionResult.SUCCESS_SERVER;
     }
 
-    private static void updateLore(ItemStack stack, String ownerName, int uses) {
+    private static void updateLore(ItemStack stack, String ownerName) {
+        int max = stack.getMaxDamage();
+        int remaining = max - stack.getDamageValue();
         stack.set(DataComponents.LORE, new ItemLore(List.of(
                 Component.literal("主人: " + ownerName),
-                Component.literal("剩余次数: " + uses + "/" + MAX_USES))));
+                Component.literal("剩余次数: " + remaining + "/" + max))));
     }
 }

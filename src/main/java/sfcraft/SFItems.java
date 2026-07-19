@@ -27,6 +27,7 @@ public class SFItems {
             "amethyst_cauldron_blank",
             properties -> new SimplePolymerItem(properties, Items.RAW_IRON),
             new Item.Properties()
+                    .modelId(Identifier.fromNamespaceAndPath("sfcraft", "item/amethyst_cauldron"))
                     .stacksTo(16)
                     .component(DataComponents.ITEM_NAME, Component.literal("紫水晶炼药锅胚体"))
     );
@@ -34,32 +35,37 @@ public class SFItems {
             "amethyst_cauldron",
             properties -> new PolymerBlockItem(SFBlocks.AMETHYST_CAULDRON, properties, Items.CAULDRON),
             new Item.Properties()
+                    .component(DataComponents.ENCHANTMENT_GLINT_OVERRIDE, true)
                     .component(DataComponents.ITEM_NAME, Component.literal("紫水晶炼药锅"))
     );
     public static final Item GRAVITY_CRYSTAL = register(
             "gravity_crystal",
             properties -> new PolymerBlockItem(SFBlocks.GRAVITY_CRYSTAL, properties, Items.RESPAWN_ANCHOR),
             new Item.Properties()
+                    .component(DataComponents.ENCHANTMENT_GLINT_OVERRIDE, true)
                     .component(DataComponents.ITEM_NAME, Component.literal("重力水晶"))
     );
     public static final Item BOMB = register(
             "bomb",
-            properties -> new BombItem(properties, BombEntity.BombType.NORMAL, Items.FIRE_CHARGE),
+            properties -> new BombItem(properties, BombEntity.BombType.NORMAL, Items.WARPED_FUNGUS_ON_A_STICK),
             new Item.Properties()
+                    .modelId(Identifier.fromNamespaceAndPath("sfcraft", "item/bomb"))
                     .stacksTo(16)
                     .component(DataComponents.ITEM_NAME, Component.literal("炸弹"))
     );
     public static final Item OBSIDIAN_BOMB = register(
             "obsidian_bomb",
-            properties -> new BombItem(properties, BombEntity.BombType.OBSIDIAN, Items.ECHO_SHARD),
+            properties -> new BombItem(properties, BombEntity.BombType.OBSIDIAN, Items.WARPED_FUNGUS_ON_A_STICK),
             new Item.Properties()
+                    .modelId(Identifier.fromNamespaceAndPath("sfcraft", "item/obsidian_bomb"))
                     .stacksTo(16)
                     .component(DataComponents.ITEM_NAME, Component.literal("黑曜石炸弹"))
     );
     public static final Item BLAZE_BOMB = register(
             "blaze_bomb",
-            properties -> new BombItem(properties, BombEntity.BombType.BLAZE, Items.MAGMA_CREAM),
+            properties -> new BombItem(properties, BombEntity.BombType.BLAZE, Items.WARPED_FUNGUS_ON_A_STICK),
             new Item.Properties()
+                    .modelId(Identifier.fromNamespaceAndPath("sfcraft", "item/blaze_bomb"))
                     .stacksTo(16)
                     .component(DataComponents.ITEM_NAME, Component.literal("烈焰炸弹"))
     );
@@ -67,6 +73,7 @@ public class SFItems {
             "pearl_token",
             PearlTokenItem::new,
             new Item.Properties()
+                    .modelId(Identifier.fromNamespaceAndPath("sfcraft", "item/pearl_token"))
                     .stacksTo(16)
                     .component(DataComponents.ITEM_NAME, Component.literal("珍珠信物"))
     );
@@ -75,6 +82,7 @@ public class SFItems {
             LunchBoxItem::new,
             new Item.Properties()
                     .stacksTo(1)
+                    .modelId(Identifier.fromNamespaceAndPath("sfcraft", "item/lunch_box"))
                     .component(DataComponents.ITEM_NAME, Component.literal("午餐盒"))
                     // 0 营养 + canAlwaysEat:仅用于触发原版进食流程,真正的营养来自盒内食物
                     .component(DataComponents.FOOD, new FoodProperties(0, 0.0F, true))
@@ -84,7 +92,9 @@ public class SFItems {
             "reverse_pearl_token",
             ReversePearlTokenItem::new,
             new Item.Properties()
-                    .stacksTo(1)
+                    .modelId(Identifier.fromNamespaceAndPath("sfcraft", "item/pearl_token"))
+                    .component(DataComponents.ENCHANTMENT_GLINT_OVERRIDE, true)
+                    .durability(GameConfig.get().reverseToken.maxUses)
                     .component(DataComponents.ITEM_NAME, Component.literal("反向珍珠信物"))
     );
 

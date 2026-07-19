@@ -29,7 +29,9 @@ public class LunchBoxItem extends Item implements PolymerItem {
 
     @Override
     public Item getPolymerItem(ItemStack stack, PacketContext context) {
-        return Items.BARREL;
+        // 碗:非方块(不会出现放置鬼影),且没有自定义 use 行为,
+        // 客户端右键会走 consumable 组件路径,进食动画预测完整保留
+        return Items.BOWL;
     }
 
     @Override

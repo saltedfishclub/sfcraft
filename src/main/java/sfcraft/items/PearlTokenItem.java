@@ -33,7 +33,7 @@ public class PearlTokenItem extends Item implements PolymerItem {
 
     @Override
     public Item getPolymerItem(ItemStack stack, PacketContext context) {
-        return Items.ENDER_PEARL;
+        return Items.WARPED_FUNGUS_ON_A_STICK;
     }
 
     @Override
