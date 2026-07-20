@@ -1,7 +1,6 @@
 {
 	"format_version": "1.21.11",
 	"credit": "Made with Blockbench",
-	"parent": "lunch_box",
 	"textures": {
 		"0": "sfcraft:item/coal_block",
 		"3": "sfcraft:item/redstone_block",
