@@ -37,5 +37,7 @@
   "command.sfcraft.gps.stopped": "Navigation cancelled",
   "command.sfcraft.gps.not_active": "No navigation in progress",
   "command.sfcraft.gps.arrived": "You have arrived, navigation ended",
-  "command.sfcraft.gps.dimension_changed": "You left the target's dimension, navigation ended"
+  "command.sfcraft.gps.dimension_changed": "You left the target's dimension, navigation ended",
+  "item.sfcraft.standing_firm_totem": "Standing Firm",
+  "message.sfcraft.totem.triggered": "Standing Firm! Half your experience bought you a second chance"
 }

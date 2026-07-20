@@ -15,6 +15,15 @@ public class GameConfig {
     public Commander commander = new Commander();
     public Mount mount = new Mount();
     public Gps gps = new Gps();
+    public StandingFirmTotem standingFirmTotem = new StandingFirmTotem();
+
+    public static class StandingFirmTotem {
+        // 可反复使用的图腾变种:触发时扣掉一部分总经验,并进入冷却
+        public int cooldownTicks = 600; // 30 秒
+        // 总经验点数低于此值时放弃触发(直接让玩家死亡);160 = 等级 10
+        public int minExperiencePoints = 160;
+        public double experienceDrainRatio = 0.5;
+    }
 
     public static class Gps {
         // 视线与目标方向的夹角小于该值(度)时,光标锁定在准星上;超过则跳到真实目标方向

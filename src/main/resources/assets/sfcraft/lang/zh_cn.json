@@ -37,5 +37,7 @@
   "command.sfcraft.gps.stopped": "导航已取消",
   "command.sfcraft.gps.not_active": "当前没有正在进行的导航",
   "command.sfcraft.gps.arrived": "已到达目的地,导航结束",
-  "command.sfcraft.gps.dimension_changed": "已离开目标所在维度,导航结束"
+  "command.sfcraft.gps.dimension_changed": "已离开目标所在维度,导航结束",
+  "item.sfcraft.standing_firm_totem": "屹立不倒",
+  "message.sfcraft.totem.triggered": "屹立不倒!消耗了一半经验换来一线生机"
 }

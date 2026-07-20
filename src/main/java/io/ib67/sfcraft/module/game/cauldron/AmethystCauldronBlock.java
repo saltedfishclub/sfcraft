@@ -104,7 +104,9 @@ public class AmethystCauldronBlock extends BaseEntityBlock implements PolymerBlo
             return InteractionResult.SUCCESS_SERVER;
         }
         // 其余物品不再手持触发反应: 把配方所需物品(含回响碎片催化剂)丢进锅里即可自动开始。
-        return InteractionResult.PASS;
+        // 必须返回 TRY_WITH_EMPTY_HAND 而非 PASS,否则 26.2 交互流程不会继续调用 useWithoutItem,
+        // 空手右键取回原料(retrieveLast)就永远触发不了。
+        return InteractionResult.TRY_WITH_EMPTY_HAND;
     }
 
     @Override

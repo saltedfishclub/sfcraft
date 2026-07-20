@@ -19,6 +19,7 @@
     "common.fixes.EndermanEntityMixin",
     "common.fixes.LivingEntityMixin",
     "gameplay.MobCommanderMixin",
+    "gameplay.TotemProtectionMixin",
     "gameplay.ZombieMixin",
     "gameplay.mount.HoglinMountMixin",
     "gameplay.mount.RavagerMountMixin",

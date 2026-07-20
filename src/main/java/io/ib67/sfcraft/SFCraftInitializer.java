@@ -21,6 +21,7 @@ import io.ib67.sfcraft.module.game.crystal.GravityCrystalModule;
 import io.ib67.sfcraft.module.game.lunchbox.LunchBoxModule;
 import io.ib67.sfcraft.module.game.mount.MountModule;
 import io.ib67.sfcraft.module.game.token.TokenModule;
+import io.ib67.sfcraft.module.game.totem.TotemModule;
 import io.ib67.sfcraft.registry.CauldronRecipeRegistry;
 import io.ib67.sfcraft.registry.RoomRegistry;
 import io.ib67.sfcraft.registry.cauldron.SimpleCauldronRecipeRegistry;
@@ -95,6 +96,7 @@ public class SFCraftInitializer extends GuiceModInitializer {
         registerFeature(BeheadingModule.class);
         registerFeature(CommanderModule.class);
         registerFeature(MountModule.class);
+        registerFeature(TotemModule.class);
     }
 
     private void registerWebModules() {
