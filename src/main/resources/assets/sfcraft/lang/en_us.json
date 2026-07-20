@@ -13,6 +13,8 @@
   "container.sfcraft.lunch_box": "Lunch Box",
   "enchantment.sfcraft.beheading": "Beheading",
   "message.sfcraft.cauldron.reacting": "The reaction is in progress, ingredients cannot be retrieved",
+  "message.sfcraft.antispam.too_fast": "You're chatting too fast, slow down",
+  "message.sfcraft.antispam.duplicate": "Please don't repeat yourself",
   "message.sfcraft.lunch_box.empty": "The lunch box is empty",
   "message.sfcraft.lunch_box.not_hungry": "You are not hungry right now",
   "message.sfcraft.mount.need_weakness": "It must be weakened before it can be tamed",

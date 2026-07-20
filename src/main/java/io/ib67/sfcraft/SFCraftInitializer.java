@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.inject.*;
 import io.ib67.sfcraft.module.*;
+import io.ib67.sfcraft.module.chat.AntiSpamModule;
 import io.ib67.sfcraft.module.chat.ChatPrefixModule;
 import io.ib67.sfcraft.module.chat.decorator.ChatPingModule;
 import io.ib67.sfcraft.module.chat.decorator.ChatSendLocModule;
@@ -79,6 +80,7 @@ public class SFCraftInitializer extends GuiceModInitializer {
         registerFeature(ChatPrefixModule.class);
         registerFeature(SoundModule.class);
         registerFeature(ChatShowoffModule.class);
+        registerFeature(AntiSpamModule.class);
         registerFeature(ReloadCommandModule.class);
         registerFeature(GpsModule.class);
         registerGameFeatures();

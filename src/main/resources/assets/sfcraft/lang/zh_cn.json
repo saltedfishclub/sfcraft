@@ -13,6 +13,8 @@
   "container.sfcraft.lunch_box": "午餐盒",
   "enchantment.sfcraft.beheading": "斩首",
   "message.sfcraft.cauldron.reacting": "反应进行中,无法取出原料",
+  "message.sfcraft.antispam.too_fast": "发言太快了,请慢一点",
+  "message.sfcraft.antispam.duplicate": "请勿重复刷屏",
   "message.sfcraft.lunch_box.empty": "午餐盒是空的",
   "message.sfcraft.lunch_box.not_hungry": "你现在不饿",
   "message.sfcraft.mount.need_weakness": "它必须处于虚弱状态才能被驯服",
