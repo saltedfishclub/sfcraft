@@ -60,7 +60,9 @@ public class GpsModule extends ServerModule {
         CommandRegistrationCallback.EVENT.register(this::registerCommands);
         ServerTickEvents.END_SERVER_TICK.register(this::onTick);
         ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> {
-            var session = sessions.remove(handler.getPlayer().getUUID());
+            var player = handler.getPlayer();
+            if (player == null) return;
+            var session = sessions.remove(player.getUUID());
             if (session != null) session.destroy();
         });
         // 重生会让客户端重建世界,虚拟实体需要向新实例重发生成包

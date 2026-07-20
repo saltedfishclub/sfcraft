@@ -180,7 +180,7 @@ public class AmethystCauldronBlockEntity extends BlockEntity {
         var list = out.list("items", ItemStack.CODEC);
         contents.forEach(list::add);
         out.putInt("reaction_ticks", reactionTicksLeft);
-        out.putInt("recipe", activeRecipe == null ? -1 : recipes.indexOf(activeRecipe));
+        out.putString("recipe", activeRecipe == null ? "" : activeRecipe.id());
     }
 
     @Override
@@ -189,6 +189,6 @@ public class AmethystCauldronBlockEntity extends BlockEntity {
         contents.clear();
         in.listOrEmpty("items", ItemStack.CODEC).forEach(contents::add);
         reactionTicksLeft = in.getIntOr("reaction_ticks", 0);
-        activeRecipe = recipes.byIndex(in.getIntOr("recipe", -1));
+        activeRecipe = recipes.byId(in.getStringOr("recipe", ""));
     }
 }

@@ -42,6 +42,7 @@ public class GravityCrystalBlockEntity extends BlockEntity {
     }
 
     private static void boostEntities(ServerLevel level, BlockPos pos, int charge, GameConfig.GravityCrystal config) {
+        if (config.boostPerCharge.length == 0) return; // 配置为空数组时不加速,避免下方索引越界
         int index = Math.min(charge, config.boostPerCharge.length - 1);
         double factor = 1.0 + config.boostPerCharge[index];
         double maxSpeed = config.maxSpeedMetersPerSecond / 20.0;

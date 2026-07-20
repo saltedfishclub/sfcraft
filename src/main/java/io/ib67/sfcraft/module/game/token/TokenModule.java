@@ -66,6 +66,7 @@ public class TokenModule extends ServerModule {
     private void registerRecipes() {
         // 锅里丢入: 已绑定的珍珠信物 + 回响碎片(催化剂) + 水 + 加热 → 反向珍珠信物
         register(new CauldronRecipe(
+                "reverse_pearl_token",
                 List.of(
                         stack -> stack.is(pearlToken) && PearlTokenItem.getOwnerId(stack) != null,
                         stack -> stack.is(Items.ECHO_SHARD)),

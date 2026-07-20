@@ -27,14 +27,12 @@ public class SimpleCauldronRecipeRegistry implements CauldronRecipeRegistry {
     }
 
     @Override
-    public int indexOf(CauldronRecipe recipe) {
-        return recipes.indexOf(recipe);
-    }
-
-    @Override
     @Nullable
-    public CauldronRecipe byIndex(int index) {
-        return index >= 0 && index < recipes.size() ? recipes.get(index) : null;
+    public CauldronRecipe byId(String id) {
+        if (id == null || id.isEmpty()) return null;
+        for (CauldronRecipe recipe : recipes) {
+            if (recipe.id().equals(id)) return recipe;
+        }
+        return null;
     }
-
 }

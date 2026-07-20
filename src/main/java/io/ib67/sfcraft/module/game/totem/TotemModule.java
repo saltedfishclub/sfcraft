@@ -9,6 +9,7 @@ import io.ib67.sfcraft.module.game.item.SimplePolymerItem;
 import io.ib67.sfcraft.registry.CauldronRecipeRegistry;
 import io.ib67.sfcraft.registry.cauldron.CauldronRecipe;
 import lombok.Getter;
+import net.minecraft.advancements.triggers.CriteriaTriggers;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.chat.Component;
@@ -21,6 +22,8 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.component.DeathProtection;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.stats.Stats;
+import net.minecraft.world.level.gameevent.GameEvent;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -60,8 +63,9 @@ public class TotemModule extends ServerModule {
                 new Item.Properties()
                         .stacksTo(1)
                         .modelId(Identifier.fromNamespaceAndPath("sfcraft", "item/standing_firm_totem"))
-                        // 自带原版图腾同款死亡保护组件:原版死亡保护识别的是该组件而非具体物品类型
-                        .component(DataComponents.DEATH_PROTECTION, DeathProtection.TOTEM_OF_UNDYING)
+                        // 刻意不挂 DEATH_PROTECTION 组件:否则原版死亡保护会识别它、在本图腾失效(冷却/
+                        // 经验不足)时把它当普通图腾消耗,或连带取消掉玩家另一只手里的原版图腾。
+                        // 效果改由 mixin 完全接管,复用 DeathProtection.TOTEM_OF_UNDYING 常量(见 tryProtect)。
                         .component(DataComponents.ITEM_NAME, Component.translatable("item.sfcraft.standing_firm_totem"))
         );
         registerRecipes();
@@ -76,6 +80,7 @@ public class TotemModule extends ServerModule {
     private void registerRecipes() {
         // 紫水晶炼药锅里丢入: 不死图腾 + 附魔之瓶 + 绿宝石(催化剂),加热 → 屹立不倒
         register(new CauldronRecipe(
+                "standing_firm_totem",
                 List.of(
                         stack -> stack.is(Items.TOTEM_OF_UNDYING),
                         stack -> stack.is(Items.EXPERIENCE_BOTTLE),
@@ -118,12 +123,14 @@ public class TotemModule extends ServerModule {
         player.giveExperiencePoints(-(int) (totalXp * settings.experienceDrainRatio));
         player.getCooldowns().addCooldown(totem, settings.cooldownTicks);
         player.setHealth(1.0F);
-        var protection = totem.get(DataComponents.DEATH_PROTECTION);
-        if (protection != null) {
-            protection.applyEffects(totem, player);
-        }
+        // 复用原版图腾的死亡效果(清负面 + 再生/伤害吸收/抗火);物品本身不挂组件,直接用常量应用
+        DeathProtection.TOTEM_OF_UNDYING.applyEffects(totem, player);
         // 事件 35 = 图腾使用动画+粒子+音效,由客户端按手持物品外观播放
         player.level().broadcastEntityEvent(player, (byte) 35);
+        // 复刻原版图腾的统计/成就副作用:物品使用统计、「向死而生」成就、交互结束游戏事件
+        player.awardStat(Stats.ITEM_USED.get(standingFirmTotem));
+        CriteriaTriggers.USED_TOTEM.trigger(player, totem);
+        player.gameEvent(GameEvent.ITEM_INTERACT_FINISH);
         player.sendSystemMessage(Component.translatable("message.sfcraft.totem.triggered"));
         return Result.PROTECTED;
     }

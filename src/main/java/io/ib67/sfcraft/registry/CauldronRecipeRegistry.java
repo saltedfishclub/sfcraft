@@ -18,9 +18,7 @@ public interface CauldronRecipeRegistry {
 
     Optional<CauldronRecipe> match(List<ItemStack> contents);
 
-    /** Stable index used to persist the running reaction in the block entity. */
-    int indexOf(CauldronRecipe recipe);
-
+    /** Look up by the recipe's stable id, used to restore an in-progress reaction from the block entity. */
     @Nullable
-    CauldronRecipe byIndex(int index);
+    CauldronRecipe byId(String id);
 }

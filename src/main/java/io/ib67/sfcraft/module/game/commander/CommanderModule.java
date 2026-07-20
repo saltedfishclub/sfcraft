@@ -5,8 +5,10 @@ import io.ib67.sfcraft.SFCraft;
 import io.ib67.sfcraft.ServerModule;
 import io.ib67.sfcraft.config.GameConfig;
 import io.ib67.sfcraft.config.GameConfigService;
+import io.ib67.sfcraft.inject.MinecraftServerSupplier;
 import lombok.Getter;
 import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerEntityEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
@@ -19,13 +21,11 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.monster.Enemy;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.entity.EntityTypeTest;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.scores.PlayerTeam;
 import net.minecraft.world.scores.Scoreboard;
@@ -62,6 +62,8 @@ public class CommanderModule extends ServerModule {
 
     @Inject
     private GameConfigService config;
+    @Inject
+    private MinecraftServerSupplier server;
 
     /** 「统帅」效果本体,在 ModInit 注册(此时静态注册表尚未冻结)。 */
     @Getter
@@ -69,6 +71,9 @@ public class CommanderModule extends ServerModule {
 
     // 提供者 UUID -> 当前纽带
     private final Map<UUID, Bond> active = new HashMap<>();
+    // 事件维护的「当前已加载、携带统帅效果的怪」集合;rescan 只遍历它,避免全实体扫描,
+    // 且完全不依赖玩家位置——统帅 buff 是给怪群用的,与玩家远近无关。
+    private final Set<Mob> providers = new HashSet<>();
     private int tickCounter;
 
     // lastTargetId:上一轮扫描时提供者的仇恨目标 UUID(null 表示无目标),用于检测目标切换
@@ -83,12 +88,36 @@ public class CommanderModule extends ServerModule {
                 Identifier.fromNamespaceAndPath(SFCraft.MOD_ID, "commander"),
                 new CommanderMobEffect());
         ServerTickEvents.END_SERVER_TICK.register(this::onTick);
+        // 靠实体加载/卸载事件维护提供者集合:区块加载(含新刷怪 addFreshEntity、重启后 spawn 区块、
+        // 玩家探索加载)时若怪携带统帅效果就登记,卸载/死亡时移除。集合始终等于「当前加载的提供者」。
+        ServerEntityEvents.ENTITY_LOAD.register((entity, level) -> {
+            if (entity instanceof Mob mob && mob.hasEffect(commanderEffect)) {
+                providers.add(mob);
+            }
+        });
+        ServerEntityEvents.ENTITY_UNLOAD.register((entity, level) -> {
+            if (entity instanceof Mob mob) {
+                providers.remove(mob);
+            }
+        });
         // 提供者死亡即时清理,保证「死亡后 buff 立即消失」
         ServerLivingEntityEvents.AFTER_DEATH.register((entity, source) -> {
             if (active.containsKey(entity.getUUID()) && entity.level() instanceof ServerLevel level) {
                 clearBond(entity.getUUID(), level.getServer());
             }
         });
+    }
+
+    @Override
+    public void onEnable() {
+        // 清理上次运行残留在队伍里的成员(实体已消失、记分板条目未随之清除);此刻 active 必为空
+        Scoreboard scoreboard = server.get().getScoreboard();
+        PlayerTeam team = scoreboard.getPlayerTeam(TEAM_NAME);
+        if (team != null) {
+            for (String member : new ArrayList<>(team.getPlayers())) {
+                scoreboard.removePlayerFromTeam(member, team);
+            }
+        }
     }
 
     /** MobCommanderMixin 在 finalizeSpawn 尾部调用:自然刷新的敌怪按概率获得统帅效果。 */
@@ -98,6 +127,7 @@ public class CommanderModule extends ServerModule {
         if (chance <= 0 || mob.getRandom().nextDouble() >= chance) return;
         mob.addEffect(new MobEffectInstance(commanderEffect,
                 MobEffectInstance.INFINITE_DURATION, 0, false, false, false));
+        providers.add(mob); // 直接登记,不依赖 ENTITY_LOAD 的时序
     }
 
     private void onTick(MinecraftServer server) {
@@ -116,30 +146,33 @@ public class CommanderModule extends ServerModule {
         PlayerTeam team = getOrCreateTeam(scoreboard);
         Set<UUID> seen = new HashSet<>();
 
-        for (ServerLevel level : server.getAllLevels()) { //todo rewrite by level#getNearbyEntities
-            List<? extends Mob> providers = level.getEntities(EntityTypeTest.<Entity, Mob>forClass(Mob.class),
-                    m -> m.isAlive() && m.hasEffect(commanderEffect));
-            for (Mob provider : providers) {
-                seen.add(provider.getUUID());
-                // 紫光:GLOWING(无粒子)+ 紫色队伍
-                provider.addEffect(new MobEffectInstance(MobEffects.GLOWING, config.glowRefreshTicks, 0, true, false, false));
-                if (!team.equals(scoreboard.getPlayersTeam(provider.getScoreboardName()))) {
-                    scoreboard.addPlayerToTeam(provider.getScoreboardName(), team);
-                }
-
-                Bond previous = active.get(provider.getUUID());
-                LivingEntity target = provider.getTarget();
-                UUID targetId = target == null ? null : target.getUUID();
-                // 提供者切换仇恨目标 → 立即把新目标覆写给上一轮已连接的成员,让整队跟随
-                if (previous != null && target != null && !Objects.equals(previous.lastTargetId(), targetId)) {
-                    overrideRecipientTargets(level, previous.recipients(), target);
-                }
-
-                List<Holder<MobEffect>> buffs = pickBuffs(provider.getUUID());
-                Set<UUID> priorRecipients = previous == null ? Set.of() : previous.recipients();
-                Set<UUID> recipients = collectAndBuff(level, provider, buffs, config, priorRecipients);
-                active.put(provider.getUUID(), new Bond(level.dimension(), targetId, recipients, buffs));
+        // 遍历事件维护的提供者集合(携带统帅效果的已加载怪),不做全实体扫描、也不看玩家位置
+        for (Mob provider : new ArrayList<>(providers)) {
+            // 已死亡 / 失去效果(如被 /effect clear)/ 不在服务端世界 → 移出集合,由下方 stale 清理撤销影响
+            if (!provider.isAlive() || !provider.hasEffect(commanderEffect)
+                    || !(provider.level() instanceof ServerLevel level)) {
+                providers.remove(provider);
+                continue;
             }
+            seen.add(provider.getUUID());
+            // 紫光:GLOWING(无粒子)+ 紫色队伍
+            provider.addEffect(new MobEffectInstance(MobEffects.GLOWING, config.glowRefreshTicks, 0, true, false, false));
+            if (!team.equals(scoreboard.getPlayersTeam(provider.getScoreboardName()))) {
+                scoreboard.addPlayerToTeam(provider.getScoreboardName(), team);
+            }
+
+            Bond previous = active.get(provider.getUUID());
+            LivingEntity target = provider.getTarget();
+            UUID targetId = target == null ? null : target.getUUID();
+            // 提供者切换仇恨目标 → 立即把新目标覆写给上一轮已连接的成员,让整队跟随
+            if (previous != null && target != null && !Objects.equals(previous.lastTargetId(), targetId)) {
+                overrideRecipientTargets(level, previous.recipients(), target);
+            }
+
+            List<Holder<MobEffect>> buffs = pickBuffs(provider.getUUID());
+            Set<UUID> priorRecipients = previous == null ? Set.of() : previous.recipients();
+            Set<UUID> recipients = collectAndBuff(level, provider, buffs, config, priorRecipients);
+            active.put(provider.getUUID(), new Bond(level.dimension(), targetId, recipients, buffs));
         }
 
         // 已不再是提供者(失去效果/离开)→ 清理

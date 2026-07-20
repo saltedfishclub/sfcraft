@@ -12,12 +12,14 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 public abstract class ZombieMixin {
     @Inject(method = "canHoldItem", at = @At("HEAD"), cancellable = true)
     public void canHoldItem(final ItemStack itemStack, final CallbackInfoReturnable<Boolean> cir) {
-        cir.setReturnValue(!(itemStack.is(Items.EGG)
+        // 命中黑名单才禁止拾取(返回 false),其余物品交回原版判定
+        if (itemStack.is(Items.EGG)
                 || itemStack.is(Items.ROTTEN_FLESH)
-                || itemStack.is(Items.STRING))
+                || itemStack.is(Items.STRING)
                 || itemStack.is(Items.BONE)
                 || itemStack.is(Items.ARROW)
-                || itemStack.is(Items.WHEAT_SEEDS)
-        );
+                || itemStack.is(Items.WHEAT_SEEDS)) {
+            cir.setReturnValue(false);
+        }
     }
 }
