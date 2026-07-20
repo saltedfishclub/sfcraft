@@ -27,7 +27,7 @@ public class CreativeSpaceRoom implements Room {
     @Override
     public void shutdown() {
         for (ServerPlayer joinedPlayer : playerManager.getJoinedPlayers()) {
-            joinedPlayer.connection.disconnect(Component.nullToEmpty("Room is shutting down"));
+            joinedPlayer.connection.disconnect(Component.translatable("message.sfcraft.room.shutting_down"));
         }
     }
 

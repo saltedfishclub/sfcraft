@@ -139,7 +139,7 @@ public class CreativeRoomModule extends ServerModule {
                     return Command.SINGLE_SUCCESS;
                 }
             }
-            p.sendSystemMessage(Component.nullToEmpty("You and target must be in playground!"));
+            p.sendSystemMessage(Component.translatable("message.sfcraft.playground.must_be_in"));
         }
         return Command.SINGLE_SUCCESS;
     }
@@ -151,9 +151,9 @@ public class CreativeRoomModule extends ServerModule {
             var mode = ctx.getArgument("mode", GameType.class);
             if (p.level().dimension().equals(CreativeSpaceRoom.WORLD)) {
                 p.setGameMode(mode);
-                p.sendSystemMessage(Component.nullToEmpty("Your gamemode has been changed to " + mode.getSerializedName()));
+                p.sendSystemMessage(Component.translatable("message.sfcraft.playground.gamemode_changed", mode.getSerializedName()));
             } else {
-                p.sendSystemMessage(Component.nullToEmpty("You can only use this in playground!"));
+                p.sendSystemMessage(Component.translatable("message.sfcraft.playground.only_here"));
             }
         }
         return Command.SINGLE_SUCCESS;
@@ -171,14 +171,14 @@ public class CreativeRoomModule extends ServerModule {
     }
 
     public void onPlayerJoin(ServerPlayer player) {
-        player.sendSystemMessage(Component.nullToEmpty("你现在正在创造游乐园中，使用 //schem list 查看可用投影。"));
-        player.sendSystemMessage(Component.literal("以下功能现在可用：").withColor(CommonColors.WHITE)
-                .append(Component.literal("/player /track /summon /setblock /gamerule 及 WorldEdit 的所有命令").withColor(Color.MAGENTA.getRGB()).append("。")));
+        player.sendSystemMessage(Component.translatable("message.sfcraft.playground.welcome"));
+        player.sendSystemMessage(Component.translatable("message.sfcraft.playground.features_available").withColor(CommonColors.WHITE)
+                .append(Component.translatable("message.sfcraft.playground.features_list").withColor(Color.MAGENTA.getRGB())));
         player.sendSystemMessage(Component.nullToEmpty("    "));
-        player.sendSystemMessage(Component.literal("如何上传投影到游乐场: ").withColor(CommonColors.GRAY)
+        player.sendSystemMessage(Component.translatable("message.sfcraft.playground.upload_hint").withColor(CommonColors.GRAY)
                 .append(Component.literal("https://github.com/saltedfishclub/sfcraft-schematics").withColor(CommonColors.GRAY).withStyle(it -> it.withUnderlined(true))));
-        player.sendSystemMessage(Component.literal("游乐园中的生物不能逃逸到其他维度。").withColor(CommonColors.GRAY));
-        player.sendSystemMessage(Component.literal("使用 /reco 或重新加入游戏即可离开。").withColor(CommonColors.GRAY));
+        player.sendSystemMessage(Component.translatable("message.sfcraft.playground.mobs_no_escape").withColor(CommonColors.GRAY));
+        player.sendSystemMessage(Component.translatable("message.sfcraft.playground.how_to_leave").withColor(CommonColors.GRAY));
         player.setGameMode(GameType.CREATIVE);
 
         chatPrefixModule.applyPrefix(player, prefix);

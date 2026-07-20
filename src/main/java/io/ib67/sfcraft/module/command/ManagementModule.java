@@ -65,7 +65,7 @@ public class ManagementModule extends ServerModule {
     private int listGeo(CommandContext<CommandSourceStack> ctx) {
         var src = ctx.getSource();
         var server = src.getServer();
-        src.sendSystemMessage(Component.nullToEmpty("List of player with cities:"));
+        src.sendSystemMessage(Component.translatable("message.sfcraft.management.cities_header"));
         for (ServerPlayer serverPlayerEntity : server.getPlayerList().getPlayers()) {
             try {
                 var addr = InetAddress.getByName(serverPlayerEntity.getIpAddress());
@@ -77,7 +77,7 @@ public class ManagementModule extends ServerModule {
                                 .append(Component.literal(" (" + Helper.hideIp(addr) + ")").withColor(CommonColors.LIGHT_GRAY))
                 );
             } catch (GeoIp2Exception | UnknownHostException e) {
-                src.sendSystemMessage(Component.literal(" - [FAILED TO FETCH] " + serverPlayerEntity.getName().tryCollapseToString()).withColor(CommonColors.SOFT_RED));
+                src.sendSystemMessage(Component.translatable("message.sfcraft.management.fetch_failed", serverPlayerEntity.getName().tryCollapseToString()).withColor(CommonColors.SOFT_RED));
             }
         }
         return 0;
@@ -87,10 +87,10 @@ public class ManagementModule extends ServerModule {
         var player = ctx.getSource().getPlayer();
         if (player.entityTags().contains(SFConsts.SPECIAL_SUDO)) {
             player.removeTag(SFConsts.SPECIAL_SUDO);
-            player.sendSystemMessage(Component.nullToEmpty("Sudo is off.").copy().withColor(CommonColors.GREEN));
+            player.sendSystemMessage(Component.translatable("message.sfcraft.management.sudo_off").withColor(CommonColors.GREEN));
         } else {
             player.addTag(SFConsts.SPECIAL_SUDO);
-            player.sendSystemMessage(Component.nullToEmpty("Sudo is on.").copy().withColor(CommonColors.GREEN));
+            player.sendSystemMessage(Component.translatable("message.sfcraft.management.sudo_on").withColor(CommonColors.GREEN));
         }
         return 0;
     }
@@ -98,11 +98,12 @@ public class ManagementModule extends ServerModule {
     @SneakyThrows
     public int listPerms(CommandContext<CommandSourceStack> ctx) {
         var src = ctx.getSource();
-        src.sendSystemMessage(Component.nullToEmpty("Permissions: ").copy().withColor(CommonColors.GREEN));
+        src.sendSystemMessage(Component.translatable("message.sfcraft.management.perms_header").withColor(CommonColors.GREEN));
         for (Field declaredField : SFConsts.class.getDeclaredFields()) {
             if (Permission.class.isAssignableFrom(declaredField.getType())) {
                 var permission = (Permission<?>) declaredField.get(null);
-                src.sendSystemMessage(Component.nullToEmpty(" - " + permission.key() + " " + (permission.byDefault() ? "(default)" : "")));
+                src.sendSystemMessage(Component.literal(" - " + permission.key() + " ")
+                        .append(permission.byDefault() ? Component.translatable("message.sfcraft.management.perm_default") : Component.empty()));
             }
         }
         return 0;

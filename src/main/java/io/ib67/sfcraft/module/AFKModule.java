@@ -21,7 +21,7 @@ public class AFKModule extends ServerModule {
     public void onInitialize() {
         SFCallbacks.PLAYER_IDLE.register(this::onAFK);
         prefix = new ChatPrefix(
-                Component.literal("[挂机] ").withColor(CommonColors.LIGHT_GRAY),
+                Component.translatable("message.sfcraft.afk.prefix").withColor(CommonColors.LIGHT_GRAY),
                 "afk",
                 true,
                 10
@@ -40,7 +40,7 @@ public class AFKModule extends ServerModule {
     private void enAFK(ServerPlayer player) {
         chatPrefixModule.applyPrefix(player, prefix);
         player.level().getServer().getPlayerList().broadcastSystemMessage(
-                Component.literal(" * " + player.getName().tryCollapseToString() + " 正在挂机.").withColor(CommonColors.LIGHT_GRAY),
+                Component.translatable("message.sfcraft.afk.now_afk", player.getName().tryCollapseToString()).withColor(CommonColors.LIGHT_GRAY),
                 false
         );
         SFCallbacks.PLAYER_AFK.invoker().onAFKStatus(player, true);
@@ -50,7 +50,7 @@ public class AFKModule extends ServerModule {
         String playerName = player.getName().tryCollapseToString();
         chatPrefixModule.removePrefix(player, prefix);
         player.level().getServer().getPlayerList().broadcastSystemMessage(
-                Component.literal(" * " + playerName + " 回来了.").withColor(CommonColors.LIGHT_GRAY),
+                Component.translatable("message.sfcraft.afk.back", playerName).withColor(CommonColors.LIGHT_GRAY),
                 false
         );
         SFCallbacks.PLAYER_AFK.invoker().onAFKStatus(player, false);

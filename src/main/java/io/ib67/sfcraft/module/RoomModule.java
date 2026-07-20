@@ -79,7 +79,7 @@ public class RoomModule extends ServerModule {
             return 0;
         }
         if (!isVirtual(player.getUUID())) {
-            player.sendSystemMessage(Component.literal("你不在任何 \"房间\" 内。"));
+            player.sendSystemMessage(Component.translatable("message.sfcraft.room.not_in_room"));
             return 0;
         }
         var networkHandler = player.connection;

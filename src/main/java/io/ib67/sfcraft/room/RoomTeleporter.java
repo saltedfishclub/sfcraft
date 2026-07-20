@@ -33,7 +33,7 @@ public class RoomTeleporter {
 
     public void teleportTo(Room room, ServerPlayer player) {
         if (roomModule.isVirtual(player.getUUID())) {
-            player.sendSystemMessage(Component.literal("您已经在某个房间里了").withColor(CommonColors.SOFT_RED));
+            player.sendSystemMessage(Component.translatable("message.sfcraft.room.already_in").withColor(CommonColors.SOFT_RED));
             return;
         }
         var finalUuid = roomModule.generateIdForRoom(player.getGameProfile(), player.getName().tryCollapseToString(), room.getServerIdentifier());

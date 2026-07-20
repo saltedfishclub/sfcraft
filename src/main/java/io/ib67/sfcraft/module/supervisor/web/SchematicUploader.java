@@ -64,11 +64,11 @@ public class SchematicUploader extends WebHandler {
     private int onRequestSchematic(CommandContext<CommandSourceStack> context) {
         var source = context.getSource();
         if (source.isPlayer() && !SFConsts.COMMAND_UPLOAD_SCHEMATIC.hasPermission(source.getPlayer())) {
-            source.sendSystemMessage(Component.literal("你没有使用上传功能的权限！请联系管理员申请"));
+            source.sendSystemMessage(Component.translatable("message.sfcraft.schem.no_permission"));
             return Command.SINGLE_SUCCESS;
         }
         var url = generateSchematicUrl(source.isPlayer() ? source.getPlayer().getName().tryCollapseToString() : "CONSOLE");
-        source.sendSystemMessage(Component.literal("Click this URL to upload schematic files.").withColor(Color.GREEN.getRGB()));
+        source.sendSystemMessage(Component.translatable("message.sfcraft.schem.click_to_upload").withColor(Color.GREEN.getRGB()));
         source.sendSystemMessage(Component.literal(url).withStyle(it -> it.withClickEvent(new ClickEvent.OpenUrl(URI.create(url)))));
         return Command.SINGLE_SUCCESS;
     }
@@ -172,8 +172,8 @@ public class SchematicUploader extends WebHandler {
         if (player == null) {
             return;
         }
-        player.sendSystemMessage(Component.literal("Schematic " + fileName + " has been saved! Use //schem list to find it").withColor(Color.GREEN.getRGB()));
-        player.sendSystemMessage(Component.literal("Or you can click this").withStyle(it -> it.withUnderlined(true).withClickEvent(
+        player.sendSystemMessage(Component.translatable("message.sfcraft.schem.saved", fileName).withColor(Color.GREEN.getRGB()));
+        player.sendSystemMessage(Component.translatable("message.sfcraft.schem.or_click").withStyle(it -> it.withUnderlined(true).withClickEvent(
                 new ClickEvent.SuggestCommand("//schem load " + fileName)
         )));
     }

@@ -48,14 +48,14 @@ public class BackModule extends ServerModule {
                 Helper.teleportSafely(player, wld, _pos.getX(), _pos.getY(), _pos.getZ(),0,0);
                 return 0;
             }
-            player.sendSystemMessage(Component.nullToEmpty("周围没有玩家。").copy().withColor(CommonColors.RED));
+            player.sendSystemMessage(Component.translatable("message.sfcraft.back.no_players").withColor(CommonColors.RED));
         }
         return 0;
     }
 
     public void onPlayerDeath(Player player, DamageSource damageSource) {
         if (this.isEnabled() && Helper.canBack((ServerPlayer) player)) {
-            player.sendSystemMessage(Component.nullToEmpty("Tip: 死亡地点附近有玩家，可以使用 /back 传送到他们那里。（即使在对方也死亡的状态下）"));
+            player.sendSystemMessage(Component.translatable("message.sfcraft.back.tip"));
         }
     }
 }

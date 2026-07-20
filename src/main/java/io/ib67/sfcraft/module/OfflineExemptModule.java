@@ -60,14 +60,14 @@ public class OfflineExemptModule extends ServerModule {
         var pm = source.getServer().getPlayerList();
         var wl = pm.getWhiteList();
         if (List.of(wl.getUserList()).contains(player)) {
-            source.sendFailure(Component.nullToEmpty(player + " is already whitelisted or this id is conflict with a online user."));
+            source.sendFailure(Component.translatable("message.sfcraft.offline.already_whitelisted", player));
             return 0;
         }
         var profile = NameAndId.createOffline(player);
         wl.add(new UserWhiteListEntry(profile));
         var uc = source.getServer().services().nameToIdCache();
         if (uc != null) uc.add(profile);
-        source.sendSystemMessage(Component.nullToEmpty("[" + profile.name() + "/" + profile.id() + "]" + " is added!"));
+        source.sendSystemMessage(Component.translatable("message.sfcraft.offline.added", profile.name(), profile.id().toString()));
         return 0;
     }
 
@@ -76,9 +76,9 @@ public class OfflineExemptModule extends ServerModule {
         var server = source.getServer();
         var wl = server.getPlayerList().getWhiteList();
         var names = wl.getUserList();
-        source.sendSystemMessage(Component.nullToEmpty("Offline Users:").copy().withColor(CommonColors.GREEN));
+        source.sendSystemMessage(Component.translatable("message.sfcraft.offline.list_header").withColor(CommonColors.GREEN));
         var r = Stream.of(names).filter(name -> wl.isWhiteListed(NameAndId.createOffline(name))).collect(Collectors.joining(", "));
-        source.sendSystemMessage(Component.nullToEmpty(r.isEmpty() ? "No offline users found in whitelist." : r));
+        source.sendSystemMessage(r.isEmpty() ? Component.translatable("message.sfcraft.offline.list_empty") : Component.nullToEmpty(r));
         return 0;
     }
 
