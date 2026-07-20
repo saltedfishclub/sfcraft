@@ -59,7 +59,7 @@ public class GameConfig {
         // 新生成的敌怪(Enemy)自然刷新时携带「统帅」效果的概率
         public double spawnChance = 0.02;
         public double radius = 12.0;
-        public int maxRecipients = 2;
+        public int maxRecipients = 3;
         public int buffDurationTicks = 60;
         public int glowRefreshTicks = 40;
         public int scanIntervalTicks = 10;
