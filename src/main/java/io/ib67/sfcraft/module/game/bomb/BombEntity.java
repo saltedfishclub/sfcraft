@@ -17,12 +17,14 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.projectile.throwableitemprojectile.ThrowableItemProjectile;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.BaseFireBlock;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
+import org.jspecify.annotations.NonNull;
 
 import java.util.function.Supplier;
 
@@ -57,8 +59,10 @@ public class BombEntity extends ThrowableItemProjectile implements PolymerEntity
     }
 
     @Override
-    protected Item getDefaultItem() {
-        return defaultItem.get();
+    protected @NonNull Item getDefaultItem() {
+        // defineSynchedData()(在 Entity 超类构造器中)会调用本方法,此时子类的 defaultItem 字段尚未赋值。
+        // 该处返回值只是占位,真正的物品随后由 setItem(stack)/readAdditionalSaveData 覆盖。
+        return defaultItem == null ? Items.SNOWBALL : defaultItem.get();
     }
 
     @Override
