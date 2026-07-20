@@ -26,15 +26,15 @@ SFCraft 是一个 **纯服务端** Fabric mod（Minecraft 26.2）。所有自定
 | 特性 | 类型 | 获取途径 | 一句话 |
 |---|---|---|---|
 | 紫水晶炼药锅 | 方块 | 合成胚体 → 熔炼 | 把材料丢进锅里自动炼制的多用途炼药方块 |
-| 重力水晶 | 方块 | 指令给予 | 充能后加速范围内移动生物的水晶 |
+| 重力水晶 | 方块 | 炼药锅炼制 | 充能后加速范围内移动生物的水晶 |
 | 炸弹 | 物品 | 战利品/村民交易 | 右键投掷、只炸方块不毁地形的基础炸弹 |
 | 黑曜石炸弹 | 物品 | 合成/战利品 | 落地释放减速力场后爆炸 |
 | 烈焰炸弹 | 物品 | 合成 | 爆炸点燃并撒火 |
 | 珍珠信物 | 物品 | 合成 | 绑定自己，他人使用可把你召唤过去 |
 | 反向珍珠信物 | 物品 | 炼药锅炼制 | 把自己传送到绑定者身边，有次数和冷却 |
-| 午餐盒 | 物品 | 指令给予 | 随身 9 格食物容器，右键即食 |
+| 午餐盒 | 物品 | 合成 | 随身 9 格食物容器，右键即食 |
 | 屹立不倒图腾 | 物品 | 炼药锅炼制 | 可反复使用、消耗经验的不死图腾变种 |
-| 斩首 | 附魔 | 附魔台 | 击杀生物概率掉落其头颅 |
+| 斩首 | 附魔 | 附魔台 / 图书管理员 | 击杀生物概率掉落其头颅 |
 | 统帅 | 效果 | 自然刷怪携带 | 敌怪首领为周围怪物提供增益并统率跟随 |
 | 劫掠兽/疣猪兽坐骑 | 生物 | 驯服 | 喂食驯服可骑乘，劫掠兽可冲刺 |
 | GPS 导航 | 指令 | `/gps` | 视线前方的发光光标指引你前往坐标 |
@@ -65,7 +65,7 @@ SFCraft 是一个 **纯服务端** Fabric mod（Minecraft 26.2）。所有自定
    ```
 2. 将胚体**熔炼**（熔炉，约 10 秒，经验 0.5）得到成品紫水晶炼药锅。
 
-**炼药锅配方系统**：炼药锅本身不写死配方，任何特性都能向它注册“投入物（含催化剂）+ 水/加热条件 → 产物”的反应。当前已注册的配方见 [反向珍珠信物](#反向珍珠信物reverse-pearl-token) 与 [屹立不倒图腾](#屹立不倒图腾standing-firm-totem)。
+**炼药锅配方系统**：炼药锅本身不写死配方，任何特性都能向它注册“投入物（含催化剂）+ 水/加热条件 → 产物”的反应。当前已注册的配方见 [反向珍珠信物](#反向珍珠信物reverse-pearl-token)、[屹立不倒图腾](#屹立不倒图腾standing-firm-totem) 与 [重力水晶](#重力水晶gravity-crystal)。
 
 **可配置项**（`cauldron`）：
 
@@ -86,7 +86,7 @@ SFCraft 是一个 **纯服务端** Fabric mod（Minecraft 26.2）。所有自定
 - **充能**：手持紫水晶碎片右键，充能等级 0→4（外观伪装成重生锚，充能越高发光越亮）。
 - **加速**：充能后每 2 tick 给范围内移动中的生物的速度矢量乘以一个系数（按充能等级递增），并有向水晶汇聚的粒子。已达速度上限的实体不再被加速（不会拖慢已在高速的玩家）。
 
-**获取**：**无合成、无战利品** → 仅通过指令/创造模式给予（`sfcraft:gravity_crystal`）。破坏时掉落自身。
+**获取**：**炼药锅炼制** —— 把 `羽毛 + 重生锚 + 回响碎片（催化剂）` 丢进紫水晶炼药锅，需**加热**（不需水）。三样投入物均被消耗，反应完成后弹出一块重力水晶。破坏时掉落自身。
 
 **可配置项**（`gravityCrystal`）：
 
@@ -97,7 +97,7 @@ SFCraft 是一个 **纯服务端** Fabric mod（Minecraft 26.2）。所有自定
 | `boostPerCharge` | `{0.0, 0.15, 0.20, 0.25, 0.30}` | 按充能等级（数组下标）的加速比 |
 | `maxSpeedMetersPerSecond` | 8.0 | 加速上限（米/秒） |
 
-**实现参考**：`module.game.crystal.GravityCrystalModule`；`GravityCrystalBlock`（伪装 `minecraft:respawn_anchor`，复用其 CHARGE 状态）、`GravityCrystalBlockEntity`。id `sfcraft:gravity_crystal`。
+**实现参考**：`module.game.crystal.GravityCrystalModule`；`GravityCrystalBlock`（伪装 `minecraft:respawn_anchor`，复用其 CHARGE 状态）、`GravityCrystalBlockEntity`。id `sfcraft:gravity_crystal`。炼药锅配方在 `/sfcraft reload` 时重建以应用新的 `reactionTicks`，反应粒子为 `REVERSE_PORTAL`。
 
 ---
 
@@ -188,7 +188,12 @@ SFCraft 是一个 **纯服务端** Fabric mod（Minecraft 26.2）。所有自定
 - **右键进食**：直接吃盒内第一份当前可吃的食物，播放完整的原版进食动画，并应用该食物的营养/饱和/效果，以及余留物（如空碗、空瓶留回盒内）。空盒或不饿时有屏幕提示。
 - **Shift + 右键**：打开 9 格容器界面，只能放入带食物属性的物品（不能套娃放午餐盒）。
 
-**获取**：**无合成** → 仅通过指令/创造模式给予（`sfcraft:lunch_box`）。
+**获取**：有序合成 —— 4 铁锭十字环绕 1 个收纳袋（原版 `minecraft:bundle`），中心为收纳袋：
+   ```
+   空 铁 空
+   铁 袋 铁
+   空 铁 空
+   ```
 
 **实现参考**：`module.game.lunchbox.LunchBoxModule`、`LunchBoxItem`（伪装 `bowl`）、`LunchBoxMenu`（GENERIC_9x1 界面）。盒内容物存于 `minecraft:container` 组件。id `sfcraft:lunch_box`。
 
@@ -230,7 +235,7 @@ SFCraft 是一个 **纯服务端** Fabric mod（Minecraft 26.2）。所有自定
 - **玩家 → 带其皮肤的玩家头**。
 - 掉落概率：普通生物 = `baseChance + perLevelChance × 附魔等级`；玩家 = 固定 `playerHeadChance`（不随等级）。
 
-**获取**：数据驱动附魔，最高 3 级，适用剑类物品，可在附魔台获得。
+**获取**：数据驱动附魔，最高 3 级，适用剑类物品，可在附魔台获得，也可从**图书管理员村民**处购买附魔书（已加入 `#minecraft:tradeable` 标签，因此会出现在其附魔书交易池中）。
 
 **可配置项**（`beheading`）：
 
@@ -240,7 +245,7 @@ SFCraft 是一个 **纯服务端** Fabric mod（Minecraft 26.2）。所有自定
 | `perLevelChance` | 0.05 | 每级附加概率 |
 | `playerHeadChance` | 0.05 | 玩家头颅概率（固定） |
 
-**实现参考**：`module.game.beheading.BeheadingModule`（监听死亡事件）；附魔定义 `data/sfcraft/enchantment/beheading.json`，ResourceKey `sfcraft:beheading`。
+**实现参考**：`module.game.beheading.BeheadingModule`（监听死亡事件）；附魔定义 `data/sfcraft/enchantment/beheading.json`，ResourceKey `sfcraft:beheading`；村民可售由 `data/minecraft/tags/enchantment/tradeable.json` 将其加入原版 `#minecraft:tradeable` 标签实现（原版据此标签生成图书管理员的附魔书交易）。
 
 ---
 

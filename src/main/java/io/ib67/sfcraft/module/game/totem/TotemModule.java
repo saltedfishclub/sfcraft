@@ -131,7 +131,6 @@ public class TotemModule extends ServerModule {
         player.awardStat(Stats.ITEM_USED.get(standingFirmTotem));
         CriteriaTriggers.USED_TOTEM.trigger(player, totem);
         player.gameEvent(GameEvent.ITEM_INTERACT_FINISH);
-        player.sendSystemMessage(Component.translatable("message.sfcraft.totem.triggered"));
         return Result.PROTECTED;
     }
 
