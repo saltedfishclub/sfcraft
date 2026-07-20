@@ -1,0 +1,15 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " I ",
+    "IBI",
+    " I "
+  ],
+  "key": {
+    "I": "minecraft:iron_ingot",
+    "B": "minecraft:bundle"
+  },
+  "result": {
+    "id": "sfcraft:lunch_box"
+  }
+}

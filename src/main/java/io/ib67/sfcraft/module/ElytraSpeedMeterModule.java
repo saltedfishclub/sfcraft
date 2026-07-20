@@ -22,7 +22,7 @@ public class ElytraSpeedMeterModule extends ServerModule {
 
     static {
         for (int i = 1; i <= 100; i++) {
-            ELYTRA_DURABILITY[i - 1] = Component.literal("ELYTRA: " + i + "%").withColor(getDamageColor(i));
+            ELYTRA_DURABILITY[i - 1] = Component.translatable("message.sfcraft.elytra.durability", i).withColor(getDamageColor(i));
         }
     }
 
@@ -54,7 +54,7 @@ public class ElytraSpeedMeterModule extends ServerModule {
         } else {
             clean((ServerPlayer) player);
             if (f > THRESHLD_OF_ELYTRA_FLY * 20) {
-                player.sendOverlayMessage(Component.literal("!! LANDED !!").withColor(CommonColors.GREEN));
+                player.sendOverlayMessage(Component.translatable("message.sfcraft.elytra.landed").withColor(CommonColors.GREEN));
             } else {
                 player.sendOverlayMessage(Component.empty());
 
@@ -83,7 +83,7 @@ public class ElytraSpeedMeterModule extends ServerModule {
             var percent = (int) Math.ceil(((double) remaining / stack.getMaxDamage()) * 100);
             return ELYTRA_DURABILITY[Math.max(percent - 1, 0)];
         }
-        return Component.literal("ELYTRA: INFINITY").withColor(CommonColors.BLUE);
+        return Component.translatable("message.sfcraft.elytra.infinity").withColor(CommonColors.BLUE);
     }
 
     private static int getDamageColor(int percent) {

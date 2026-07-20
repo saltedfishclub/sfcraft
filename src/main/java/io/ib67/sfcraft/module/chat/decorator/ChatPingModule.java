@@ -53,7 +53,7 @@ public class ChatPingModule extends ServerModule implements ChatDecorator {
         var r = Component.literal(match.replaceAll(it -> this.matchPlayer(it, names, foundPlayers)));
         for (Player foundPlayer : foundPlayers) {
             if (sender != null) {
-                foundPlayer.sendOverlayMessage(Component.literal(sender.getName().tryCollapseToString() + " 正在叫你。").withColor(CommonColors.LIGHT_GRAY));
+                foundPlayer.sendOverlayMessage(Component.translatable("message.sfcraft.chat.calling_you", sender.getName().tryCollapseToString()).withColor(CommonColors.LIGHT_GRAY));
             }
             Helper.playNotifySound(
                     (ServerPlayer) foundPlayer,

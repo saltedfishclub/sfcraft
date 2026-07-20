@@ -1,0 +1,10 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    "minecraft:ender_pearl",
+    "minecraft:amethyst_shard"
+  ],
+  "result": {
+    "id": "sfcraft:pearl_token"
+  }
+}

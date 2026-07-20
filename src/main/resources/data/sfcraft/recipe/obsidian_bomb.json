@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    "sfcraft:bomb",
+    "sfcraft:bomb",
+    "sfcraft:bomb",
+    "sfcraft:bomb",
+    "sfcraft:bomb",
+    "sfcraft:bomb",
+    "sfcraft:bomb",
+    "sfcraft:bomb",
+    "minecraft:crying_obsidian"
+  ],
+  "result": {
+    "id": "sfcraft:obsidian_bomb",
+    "count": 8
+  }
+}

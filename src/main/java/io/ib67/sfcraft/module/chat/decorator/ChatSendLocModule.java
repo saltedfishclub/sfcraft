@@ -39,30 +39,31 @@ public class ChatSendLocModule extends ServerModule implements ChatDecorator {
     }
 
     private static Component generateLocText(ServerPlayer sender) {
-        if (sender == null) return Component.nullToEmpty(" (invalid position) ");
+        if (sender == null) return Component.translatable("message.sfcraft.chat.invalid_position");
         sender.addEffect(new MobEffectInstance(MobEffects.GLOWING, 15 * 20));
         var x = sender.blockPosition().getX();
         var y = sender.blockPosition().getY();
         var z = sender.blockPosition().getZ();
         var key = sender.level().dimension();
-        var world = translate(key);
         return Component
-                .literal(" " + x + ", " + y + ", " + z + world + " ")
+                .literal(" " + x + ", " + y + ", " + z)
+                .append(dimensionLabel(key))
+                .append(" ")
                 .withColor(Helper.fromRgb(63, 254, 254))
                 .withStyle(style -> style.withClickEvent(new ClickEvent.OpenUrl(URI.create(
                         "https://mc.sfclub.cc/map/?world=" + key.identifier().toString().replace(':', '_') + "&zoom=5&x=" + x + "&z=" + z
                 ))));
     }
 
-    private static String translate(ResourceKey<Level> registryKey) {
+    private static Component dimensionLabel(ResourceKey<Level> registryKey) {
         if (registryKey == Level.END) {
-            return " (末地)";
+            return Component.translatable("message.sfcraft.dimension.end");
         } else if (registryKey == Level.NETHER) {
-            return " (地狱)";
+            return Component.translatable("message.sfcraft.dimension.nether");
         } else if (registryKey == Level.OVERWORLD) {
-            return "";
+            return Component.empty();
         } else {
-            return " (未知)";
+            return Component.translatable("message.sfcraft.dimension.unknown");
         }
     }
 }

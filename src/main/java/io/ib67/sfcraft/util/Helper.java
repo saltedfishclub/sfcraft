@@ -8,6 +8,7 @@ import io.ib67.sfcraft.SFCraft;
 import io.ib67.sfcraft.config.SFConfig;
 import io.ib67.sfcraft.geoip.GeoIPService;
 import lombok.SneakyThrows;
+import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -65,7 +66,7 @@ public class Helper {
             // check block type
             var fluid = stand.getFluidState().getType();
             if (!(fluid instanceof EmptyFluid) && !(fluid instanceof WaterFluid)) {
-                player.sendSystemMessage(Component.literal("§c传送目的地具有非水流体, 因此拒绝传送。"));
+                player.sendSystemMessage(Component.translatable("message.sfcraft.teleport.non_water").withStyle(ChatFormatting.RED));
                 return false;
             }
         }
@@ -73,7 +74,7 @@ public class Helper {
         var ground = world.getBlockState(groundPos);
         if (!ground.entityCanStandOn(world, groundPos, player)
                 && !stand.entityCanStandOnFace(world, pos, player, Direction.DOWN)) {
-            player.sendSystemMessage(Component.literal("§c传送目的地没有可靠落地点，且为非空气方块, 因此拒绝传送。"));
+            player.sendSystemMessage(Component.translatable("message.sfcraft.teleport.no_landing").withStyle(ChatFormatting.RED));
             return false;
         } else {
             var deltaY = 0.0;
