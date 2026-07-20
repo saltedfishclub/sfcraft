@@ -32,5 +32,10 @@
   "lore.sfcraft.token.owner": "Owner: %s",
   "lore.sfcraft.token.uses": "Remaining uses: %s/%s",
   "command.sfcraft.reload.success": "sfcraft configs reloaded (loot chances require a vanilla /reload to apply)",
-  "command.sfcraft.reload.failure": "Reload failed: %s"
+  "command.sfcraft.reload.failure": "Reload failed: %s",
+  "command.sfcraft.gps.started": "Navigation started: target (%s, %s, %s), follow the glowing little slime",
+  "command.sfcraft.gps.stopped": "Navigation cancelled",
+  "command.sfcraft.gps.not_active": "No navigation in progress",
+  "command.sfcraft.gps.arrived": "You have arrived, navigation ended",
+  "command.sfcraft.gps.dimension_changed": "You left the target's dimension, navigation ended"
 }

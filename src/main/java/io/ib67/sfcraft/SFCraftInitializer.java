@@ -32,6 +32,7 @@ import io.ib67.sfcraft.geoip.MaxMindGeoIPService;
 import io.ib67.sfcraft.inject.MinecraftServerSupplier;
 import io.ib67.sfcraft.registry.RandomEventRegistry;
 import io.ib67.sfcraft.module.command.BackModule;
+import io.ib67.sfcraft.module.command.GpsModule;
 import io.ib67.sfcraft.module.command.ManagementModule;
 import io.ib67.sfcraft.module.command.ReloadCommandModule;
 import io.ib67.sfcraft.registry.room.SimpleRoomRegistry;
@@ -78,6 +79,7 @@ public class SFCraftInitializer extends GuiceModInitializer {
         registerFeature(SoundModule.class);
         registerFeature(ChatShowoffModule.class);
         registerFeature(ReloadCommandModule.class);
+        registerFeature(GpsModule.class);
         registerGameFeatures();
         registerWebModules();
     }

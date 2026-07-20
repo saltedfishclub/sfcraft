@@ -32,5 +32,10 @@
   "lore.sfcraft.token.owner": "主人: %s",
   "lore.sfcraft.token.uses": "剩余次数: %s/%s",
   "command.sfcraft.reload.success": "sfcraft 配置已重载(战利品概率需再执行 /reload 生效)",
-  "command.sfcraft.reload.failure": "重载失败: %s"
+  "command.sfcraft.reload.failure": "重载失败: %s",
+  "command.sfcraft.gps.started": "导航已开始: 目标 (%s, %s, %s),跟随发光的小史莱姆前进",
+  "command.sfcraft.gps.stopped": "导航已取消",
+  "command.sfcraft.gps.not_active": "当前没有正在进行的导航",
+  "command.sfcraft.gps.arrived": "已到达目的地,导航结束",
+  "command.sfcraft.gps.dimension_changed": "已离开目标所在维度,导航结束"
 }

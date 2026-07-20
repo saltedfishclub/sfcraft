@@ -2,6 +2,7 @@ package io.ib67.sfcraft.module.game.token;
 
 import eu.pb4.polymer.core.api.item.PolymerItem;
 import io.ib67.sfcraft.config.GameConfigService;
+import io.ib67.sfcraft.module.game.item.ItemLores;
 import net.fabricmc.fabric.api.networking.v1.context.PacketContext;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.particles.ParticleTypes;
@@ -111,7 +112,7 @@ public class ReversePearlTokenItem extends Item implements PolymerItem {
         int max = stack.getMaxDamage();
         int remaining = max - stack.getDamageValue();
         stack.set(DataComponents.LORE, new ItemLore(List.of(
-                Component.translatable("lore.sfcraft.token.owner", ownerName),
-                Component.translatable("lore.sfcraft.token.uses", remaining, max))));
+                ItemLores.line("lore.sfcraft.token.owner", ownerName),
+                ItemLores.line("lore.sfcraft.token.uses", remaining, max))));
     }
 }

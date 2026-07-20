@@ -14,6 +14,18 @@ public class GameConfig {
     public Beheading beheading = new Beheading();
     public Commander commander = new Commander();
     public Mount mount = new Mount();
+    public Gps gps = new Gps();
+
+    public static class Gps {
+        // 视线与目标方向的夹角小于该值(度)时,光标锁定在准星上;超过则跳到真实目标方向
+        public double toleranceDegrees = 12.0;
+        // 光标悬浮在视线前方的距离;放远一点航向偏差在画面上更明显,也更不容易糊在脸上
+        public double cursorDistance = 8.0;
+        public double arriveRadius = 4.0;
+        // 水平(X-Z)距离大于该值时进入远距离巡航:光标锁在眼睛所在水平面,只随左右转向(yaw)偏移、
+        // 忽略俯仰,这样用鞘翅高速飞行低头看地面时光标不会跟着往下沉;近于此值则恢复全向指示
+        public double planarDistance = 50.0;
+    }
 
     public static class Mount {
         // 驯服食物(需怪物处于虚弱、周围无掠夺者、非袭击时喂食);默认金苹果,呼应虚弱+金苹果治疗语义

@@ -1,6 +1,7 @@
 package io.ib67.sfcraft.module.game.token;
 
 import eu.pb4.polymer.core.api.item.PolymerItem;
+import io.ib67.sfcraft.module.game.item.ItemLores;
 import net.fabricmc.fabric.api.networking.v1.context.PacketContext;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.particles.ParticleTypes;
@@ -76,7 +77,7 @@ public class PearlTokenItem extends Item implements PolymerItem {
             tag.putString(OWNER_NAME_KEY, player.getGameProfile().name());
         });
         bound.set(DataComponents.LORE, new ItemLore(List.of(
-                Component.translatable("lore.sfcraft.token.owner", player.getGameProfile().name()))));
+                ItemLores.line("lore.sfcraft.token.owner", player.getGameProfile().name()))));
         if (stack.getCount() == 1) {
             player.setItemInHand(hand, bound);
         } else {
