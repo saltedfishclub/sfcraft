@@ -40,9 +40,13 @@
   "message.sfcraft.elytra.infinity": "ELYTRA: INFINITY",
   "message.sfcraft.chat.calling_you": "%s is calling you.",
   "message.sfcraft.chat.invalid_position": " (invalid position) ",
+  "message.sfcraft.chat.loc_navigate": "Click to start navigating here",
   "message.sfcraft.dimension.end": " (The End)",
   "message.sfcraft.dimension.nether": " (The Nether)",
   "message.sfcraft.dimension.unknown": " (Unknown)",
+  "message.sfcraft.dimension.name.overworld": "Overworld",
+  "message.sfcraft.dimension.name.nether": "The Nether",
+  "message.sfcraft.dimension.name.end": "The End",
   "message.sfcraft.playground.must_be_in": "You and target must be in playground!",
   "message.sfcraft.playground.gamemode_changed": "Your gamemode has been changed to %s",
   "message.sfcraft.playground.only_here": "You can only use this in playground!",
@@ -81,5 +85,7 @@
   "command.sfcraft.gps.not_active": "No navigation in progress",
   "command.sfcraft.gps.arrived": "You have arrived, navigation ended",
   "command.sfcraft.gps.dimension_changed": "You left the target's dimension, navigation ended",
+  "command.sfcraft.gps.wrong_world": "You are not in the target world (%s); navigation refused",
+  "command.sfcraft.gps.preview": "Click to preview this location on the web map",
   "item.sfcraft.standing_firm_totem": "Totem of Restitution"
 }

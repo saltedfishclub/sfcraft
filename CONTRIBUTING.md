@@ -1,6 +1,6 @@
 # 贡献指南
 
-欢迎！如果你想提交投影文件，请前往[此处](https://github.com/saltedfishclub/sfcraft-schematics)
+欢迎！如果你想提交投影文件，请前往[此处](https://github.com/saltedfishclub/sfcraft-schematics). 此文件为有经验的开发者提供，如果你是新手，请查看 [NEWBIE.md](./NEWBIE.md) 以了解如何开始。
 
 ## 贡献流程
 首先，你需要新建一个有关修改内容的分支（如果你没有本仓库的修改权限，请自行 Fork），然后在里面提交代码，最后你就可以发起 Pull Request 并且等待我们审查你的代码了。
@@ -41,11 +41,6 @@ private MinecraftServerSupplier serverSupplier;
 
 在 Mixin 代码中你可能需要拿一些在 Guice 内的对象，此时可以通过 `SFCraft.getInjector().getInstance(TYPE)` 得到对应的对象。  
 但是注意：如果你的 Mixin 代码是高频操作，请适当地做缓存
-
-#### 使用自定义实体 API
-
-参考 `SFEntityType#init`  
-自定义实体的写法大体与正常 mod 开发无异。
 
 #### 使用 Room API
 

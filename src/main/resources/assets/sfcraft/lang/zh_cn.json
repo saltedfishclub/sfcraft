@@ -40,9 +40,13 @@
   "message.sfcraft.elytra.infinity": "鞘翅: 无限",
   "message.sfcraft.chat.calling_you": "%s 正在叫你。",
   "message.sfcraft.chat.invalid_position": " (无效坐标) ",
+  "message.sfcraft.chat.loc_navigate": "点击开始导航到这里",
   "message.sfcraft.dimension.end": " (末地)",
   "message.sfcraft.dimension.nether": " (地狱)",
   "message.sfcraft.dimension.unknown": " (未知)",
+  "message.sfcraft.dimension.name.overworld": "主世界",
+  "message.sfcraft.dimension.name.nether": "地狱",
+  "message.sfcraft.dimension.name.end": "末地",
   "message.sfcraft.playground.must_be_in": "你和目标必须都在游乐园中！",
   "message.sfcraft.playground.gamemode_changed": "你的游戏模式已更改为 %s",
   "message.sfcraft.playground.only_here": "只能在游乐园中使用此功能！",
@@ -81,5 +85,7 @@
   "command.sfcraft.gps.not_active": "当前没有正在进行的导航",
   "command.sfcraft.gps.arrived": "已到达目的地,导航结束",
   "command.sfcraft.gps.dimension_changed": "已离开目标所在维度,导航结束",
+  "command.sfcraft.gps.wrong_world": "你不在目标世界(%s),已拒绝导航",
+  "command.sfcraft.gps.preview": "点击在网页地图上预览该位置",
   "item.sfcraft.standing_firm_totem": "代偿图腾"
 }

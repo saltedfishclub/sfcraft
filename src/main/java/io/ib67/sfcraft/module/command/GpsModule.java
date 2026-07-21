@@ -5,6 +5,7 @@ import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.builder.RequiredArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import eu.pb4.polymer.virtualentity.api.ElementHolder;
 import eu.pb4.polymer.virtualentity.api.attachment.ManualAttachment;
 import eu.pb4.polymer.virtualentity.api.elements.SimpleEntityElement;
@@ -19,8 +20,10 @@ import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.minecraft.commands.CommandBuildContext;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
+import net.minecraft.commands.arguments.DimensionArgument;
 import net.minecraft.commands.arguments.coordinates.Coordinates;
 import net.minecraft.commands.arguments.coordinates.Vec3Argument;
+import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.MinecraftServer;
@@ -33,6 +36,7 @@ import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 
+import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -86,7 +90,27 @@ public class GpsModule extends ServerModule {
                 .then(LiteralArgumentBuilder.<CommandSourceStack>literal("stop")
                         .executes(this::stop))
                 .then(RequiredArgumentBuilder.<CommandSourceStack, Coordinates>argument("target", Vec3Argument.vec3())
-                        .executes(this::start)));
+                        .executes(this::start)
+                        // 可选的目标世界:玩家不在该世界时拒绝导航,便于 .xyz 跨维度分享坐标的点击导航
+                        .then(Commands.argument("world", DimensionArgument.dimension())
+                                .executes(this::startInWorld))));
+    }
+
+    // /gps <target> <world>:先校验玩家是否处于指定世界,不匹配则拒绝导航
+    private int startInWorld(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        ServerLevel world = DimensionArgument.getDimension(context, "world");
+        ServerPlayer player = context.getSource().getPlayer();
+        if (player.level().dimension() != world.dimension()) {
+            var source = context.getSource();
+            source.sendFailure(Component.translatable("command.sfcraft.gps.wrong_world",
+                    dimensionName(world.dimension())));
+            // 虽然无法导航,仍给一张目标世界的网页地图链接,方便玩家先看看目标在哪
+            Vec3 target = Vec3Argument.getVec3(context, "target");
+            source.sendSuccess(() -> previewLink(world.dimension(),
+                    (int) Math.round(target.x), (int) Math.round(target.z)), false);
+            return 0;
+        }
+        return start(context);
     }
 
     private int start(CommandContext<CommandSourceStack> context) {
@@ -95,9 +119,34 @@ public class GpsModule extends ServerModule {
         var old = sessions.remove(player.getUUID());
         if (old != null) old.destroy();
         sessions.put(player.getUUID(), new GpsSession(player, target));
-        context.getSource().sendSuccess(() -> Component.translatable("command.sfcraft.gps.started",
-                Math.round(target.x), Math.round(target.y), Math.round(target.z)), false);
+        var source = context.getSource();
+        long x = Math.round(target.x), y = Math.round(target.y), z = Math.round(target.z);
+        source.sendSuccess(() -> Component.translatable("command.sfcraft.gps.started", x, y, z), false);
+        // 出发前先给一张网页地图链接,允许玩家提前预览目标周边
+        source.sendSuccess(() -> previewLink(player.level().dimension(), (int) x, (int) z), false);
         return 1;
+    }
+
+    // 可点击的网页地图预览链接
+    private static Component previewLink(ResourceKey<Level> world, int x, int z) {
+        String url = webMapUrl(world, x, z);
+        return Component.translatable("command.sfcraft.gps.preview")
+                .withStyle(style -> style
+                        .withColor(Helper.fromRgb(63, 254, 254))
+                        .withUnderlined(true)
+                        .withClickEvent(new ClickEvent.OpenUrl(URI.create(url))));
+    }
+
+    private static String webMapUrl(ResourceKey<Level> world, int x, int z) {
+        return "https://mc.sfclub.cc/map/?world=" + world.identifier().toString().replace(':', '_')
+                + "&zoom=5&x=" + x + "&z=" + z;
+    }
+
+    private static Component dimensionName(ResourceKey<Level> key) {
+        if (key == Level.OVERWORLD) return Component.translatable("message.sfcraft.dimension.name.overworld");
+        if (key == Level.NETHER) return Component.translatable("message.sfcraft.dimension.name.nether");
+        if (key == Level.END) return Component.translatable("message.sfcraft.dimension.name.end");
+        return Component.literal(key.identifier().toString());
     }
 
     private int stop(CommandContext<CommandSourceStack> context) {
@@ -165,6 +214,8 @@ public class GpsModule extends ServerModule {
         }
 
         void tick(ServerPlayer player, GameConfig.Gps gps) {
+            // 鞘翅飞行时把光标拉远:高速下虚拟实体位置插值滞后,近距离光标会"跟不上",拉远抵消
+            double cursorDistance = player.isFallFlying() ? gps.flyingCursorDistance : gps.cursorDistance;
             Vec3 eye = player.getEyePosition();
             double dx = target.x - eye.x;
             double dz = target.z - eye.z;
@@ -179,9 +230,9 @@ public class GpsModule extends ServerModule {
                 double angle = Math.toDegrees(Math.acos(Mth.clamp(lookHoriz.dot(targetHoriz), -1.0, 1.0)));
                 Vec3 horiz = angle <= gps.toleranceDegrees ? lookHoriz : targetHoriz;
                 this.cursorPos = new Vec3(
-                        eye.x + horiz.x * gps.cursorDistance,
+                        eye.x + horiz.x * cursorDistance,
                         eye.y - CURSOR_HALF_HEIGHT,
-                        eye.z + horiz.z * gps.cursorDistance);
+                        eye.z + horiz.z * cursorDistance);
             } else {
                 // 近距离:恢复全向(含俯仰)指示,便于精确对准竖直方向上的目标。
                 // 容差内粘在准星方向(画面上纹丝不动),超出则跳到真实目标方向提示玩家回正。
@@ -190,7 +241,7 @@ public class GpsModule extends ServerModule {
                 Vec3 look = player.getLookAngle();
                 double angle = Math.toDegrees(Math.acos(Mth.clamp(look.dot(targetDir), -1.0, 1.0)));
                 Vec3 direction = angle <= gps.toleranceDegrees ? look : targetDir;
-                double distance = Math.min(gps.cursorDistance, toTarget.length());
+                double distance = Math.min(cursorDistance, toTarget.length());
                 this.cursorPos = eye.add(direction.scale(distance)).subtract(0, CURSOR_HALF_HEIGHT, 0);
             }
             holder.tick();

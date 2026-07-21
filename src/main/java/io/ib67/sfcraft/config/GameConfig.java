@@ -30,6 +30,8 @@ public class GameConfig {
         public double toleranceDegrees = 12.0;
         // 光标悬浮在视线前方的距离;放远一点航向偏差在画面上更明显,也更不容易糊在脸上
         public double cursorDistance = 8.0;
+        // 鞘翅飞行时改用的光标距离:高速飞行下虚拟实体位置插值滞后,光标会"跟不上",拉远以抵消
+        public double flyingCursorDistance = 20.0;
         public double arriveRadius = 4.0;
         // 水平(X-Z)距离大于该值时进入远距离巡航:光标锁在眼睛所在水平面,只随左右转向(yaw)偏移、
         // 忽略俯仰,这样用鞘翅高速飞行低头看地面时光标不会跟着往下沉;近于此值则恢复全向指示

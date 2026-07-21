@@ -8,6 +8,7 @@ import io.ib67.sfcraft.util.SFConsts;
 import net.minecraft.network.chat.ChatDecorator;
 import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.HoverEvent;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.effect.MobEffectInstance;
@@ -15,8 +16,6 @@ import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.Nullable;
 import org.jspecify.annotations.NonNull;
-
-import java.net.URI;
 
 public class ChatSendLocModule extends ServerModule implements ChatDecorator {
     @Inject
@@ -50,9 +49,12 @@ public class ChatSendLocModule extends ServerModule implements ChatDecorator {
                 .append(dimensionLabel(key))
                 .append(" ")
                 .withColor(Helper.fromRgb(63, 254, 254))
-                .withStyle(style -> style.withClickEvent(new ClickEvent.OpenUrl(URI.create(
-                        "https://mc.sfclub.cc/map/?world=" + key.identifier().toString().replace(':', '_') + "&zoom=5&x=" + x + "&z=" + z
-                ))));
+                // 点击运行 /gps 直接开始导航(并附带世界,不在该世界时会被 gps 拒绝),而不是打开网页地图
+                .withStyle(style -> style
+                        .withClickEvent(new ClickEvent.RunCommand(
+                                "/gps " + x + " " + y + " " + z + " " + key.identifier()))
+                        .withHoverEvent(new HoverEvent.ShowText(
+                                Component.translatable("message.sfcraft.chat.loc_navigate"))));
     }
 
     private static Component dimensionLabel(ResourceKey<Level> registryKey) {
