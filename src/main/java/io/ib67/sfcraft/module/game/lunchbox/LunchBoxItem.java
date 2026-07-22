@@ -61,7 +61,6 @@ public class LunchBoxItem extends Item implements PolymerItem {
             return InteractionResult.FAIL;
         }
         if (slot == NOT_HUNGRY) {
-            serverPlayer.sendOverlayMessage(Component.translatable("message.sfcraft.lunch_box.not_hungry"));
             return InteractionResult.FAIL;
         }
         var consumable = stack.get(DataComponents.CONSUMABLE);

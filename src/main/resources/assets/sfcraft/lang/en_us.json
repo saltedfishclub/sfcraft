@@ -62,7 +62,6 @@
   "message.sfcraft.schem.saved": "Schematic %s has been saved! Use //schem list to find it",
   "message.sfcraft.schem.or_click": "Or you can click this",
   "message.sfcraft.lunch_box.empty": "The lunch box is empty",
-  "message.sfcraft.lunch_box.not_hungry": "You are not hungry right now",
   "message.sfcraft.mount.need_weakness": "It must be weakened before it can be tamed",
   "message.sfcraft.mount.cannot_here": "It cannot be tamed here",
   "message.sfcraft.mount.raid_active": "Cannot tame during a raid",
