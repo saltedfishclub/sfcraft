@@ -7,20 +7,20 @@ RUN curl -o /packwiz-installer.jar https://github.com/packwiz/packwiz-installer-
     curl -o /fabric-installer.jar https://maven.fabricmc.net/net/fabricmc/fabric-installer/1.1.1/fabric-installer-1.1.1.jar
 COPY --from=hengyunabc/arthas:4.1.1-no-jdk /opt/arthas /opt/arthas
 
-FROM azul-zulu:25-jdk-alpine AS sfcraft-builder
+FROM base AS sfcraft-builder
 RUN git clone https://github.com/saltedfishclub/sfcraft /mod
 RUN  cd /mod && \
     ./gradlew shadowJar && \
     cp /mod/build/libs/sfcraft-*-all.jar /sfcraft.jar
 
-FROM azul-zulu:25-jdk-alpine AS justbackup-builder
+FROM base AS justbackup-builder
 RUN git clone https://github.com/saltedfishclub/justbackup /mod
 RUN cd /mod && \
     ./gradlew build && \
     rm -f /mod/build/libs/*sources.jar /mod/build/libs/*dev.jar && \
     cp /mod/build/libs/justbackup-1.0.0.jar /justbackup.jar
 
-FROM azul-zulu:25-jdk-alpine AS carpet-builder
+FROM base AS carpet-builder
 RUN git clone https://github.com/saltedfishclub/fabric-carpet /mod
 RUN cd /mod && \
     ./gradlew build && \
@@ -30,7 +30,6 @@ RUN cd /mod && \
 FROM base
 WORKDIR /deployment
 COPY ./pack /deployment/pack
-# Read MC + Fabric loader versions straight from the packwiz manifest (single source of truth).
 RUN MC_VERSION="$(grep '^minecraft' /deployment/pack/pack.toml | head -n1 | cut -d'"' -f2)" && \
     LOADER_VERSION="$(grep '^fabric' /deployment/pack/pack.toml | head -n1 | cut -d'"' -f2)" && \
     if [ -z "$MC_VERSION" ] || [ -z "$LOADER_VERSION" ]; then \
