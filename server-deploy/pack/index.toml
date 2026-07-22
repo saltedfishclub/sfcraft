@@ -1,0 +1,76 @@
+hash-format = "sha256"
+
+[[files]]
+file = "mods/carpet-extra.pw.toml"
+hash = "1aca75981bc81e31ce2ae719bc47cb44332c7bd633b9b87a2d3e08eb6a8751c6"
+metafile = true
+
+[[files]]
+file = "mods/fabric-api.pw.toml"
+hash = "dc5490cc1a9231b0d32ec3e72f9d34279fc1d1ff6fb5a7d288b1f36faec0a6a0"
+metafile = true
+
+[[files]]
+file = "mods/fabric-permissions-api.pw.toml"
+hash = "42b1a79c6ac2b23e1ad440f901ac42ed10180b340b8c69bb0755a9c55dbfb481"
+metafile = true
+
+[[files]]
+file = "mods/farmers-delight-polymer.pw.toml"
+hash = "ce231450983fd9afc2fef902a368394e9eea69b3c2772e5cdcabf777e8a2662c"
+metafile = true
+
+[[files]]
+file = "mods/farmers-delight-refabricated.pw.toml"
+hash = "1500f8fc3792a46226c0559af0925cf4da5f11b7224ec2dcaad8b66bc0c5ca4d"
+metafile = true
+
+[[files]]
+file = "mods/ferrite-core.pw.toml"
+hash = "069d81cab53c0141459ad4d70bcf3e10f17652f24cc62d3b4a0fc2cd2b700871"
+metafile = true
+
+[[files]]
+file = "mods/jei.pw.toml"
+hash = "6ed45647ca366b832d80de4f02d16dd5899ba165459b1870729be04a260515d1"
+metafile = true
+
+[[files]]
+file = "mods/krypton.pw.toml"
+hash = "e922d7300eba8cfbd9aa31ba475cf6fcbcf11d74e89a0314ada18d58f08a2634"
+metafile = true
+
+[[files]]
+file = "mods/lithium.pw.toml"
+hash = "3b4ab92dd5c39fbe0f5af3d73f0d7f3df3e2450842055353b0a5dc8fb9dae534"
+metafile = true
+
+[[files]]
+file = "mods/no-chat-reports.pw.toml"
+hash = "00129db538fe3591d87ba64731ca1f9daf3e538185657ee0fcf56b52f0715e5b"
+metafile = true
+
+[[files]]
+file = "mods/polymer.pw.toml"
+hash = "2a5626a6d9b61f968f294466e9756fbafa1c1208b4fb53c53cfc8d2afb42a857"
+metafile = true
+
+[[files]]
+file = "mods/simple-voice-chat.pw.toml"
+hash = "be7369da963f5326a771bbfa360365ac6ed939b01c2c268f4dd4a922718cd4a3"
+metafile = true
+
+[[files]]
+file = "mods/squaremap.pw.toml"
+hash = "798b2e1aeee88e52cc70cca4c51134639cebd214a3f52e0a0913e51b0b1adbe3"
+metafile = true
+
+[[files]]
+file = "mods/syncmatica.pw.toml"
+hash = "a8cfd56f9a2a99a9b93e05e41decad8c4b245bba7ed0b27a3032e5d6d1a09e23"
+metafile = true
+
+[[files]]
+file = "mods/worldedit.pw.toml"
+hash = "3754793742766dd72246e1a57abfa5c2d57e8a9d7dfecd1e9adc26251fac0b36"
+metafile = true

@@ -1,0 +1,16 @@
+name = "sfcraft"
+author = "iceBear67"
+version = "2.0"
+pack-format = "packwiz:1.1.0"
+
+[index]
+file = "index.toml"
+hash-format = "sha256"
+hash = "f50035e12a81f99a134af8def67e700d438992ccca289901419855916d0dd239"
+
+[versions]
+fabric = "0.19.3"
+minecraft = "26.2"
+
+[options]
+acceptable-game-versions = ["26.1", "26.1.2"]
