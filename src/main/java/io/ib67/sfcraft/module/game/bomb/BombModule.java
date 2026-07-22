@@ -4,6 +4,7 @@ import com.google.inject.Inject;
 import io.ib67.sfcraft.ServerModule;
 import io.ib67.sfcraft.config.GameConfigService;
 import io.ib67.sfcraft.module.game.RegistryHelper;
+import io.ib67.sfcraft.registry.ItemGroupService;
 import lombok.Getter;
 import net.fabricmc.fabric.api.loot.v3.LootTableEvents;
 import net.minecraft.core.component.DataComponents;
@@ -28,6 +29,8 @@ import net.minecraft.world.level.storage.loot.providers.number.UniformGenerator;
 public class BombModule extends ServerModule {
     @Inject
     private GameConfigService config;
+    @Inject
+    private ItemGroupService itemGroups;
 
     private EntityType<BombEntity> bombEntityType;
     private Item bomb;
@@ -48,6 +51,9 @@ public class BombModule extends ServerModule {
         bomb = registerBomb("bomb", BombEntity.BombType.NORMAL);
         obsidianBomb = registerBomb("obsidian_bomb", BombEntity.BombType.OBSIDIAN);
         blazeBomb = registerBomb("blaze_bomb", BombEntity.BombType.BLAZE);
+        itemGroups.add(bomb);
+        itemGroups.add(obsidianBomb);
+        itemGroups.add(blazeBomb);
         registerLootModifiers();
     }
 

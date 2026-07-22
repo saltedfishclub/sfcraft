@@ -7,6 +7,7 @@ import io.ib67.sfcraft.callback.SFConfigReload;
 import io.ib67.sfcraft.config.GameConfigService;
 import io.ib67.sfcraft.module.game.RegistryHelper;
 import io.ib67.sfcraft.registry.CauldronRecipeRegistry;
+import io.ib67.sfcraft.registry.ItemGroupService;
 import io.ib67.sfcraft.registry.cauldron.CauldronRecipe;
 import lombok.Getter;
 import net.minecraft.core.component.DataComponents;
@@ -31,6 +32,8 @@ public class GravityCrystalModule extends ServerModule {
     private GameConfigService config;
     @Inject
     private CauldronRecipeRegistry cauldronRecipes;
+    @Inject
+    private ItemGroupService itemGroups;
 
     private GravityCrystalBlock crystalBlock;
     private BlockEntityType<GravityCrystalBlockEntity> crystalBlockEntity;
@@ -63,6 +66,7 @@ public class GravityCrystalModule extends ServerModule {
                         .component(DataComponents.ENCHANTMENT_GLINT_OVERRIDE, true)
                         .component(DataComponents.ITEM_NAME, Component.translatable("item.sfcraft.gravity_crystal"))
         );
+        itemGroups.add(crystalItem);
 
         registerRecipes();
         // /sfcraft reload 后重建配方,应用最新的 reactionTicks

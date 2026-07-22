@@ -7,6 +7,7 @@ import io.ib67.sfcraft.config.GameConfigService;
 import io.ib67.sfcraft.module.game.RegistryHelper;
 import io.ib67.sfcraft.module.game.item.SimplePolymerItem;
 import io.ib67.sfcraft.registry.CauldronRecipeRegistry;
+import io.ib67.sfcraft.registry.ItemGroupService;
 import io.ib67.sfcraft.registry.cauldron.CauldronRecipe;
 import lombok.Getter;
 import net.minecraft.advancements.triggers.CriteriaTriggers;
@@ -40,6 +41,8 @@ public class TotemModule extends ServerModule {
     private GameConfigService config;
     @Inject
     private CauldronRecipeRegistry cauldronRecipes;
+    @Inject
+    private ItemGroupService itemGroups;
 
     private Item standingFirmTotem;
 
@@ -68,6 +71,7 @@ public class TotemModule extends ServerModule {
                         // 效果改由 mixin 完全接管,复用 DeathProtection.TOTEM_OF_UNDYING 常量(见 tryProtect)。
                         .component(DataComponents.ITEM_NAME, Component.translatable("item.sfcraft.standing_firm_totem"))
         );
+        itemGroups.add(standingFirmTotem);
         registerRecipes();
         // /sfcraft reload 后重建配方,应用最新的 reactionTicks
         SFConfigReload.EVENT.register(() -> {

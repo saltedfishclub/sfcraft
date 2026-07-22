@@ -14,6 +14,7 @@ import io.ib67.sfcraft.module.room.CreativeRoomModule;
 import io.ib67.sfcraft.module.supervisor.WebModule;
 import io.ib67.sfcraft.module.supervisor.web.SchematicUploader;
 import io.ib67.sfcraft.module.game.GameExtensionModule;
+import io.ib67.sfcraft.module.game.ItemGroupModule;
 import io.ib67.sfcraft.module.game.beheading.BeheadingModule;
 import io.ib67.sfcraft.module.game.bomb.BombModule;
 import io.ib67.sfcraft.module.game.cauldron.CauldronModule;
@@ -24,7 +25,9 @@ import io.ib67.sfcraft.module.game.mount.MountModule;
 import io.ib67.sfcraft.module.game.token.TokenModule;
 import io.ib67.sfcraft.module.game.totem.TotemModule;
 import io.ib67.sfcraft.registry.CauldronRecipeRegistry;
+import io.ib67.sfcraft.registry.ItemGroupService;
 import io.ib67.sfcraft.registry.RoomRegistry;
+import io.ib67.sfcraft.registry.itemgroup.PolymerItemGroupService;
 import io.ib67.sfcraft.registry.cauldron.SimpleCauldronRecipeRegistry;
 import io.ib67.sfcraft.registry.chat.SimpleMessageDecorator;
 import io.ib67.sfcraft.registry.event.SFRandomEventRegistry;
@@ -61,6 +64,7 @@ public class SFCraftInitializer extends GuiceModInitializer {
         binder().bind(RoomTeleporter.class).in(Singleton.class);
         binder().bind(RoomRegistry.class).to(SimpleRoomRegistry.class).in(Singleton.class);
         binder().bind(CauldronRecipeRegistry.class).to(SimpleCauldronRecipeRegistry.class).in(Singleton.class);
+        binder().bind(ItemGroupService.class).to(PolymerItemGroupService.class).in(Singleton.class);
     }
 
     private void registerFeatures() {
@@ -99,6 +103,8 @@ public class SFCraftInitializer extends GuiceModInitializer {
         registerFeature(CommanderModule.class);
         registerFeature(MountModule.class);
         registerFeature(TotemModule.class);
+        // ItemGroupModule 必须最后注册:它冻结前面各模块被动贡献到 ItemGroupService 的物品,构建创意物品栏
+        registerFeature(ItemGroupModule.class);
     }
 
     private void registerWebModules() {

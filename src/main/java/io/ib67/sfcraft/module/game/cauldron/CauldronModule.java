@@ -7,6 +7,7 @@ import io.ib67.sfcraft.config.GameConfigService;
 import io.ib67.sfcraft.module.game.RegistryHelper;
 import io.ib67.sfcraft.module.game.item.SimplePolymerItem;
 import io.ib67.sfcraft.registry.CauldronRecipeRegistry;
+import io.ib67.sfcraft.registry.ItemGroupService;
 import lombok.Getter;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
@@ -27,6 +28,8 @@ public class CauldronModule extends ServerModule {
     private GameConfigService config;
     @Inject
     private CauldronRecipeRegistry recipes;
+    @Inject
+    private ItemGroupService itemGroups;
 
     private AmethystCauldronBlock cauldronBlock;
     private BlockEntityType<AmethystCauldronBlockEntity> cauldronBlockEntity;
@@ -67,5 +70,7 @@ public class CauldronModule extends ServerModule {
                         .component(DataComponents.ENCHANTMENT_GLINT_OVERRIDE, true)
                         .component(DataComponents.ITEM_NAME, Component.translatable("item.sfcraft.amethyst_cauldron"))
         );
+        itemGroups.add(cauldronItem);
+        itemGroups.add(cauldronBlankItem);
     }
 }

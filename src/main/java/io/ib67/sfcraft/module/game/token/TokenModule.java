@@ -6,6 +6,7 @@ import io.ib67.sfcraft.callback.SFConfigReload;
 import io.ib67.sfcraft.config.GameConfigService;
 import io.ib67.sfcraft.module.game.RegistryHelper;
 import io.ib67.sfcraft.registry.CauldronRecipeRegistry;
+import io.ib67.sfcraft.registry.ItemGroupService;
 import io.ib67.sfcraft.registry.cauldron.CauldronRecipe;
 import lombok.Getter;
 import net.minecraft.core.component.DataComponents;
@@ -30,6 +31,8 @@ public class TokenModule extends ServerModule {
     private GameConfigService config;
     @Inject
     private CauldronRecipeRegistry cauldronRecipes;
+    @Inject
+    private ItemGroupService itemGroups;
 
     private Item pearlToken;
     private ReversePearlTokenItem reversePearlToken;
@@ -55,6 +58,8 @@ public class TokenModule extends ServerModule {
                         .durability(config.get().reverseToken.maxUses)
                         .component(DataComponents.ITEM_NAME, Component.translatable("item.sfcraft.reverse_pearl_token"))
         );
+        itemGroups.add(pearlToken);
+        itemGroups.add(reversePearlToken);
         registerRecipes();
         SFConfigReload.EVENT.register(() -> {
             registeredRecipes.forEach(cauldronRecipes::unregister);

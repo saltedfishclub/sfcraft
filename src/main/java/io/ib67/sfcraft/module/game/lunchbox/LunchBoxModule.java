@@ -1,7 +1,9 @@
 package io.ib67.sfcraft.module.game.lunchbox;
 
+import com.google.inject.Inject;
 import io.ib67.sfcraft.ServerModule;
 import io.ib67.sfcraft.module.game.RegistryHelper;
+import io.ib67.sfcraft.registry.ItemGroupService;
 import lombok.Getter;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
@@ -15,6 +17,9 @@ import net.minecraft.world.item.component.Consumables;
  */
 @Getter
 public class LunchBoxModule extends ServerModule {
+    @Inject
+    private ItemGroupService itemGroups;
+
     private Item lunchBox;
 
     @Override
@@ -30,5 +35,6 @@ public class LunchBoxModule extends ServerModule {
                         .component(DataComponents.FOOD, new FoodProperties(0, 0.0F, true))
                         .component(DataComponents.CONSUMABLE, Consumables.DEFAULT_FOOD)
         );
+        itemGroups.add(lunchBox);
     }
 }
