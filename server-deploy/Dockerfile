@@ -1,10 +1,10 @@
 FROM azul-zulu:25-jdk-alpine AS base
 RUN apk update && apk add curl jq git
-RUN curl -fso /mc-server-runner.tar.gz https://github.com/itzg/mc-server-runner/releases/download/1.15.1/mc-server-runner_1.15.1_linux_amd64.tar.gz && \
+RUN curl -fsSLo /mc-server-runner.tar.gz https://github.com/itzg/mc-server-runner/releases/download/1.15.1/mc-server-runner_1.15.1_linux_amd64.tar.gz && \
     tar -xzf /mc-server-runner.tar.gz -C / && \
     rm /mc-server-runner.tar.gz && mv /mc-server-runner /usr/bin/mc-server-runner
-RUN curl -fso /packwiz-installer.jar https://github.com/packwiz/packwiz-installer-bootstrap/releases/download/v0.0.3/packwiz-installer-bootstrap.jar; \
-    curl -fso /fabric-installer.jar https://maven.fabricmc.net/net/fabricmc/fabric-installer/1.1.1/fabric-installer-1.1.1.jar
+RUN curl -fsSLo /packwiz-installer.jar https://github.com/packwiz/packwiz-installer-bootstrap/releases/download/v0.0.3/packwiz-installer-bootstrap.jar && \
+    curl -fsSLo /fabric-installer.jar https://maven.fabricmc.net/net/fabricmc/fabric-installer/1.1.1/fabric-installer-1.1.1.jar
 COPY --from=hengyunabc/arthas:4.1.1-no-jdk /opt/arthas /opt/arthas
 
 FROM base AS sfcraft-builder
