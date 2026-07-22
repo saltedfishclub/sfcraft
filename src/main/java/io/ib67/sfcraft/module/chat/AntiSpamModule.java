@@ -22,7 +22,8 @@ import java.util.UUID;
  * <ul>
  *   <li><b>频率限制</b>:{@link #WINDOW_MILLIS} 毫秒内最多放行 {@link #MAX_MESSAGES} 条。</li>
  *   <li><b>重复拦截</b>:与上一条内容相同(忽略大小写与首尾空白)且间隔不足
- *       {@link #DUPLICATE_WINDOW_MILLIS} 毫秒的消息被拦截。</li>
+ *       {@link #DUPLICATE_WINDOW_MILLIS} 毫秒的消息被拦截。<br>
+ *       但若在这两条之间有<b>其他人</b>发过公屏消息(对话已经推进),则重复内容放行。</li>
  * </ul>
  * 判定完全在服务端进行,走 Fabric {@code ALLOW_CHAT_MESSAGE} 钩子——返回 false 即取消该条消息。
  * 只影响公屏聊天;命令(如 /msg)走的是 {@code ALLOW_COMMAND_MESSAGE},不受影响。
@@ -39,6 +40,8 @@ public class AntiSpamModule extends ServerModule {
 
     // 仅在服务端主线程访问(聊天与断线回调都在主线程),无需并发容器。
     private final Map<UUID, Tracker> trackers = new HashMap<>();
+    // 全局放行消息计数器,每放行一条公屏消息 +1。用于判断某玩家两次发言之间是否有其他人插话。
+    private long messageSeq;
 
     @Override
     public void onInitialize() {
@@ -53,13 +56,14 @@ public class AntiSpamModule extends ServerModule {
         var tracker = trackers.computeIfAbsent(sender.getUUID(), ignored -> new Tracker());
         var content = message.signedContent().strip();
 
-        var reasonKey = tracker.check(content, now);
+        var reasonKey = tracker.check(content, now, messageSeq);
         if (reasonKey != null) {
             // 被拦截的消息不计入放行窗口、也不刷新「上一条」,以免刷屏者借此绕过判定。
             warn(sender, tracker, now, reasonKey);
             return false;
         }
-        tracker.accept(content, now);
+        // 先自增再记录:tracker 存下的是「本条消息之后」的全局序号。
+        tracker.accept(content, now, ++messageSeq);
         return true;
     }
 
@@ -74,13 +78,19 @@ public class AntiSpamModule extends ServerModule {
         private final Deque<Long> recent = new ArrayDeque<>();
         private String lastContent = "";
         private long lastContentTime;
+        /** 上一条放行消息时的全局序号;若之后全局序号增长,说明有其他人插过话。 */
+        private long lastSeq;
         private long lastWarnTime;
 
-        /** @return 拦截原因的翻译键,{@code null} 表示放行。 */
-        String check(String content, long now) {
+        /**
+         * @param seq 当前全局放行序号;等于 {@link #lastSeq} 表示自本玩家上次发言以来无人插话。
+         * @return 拦截原因的翻译键,{@code null} 表示放行。
+         */
+        String check(String content, long now, long seq) {
             if (!content.isEmpty()
                     && content.equalsIgnoreCase(lastContent)
-                    && now - lastContentTime < DUPLICATE_WINDOW_MILLIS) {
+                    && now - lastContentTime < DUPLICATE_WINDOW_MILLIS
+                    && seq == lastSeq) {
                 return "message.sfcraft.antispam.duplicate";
             }
             while (!recent.isEmpty() && now - recent.peekFirst() >= WINDOW_MILLIS) {
@@ -92,10 +102,11 @@ public class AntiSpamModule extends ServerModule {
             return null;
         }
 
-        void accept(String content, long now) {
+        void accept(String content, long now, long seq) {
             recent.addLast(now);
             lastContent = content;
             lastContentTime = now;
+            lastSeq = seq;
         }
 
         boolean canWarn(long now) {

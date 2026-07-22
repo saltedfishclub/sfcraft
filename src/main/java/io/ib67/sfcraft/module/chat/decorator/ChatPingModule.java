@@ -71,7 +71,7 @@ public class ChatPingModule extends ServerModule implements ChatDecorator {
             var r = match.group();
             if (r.isEmpty()) continue;
             final var d = r.substring(1).toLowerCase();
-            return playerNames.stream()
+            return "@"+playerNames.stream()
                     .filter(it -> it.toLowerCase().startsWith(d))
                     .peek(it -> foundPlayers.add(serverSupplier.get().getPlayerList().getPlayerByName(it)))
                     .findFirst()
