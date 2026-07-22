@@ -25,8 +25,8 @@ Agent 的主要工作范围**只有**这两个包:
 
 ```bash
 export JAVA_HOME=~/.sdkman/candidates/java/25.0.1-amzn
-~/.sdkman/candidates/gradle/9.5.1/bin/gradle compileJava --console=plain   # 编译(mixin AP 会校验注入目标)
-~/.sdkman/candidates/gradle/9.5.1/bin/gradle runServer --console=plain    # dev 服务器(run/ 目录,EULA 已接受)
+~/.sdkman/candidates/gradle/9.6.0/bin/gradle compileJava --console=plain   # 编译(mixin AP 会校验注入目标)
+~/.sdkman/candidates/gradle/9.6.0/bin/gradle runServer --console=plain    # dev 服务器(run/ 目录,EULA 已接受)
 ```
 
 查 26.2 真实签名(解决 cannot find symbol 的最快办法):
@@ -42,6 +42,9 @@ javap -cp ~/.gradle/caches/fabric-loom/minecraftMaven/net/minecraft/minecraft-me
 3. 依赖一律 `@Inject`(如 `GameConfigService`、`CauldronRecipeRegistry`);方块实体/实体拿不到注入,由模块在注册时用工厂闭包把依赖塞进构造器(参考 `CauldronModule`)。
 4. mixin 放 `mixin.gameplay`,保持轻薄:逻辑写在模块的公开方法里,mixin 用 `SFCraft.getInjector().getInstance(XxxModule.class)` 一行委托(参考 `MobCommanderMixin`);高频调用路径可参考 `MountLogic` 的惰性缓存。能用 Fabric API 事件或 `SFCallbacks` 回调就不要写 mixin。
 5. 需要注册模块时在 `SFCraftInitializer#registerGameFeatures` 加一行(⚠️ 越界,需许可)。**`GameExtensionModule` 必须保持在所有 game 模块之前**——它加载 gameplay.json,后续模块注册物品时会读配置。
+
+另外，如果你注册了新的物品，确保通过依赖注入把他注册到 ItemGroupService 中。
+
 6. 编译验证,必要时 runServer 冒烟。
 
 ## 编码约定
