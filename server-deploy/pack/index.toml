@@ -1,11 +1,6 @@
 hash-format = "sha256"
 
 [[files]]
-file = "mods/carpet-extra.pw.toml"
-hash = "1aca75981bc81e31ce2ae719bc47cb44332c7bd633b9b87a2d3e08eb6a8751c6"
-metafile = true
-
-[[files]]
 file = "mods/fabric-api.pw.toml"
 hash = "dc5490cc1a9231b0d32ec3e72f9d34279fc1d1ff6fb5a7d288b1f36faec0a6a0"
 metafile = true
