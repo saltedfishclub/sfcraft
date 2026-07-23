@@ -17,9 +17,12 @@ public abstract class ServerWorldMixin {
             var dt = _this.dimensionTypeRegistration();
             var clock = dt.value().defaultClock();
             if(clock.isEmpty()) return timeOfDay;
+            // Day/night acceleration is driven solely by the clock below. Do NOT inflate
+            // gameTime here: ServerLevel.tick feeds getGameTime() into blockTicks/fluidTicks,
+            // so advancing it would fast-forward scheduled ticks (liquids flow faster, etc.).
             _this.clockManager().addTicks(clock.get(), 20);
             MixinHelper.spedUp = true;
-            return timeOfDay + 10;
+            return timeOfDay;
         }
         MixinHelper.spedUp = false;
         return timeOfDay;
