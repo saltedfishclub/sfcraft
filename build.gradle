@@ -34,6 +34,7 @@ dependencies {
     shadow("io.javalin:javalin:7.2.2") {
         exclude group: "org.eclipse.jetty.ee10", module: "jetty-ee10-annotations"
     }
+    shadow("org.apache.commons:commons-compress:1.28.0")
     shadow("io.ib67.kiwi:lang:1.2.3-SNAPSHOT")
     shadow('com.github.houbb:pinyin:0.4.0')
     def polymerVersion = "0.17.3+26.2"
@@ -53,6 +54,7 @@ shadowJar {
     configurations = [project.configurations.shadow]
     exclude("META-INF")
     relocate 'kotlin', 'sfcraft-kotlin'
+    relocate 'org.apache.commons.compress', 'sfcraft.apache.commons.compress'
 }
 
 processResources {
