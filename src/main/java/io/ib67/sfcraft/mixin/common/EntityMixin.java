@@ -21,7 +21,9 @@ import net.minecraft.world.level.portal.TeleportTransition;
 public abstract class EntityMixin {
     @Inject(method = "setShiftKeyDown", at = @At("HEAD"))
     public void onSneaking(boolean sneaking, CallbackInfo ci) {
-        if ($this() instanceof Player pe) {
+        // the client resends its whole input state whenever any key changes, so this is
+        // called repeatedly while the player merely walks around sneaking. report edges only.
+        if ($this() instanceof Player pe && sneaking != pe.isShiftKeyDown()) {
             SFCallbacks.PLAYER_SNEAKING.invoker().onSneaking(pe, sneaking);
         }
     }

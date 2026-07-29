@@ -6,9 +6,12 @@ import io.ib67.sfcraft.util.Helper;
 import it.unimi.dsi.fastutil.objects.Object2LongMap;
 import it.unimi.dsi.fastutil.objects.Object2LongOpenHashMap;
 import net.fabricmc.fabric.api.networking.v1.PlayerLookup;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.network.ServerGamePacketListenerImpl;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.player.Player;
@@ -20,6 +23,11 @@ public class FartFertilizerModule extends ServerModule {
     @Override
     public void onInitialize() {
         SFCallbacks.PLAYER_SNEAKING.register(this::onSneaking);
+        ServerPlayConnectionEvents.DISCONNECT.register(this::onDisconnect);
+    }
+
+    private void onDisconnect(ServerGamePacketListenerImpl serverPlayNetworkHandler, MinecraftServer minecraftServer) {
+        lastSneaked.removeLong(serverPlayNetworkHandler.getPlayer());
     }
 
     private void onSneaking(Player player, boolean sneak) {
