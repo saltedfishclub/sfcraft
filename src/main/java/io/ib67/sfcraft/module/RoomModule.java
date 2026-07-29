@@ -84,7 +84,7 @@ public class RoomModule extends ServerModule {
         }
         var networkHandler = player.connection;
         networkHandler.send(new ClientboundStoreCookiePacket(ROOM_COOKIE, EMPTY), PacketSendListener.thenRun(() -> {
-            networkHandler.send(new ClientboundTransferPacket(config.domain, serverSupplier.get().getPort()));
+            networkHandler.send(new ClientboundTransferPacket(config.domain, config.port));
         }));
         return 1;
     }
