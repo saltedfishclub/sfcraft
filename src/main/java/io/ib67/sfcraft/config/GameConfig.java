@@ -16,6 +16,12 @@ public class GameConfig {
     public Mount mount = new Mount();
     public Gps gps = new Gps();
     public StandingFirmTotem standingFirmTotem = new StandingFirmTotem();
+    public ElytraPortal elytraPortal = new ElytraPortal();
+
+    public static class ElytraPortal {
+        // 鞘翅滑翔冲进下界传送门时跳过等待(立即传送)的最低速度,单位米/秒;<= 0 关闭本特性
+        public double minSpeedBlocksPerSecond = 25.0;
+    }
 
     public static class StandingFirmTotem {
         // 可反复使用的图腾变种:触发时扣掉一部分总经验,并进入冷却
