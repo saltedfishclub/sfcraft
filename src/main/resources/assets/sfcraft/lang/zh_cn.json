@@ -98,6 +98,8 @@
   "message.sfcraft.mapart.error.too_large": "图片尺寸过大(%s,单边上限 %s 像素)",
   "message.sfcraft.mapart.error.not_image": "下载的内容不是可识别的图片",
   "message.sfcraft.mapart.error.download_failed": "下载失败: %s",
+  "message.sfcraft.mapart.expand.wall_only": "地图画只能挂在竖直墙面上",
+  "message.sfcraft.mapart.expand.no_space": "墙面空间不足,这幅画需要 %s x %s 格空墙",
   "item.sfcraft.map_art": "地图画",
   "item.sfcraft.standing_firm_totem": "代偿图腾"
 }

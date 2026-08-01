@@ -17,11 +17,15 @@ import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.minecraft.commands.CommandBuildContext;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.decoration.GlowItemFrame;
+import net.minecraft.world.entity.decoration.HangingEntity;
 import net.minecraft.world.entity.decoration.ItemFrame;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AnvilMenu;
@@ -44,6 +48,7 @@ import java.time.Duration;
 import java.util.Collections;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.WeakHashMap;
@@ -52,13 +57,17 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
 /**
- * 地图画:把 http(s) 图片下载后拉伸映射为一张原版 128x128 填充地图(MapColor 调色板近似)。
+ * 地图画:把 http(s) 图片下载后映射为原版填充地图画(MapColor 调色板近似)。
  * <ul>
  *   <li>铁砧:把(空)地图重命名为图片 URL 即可,结果槽直接产出地图画(防抖后才真正下载)。</li>
  *   <li>{@code /mapfor <url>}:OP 直接获得成品。</li>
+ *   <li>把地图画放入墙上的物品框时,以该框为左下角自动铺满整幅图片(最多 {@link #MAX_MAPS_PER_SIDE}x
+ *       {@link #MAX_MAPS_PER_SIDE} 格,按原图宽高比取整)。墙面铺不下、或框朝上/朝下时,
+ *       这次放入会被直接拒绝——宁可放不进,也不留一张孤零零的低清种子图。</li>
  *   <li>放进物品框的地图画一旦掉出,会连框一起消失(不掉落任何物品),见 {@code ItemFrameMixin}。</li>
  * </ul>
- * 无论原图多大,成品恒为一张 128x128 的地图物品;输入单边像素上限见
+ * 玩家拿到的是单张"种子"地图(128x128 整图预览);上墙后每格替换为 128x128 的局部清晰切片。
+ * 输入单边像素上限见
  * {@code GameConfig.MapArt#maxImageDimension},在解码像素前先读头部尺寸拦截,防止解压炸弹。
  * 生成物是普通 {@code FILLED_MAP}+{@code MAP_ID}/{@code CUSTOM_DATA} 组件,纯原版物品,无需 Polymer。
  */
@@ -66,6 +75,16 @@ import java.util.concurrent.TimeUnit;
 public class MapArtModule extends ServerModule {
     /** 地图画标记(custom_data 里的布尔键),用于物品框掉落判定,可跨重启/复制保留。 */
     public static final String MAP_ART_MARKER = "sfcraft_map_art";
+    /** 图片来源 URL(custom_data 里的字符串键),上墙展开时凭它从渲染缓存取整幅像素。 */
+    public static final String MAP_ART_URL = "sfcraft_map_art_url";
+    /**
+     * 铺墙格数(custom_data 里的整数键),在种子图上随 URL 一起写入。
+     * 有了它,放置前的空间校验无需等下载/渲染就能同步做完。
+     */
+    public static final String MAP_ART_COLS = "sfcraft_map_art_cols";
+    public static final String MAP_ART_ROWS = "sfcraft_map_art_rows";
+    /** 自动铺墙的最大边格数。TODO: 应移入 GameConfig.MapArt(io.ib67.sfcraft.config 越界,待许可)。 */
+    private static final int MAX_MAPS_PER_SIDE = 3;
     private static final int ANVIL_DEBOUNCE_MS = 400;
     private static final int RENDER_CACHE_SIZE = 16;
     /** JDK ImageIO 默认可栅格化的扩展名;webp 不在其中。 */
@@ -81,7 +100,7 @@ public class MapArtModule extends ServerModule {
             .connectTimeout(Duration.ofSeconds(10))
             .build();
     private final Map<AnvilMenu, AnvilSession> anvilSessions = Collections.synchronizedMap(new WeakHashMap<>());
-    private final Cache<String, byte[]> renderCache = CacheBuilder.newBuilder()
+    private final Cache<String, Rendered> renderCache = CacheBuilder.newBuilder()
             .maximumSize(RENDER_CACHE_SIZE)
             .build();
     /** 远端下载/解码失败的地址黑名单:url -> 允许重试的 epoch millis。 */
@@ -118,12 +137,13 @@ public class MapArtModule extends ServerModule {
             if (target == null) {
                 return; // 已下线;渲染结果仍在缓存里,重新执行命令即可
             }
-            if (outcome == null || outcome.pixels() == null) {
+            if (outcome == null || outcome.rendered() == null) {
                 target.sendSystemMessage(Component.translatable("message.sfcraft.mapart.failed",
                         describe(outcome, error)));
                 return;
             }
-            give(target, buildMap((ServerLevel) target.level(), outcome.pixels(), target.getX(), target.getZ()));
+            give(target, buildMap((ServerLevel) target.level(), outcome.rendered(), url,
+                    target.getX(), target.getZ()));
             target.sendSystemMessage(Component.translatable("command.sfcraft.mapart.success"));
         }));
         return 1;
@@ -175,13 +195,14 @@ public class MapArtModule extends ServerModule {
             anvilSessions.remove(menu); // 已下线,界面也没了,无需再发
             return;
         }
-        if (outcome == null || outcome.pixels() == null) {
+        if (outcome == null || outcome.rendered() == null) {
             session.failed = true;
             player.sendSystemMessage(Component.translatable("message.sfcraft.mapart.failed",
                     describe(outcome, error)));
             return;
         }
-        var stack = buildMap((ServerLevel) player.level(), outcome.pixels(), player.getX(), player.getZ());
+        var stack = buildMap((ServerLevel) player.level(), outcome.rendered(), session.url,
+                player.getX(), player.getZ());
         if (player.containerMenu != menu) {
             // 完成时砧子界面已关:直接发进背包
             anvilSessions.remove(menu);
@@ -213,12 +234,203 @@ public class MapArtModule extends ServerModule {
         return data != null && data.copyTag().getBooleanOr(MAP_ART_MARKER, false);
     }
 
+    /** 地图画的图片来源 URL(无此键时无法重建整幅,例如旧版本制作的地图画)。 */
+    public static @Nullable String mapArtUrl(ItemStack stack) {
+        if (!isMapArt(stack)) {
+            return null;
+        }
+        var data = stack.get(DataComponents.CUSTOM_DATA);
+        if (data == null) {
+            return null;
+        }
+        return data.copyTag().getString(MAP_ART_URL).filter(MapArtModule::isUrlLike).orElse(null);
+    }
+
+    /** 种子图记下的铺墙格数 {cols, rows};旧版本制作的地图画没有这两个键,返回 null。 */
+    private static int @Nullable [] mapArtGrid(ItemStack stack) {
+        if (!isMapArt(stack)) {
+            return null;
+        }
+        var data = stack.get(DataComponents.CUSTOM_DATA);
+        if (data == null) {
+            return null;
+        }
+        var tag = data.copyTag();
+        int cols = tag.getIntOr(MAP_ART_COLS, 0);
+        int rows = tag.getIntOr(MAP_ART_ROWS, 0);
+        if (cols < 1 || rows < 1 || cols > MAX_MAPS_PER_SIDE || rows > MAX_MAPS_PER_SIDE) {
+            return null;
+        }
+        return new int[]{cols, rows};
+    }
+
+    /**
+     * {@code ItemFrameMixin} 在放入前调用(服务端主线程):返回 false 表示这面墙容不下整幅画,
+     * 直接否掉这次交互——宁可不让放,也不留一张孤零零的低清种子图挂在墙上。
+     */
+    public boolean canPlaceMapArt(ItemFrame frame, ItemStack stack, @Nullable ServerPlayer player) {
+        var grid = mapArtGrid(stack);
+        if (grid == null || (grid[0] == 1 && grid[1] == 1)) {
+            return true; // 非地图画/切片/旧版无格数信息/本就单格:照常放
+        }
+        if (!(frame.level() instanceof ServerLevel level)) {
+            return true;
+        }
+        var facing = frame.getDirection();
+        if (facing.getAxis().isVertical()) {
+            sendKeyed(player, "message.sfcraft.mapart.expand.wall_only");
+            return false;
+        }
+        if (!hasRoom(frame, level, facing, grid[0], grid[1])) {
+            sendKeyed(player, "message.sfcraft.mapart.expand.no_space", grid[0], grid[1]);
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * {@code ItemFrameMixin} 在玩家把地图画放入空框后调用(服务端主线程):
+     * 以该框为左下角,把整幅图片的其余格自动铺满墙面。
+     */
+    public void onMapArtPlaced(ItemFrame frame, ServerPlayer player) {
+        var url = mapArtUrl(frame.getItem());
+        if (url == null) {
+            return;
+        }
+        var rendered = renderCache.getIfPresent(url);
+        if (rendered != null) {
+            expand(frame, rendered, player); // 渲染完就挂墙的常见路径:缓存必中,同步铺开
+            return;
+        }
+        // 缓存被挤出或服务器重启过:按 URL 重新拉取,完成后回主线程再铺
+        var expectedMapId = frame.getItem().get(DataComponents.MAP_ID);
+        var playerId = player.getUUID();
+        render(url).whenComplete((outcome, error) -> scheduleOnServer(() -> {
+            if (frame.isRemoved() || !url.equals(mapArtUrl(frame.getItem()))) {
+                return; // 框已消失或内容物已被换掉
+            }
+            if (!Objects.equals(expectedMapId, frame.getItem().get(DataComponents.MAP_ID))) {
+                return; // 内容物虽仍像地图画,但已不是当初那张,放弃
+            }
+            var target = serverSupplier.get().getPlayerList().getPlayer(playerId);
+            if (outcome == null || outcome.rendered() == null) {
+                sendKeyed(target, "message.sfcraft.mapart.failed", describe(outcome, error));
+                return;
+            }
+            expand(frame, outcome.rendered(), target);
+        }));
+    }
+
+    /**
+     * 主线程:把 frame(作为左下角)所在墙面铺满成 cols x rows 的整幅墙画。
+     * 放置前已校验过空间,这里再兜一次底:下载期间墙面被占的话把种子图退还玩家。
+     */
+    private void expand(ItemFrame frame, Rendered art, @Nullable ServerPlayer player) {
+        if (art.cols() == 1 && art.rows() == 1) {
+            return; // 单格:种子图本身即成品
+        }
+        if (!(frame.level() instanceof ServerLevel level)) {
+            return;
+        }
+        var facing = frame.getDirection();
+        if (facing.getAxis().isVertical()) {
+            sendKeyed(player, "message.sfcraft.mapart.expand.wall_only");
+            revert(frame, player);
+            return;
+        }
+        if (!hasRoom(frame, level, facing, art.cols(), art.rows())) {
+            sendKeyed(player, "message.sfcraft.mapart.expand.no_space", art.cols(), art.rows());
+            revert(frame, player);
+            return;
+        }
+        // 观察者面对框时的右手方向:面朝向绕 Y 轴逆时针转 90 度(如框朝南,右侧为东)
+        var right = facing.getCounterClockWise();
+        var origin = frame.blockPosition();
+        frame.setItem(buildTile(level, art, 0, 0, frame.getX(), frame.getZ()));
+        for (int tx = 0; tx < art.cols(); tx++) {
+            for (int ty = 0; ty < art.rows(); ty++) {
+                if (tx == 0 && ty == 0) {
+                    continue;
+                }
+                var tile = newFrameLike(frame, level, origin.relative(right, tx).above(ty), facing);
+                tile.setItem(buildTile(level, art, tx, ty, frame.getX(), frame.getZ()));
+                level.addFreshEntity(tile);
+            }
+        }
+    }
+
+    /** 以 frame 为左下角,cols x rows 的墙面是否都能挂得下框(左下角那格是 frame 自己,跳过)。 */
+    private static boolean hasRoom(ItemFrame frame, ServerLevel level, Direction facing, int cols, int rows) {
+        var right = facing.getCounterClockWise();
+        var origin = frame.blockPosition();
+        for (int tx = 0; tx < cols; tx++) {
+            for (int ty = 0; ty < rows; ty++) {
+                if (tx == 0 && ty == 0) {
+                    continue;
+                }
+                var probe = newFrameLike(frame, level, origin.relative(right, tx).above(ty), facing);
+                var occupied = !level.getEntitiesOfClass(HangingEntity.class, probe.getBoundingBox()).isEmpty();
+                if (!probe.survives() || occupied) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    /**
+     * 展开不成:把框腾空、种子图退回玩家。玩家已下线就只能维持现状(退无可退)。
+     * 创造模式下原版 {@code consume} 不扣手上那份,退回等于复制,故只腾空不补发。
+     */
+    private static void revert(ItemFrame frame, @Nullable ServerPlayer player) {
+        if (player == null) {
+            return;
+        }
+        var seed = frame.getItem().copy();
+        frame.setItem(ItemStack.EMPTY);
+        if (!player.hasInfiniteMaterials()) {
+            give(player, seed);
+        }
+    }
+
+    private static ItemFrame newFrameLike(ItemFrame template, ServerLevel level, BlockPos pos, Direction facing) {
+        return template instanceof GlowItemFrame
+                ? new GlowItemFrame(level, pos, facing)
+                : new ItemFrame(level, pos, facing);
+    }
+
+    private static void sendKeyed(@Nullable ServerPlayer player, String key, Object... args) {
+        if (player != null) {
+            player.sendSystemMessage(Component.translatable(key, args));
+        }
+    }
+
     // ============================== 生成 ==============================
 
-    /** 在主线程调用:申请 map id、写入像素并锁定,产出带标记的填充地图。 */
-    public ItemStack buildMap(ServerLevel level, byte[] pixels, double originX, double originZ) {
+    /** 在主线程调用:产出"种子"地图画——128x128 整图预览,记下来源 URL 供上墙展开。 */
+    public ItemStack buildMap(ServerLevel level, Rendered art, String url, double originX, double originZ) {
         var data = MapItemSavedData.createFresh(originX, originZ, (byte) 0, false, false, level.dimension());
-        System.arraycopy(pixels, 0, data.colors, 0, MapArtRenderer.MAP_SIZE * MapArtRenderer.MAP_SIZE);
+        System.arraycopy(art.preview(), 0, data.colors, 0,
+                MapArtRenderer.MAP_SIZE * MapArtRenderer.MAP_SIZE);
+        return finishMap(level, data, url, art.cols(), art.rows());
+    }
+
+    /** 在主线程调用:产出整幅墙画的一格切片(tx/ty 以左下角为原点),不带来源 URL(不再二次展开)。 */
+    private ItemStack buildTile(ServerLevel level, Rendered art, int tx, int ty, double originX, double originZ) {
+        var data = MapItemSavedData.createFresh(originX, originZ, (byte) 0, false, false, level.dimension());
+        int canvasWidth = art.cols() * MapArtRenderer.MAP_SIZE;
+        int rowFromTop = art.rows() - 1 - ty; // 画布像素第 0 行在图像顶部,墙上第 0 格在最底部
+        for (int y = 0; y < MapArtRenderer.MAP_SIZE; y++) {
+            System.arraycopy(art.canvas(), ((rowFromTop * MapArtRenderer.MAP_SIZE + y) * canvasWidth)
+                            + tx * MapArtRenderer.MAP_SIZE, data.colors,
+                    y * MapArtRenderer.MAP_SIZE, MapArtRenderer.MAP_SIZE);
+        }
+        return finishMap(level, data, null, 0, 0);
+    }
+
+    /** 锁定画布、申请 map id 并打包成带地图画标记的填充地图。url 为 null 时不写来源/格数(切片不再展开)。 */
+    private static ItemStack finishMap(ServerLevel level, MapItemSavedData data, @Nullable String url,
+                                       int cols, int rows) {
         var locked = data.locked(); // 锁定:不可再被制图台改图/缩放
         locked.setDirty();
         var mapId = level.getFreeMapId();
@@ -228,6 +440,11 @@ public class MapArtModule extends ServerModule {
         stack.set(DataComponents.CUSTOM_NAME, Component.translatable("item.sfcraft.map_art"));
         var marker = new CompoundTag();
         marker.putBoolean(MAP_ART_MARKER, true);
+        if (url != null) {
+            marker.putString(MAP_ART_URL, url);
+            marker.putInt(MAP_ART_COLS, cols);
+            marker.putInt(MAP_ART_ROWS, rows);
+        }
         CustomData.set(DataComponents.CUSTOM_DATA, stack, marker);
         return stack;
     }
@@ -299,7 +516,7 @@ public class MapArtModule extends ServerModule {
                 });
     }
 
-    /** 先读图片头部尺寸(不解码像素)拦截超大图,通过后再栅格化到 128x128。 */
+    /** 先读图片头部尺寸(不解码像素)拦截超大图,通过后再栅格化到整幅墙画画布。 */
     private RenderOutcome decode(String url, byte[] body) {
         int maxDimension = configService.get().mapArt.maxImageDimension;
         ImageReader reader = null;
@@ -325,9 +542,14 @@ public class MapArtModule extends ServerModule {
                 markFailed(url);
                 return RenderOutcome.fail(RenderFailure.TOO_LARGE, width + "x" + height);
             }
-            var pixels = MapArtRenderer.render(reader.read(0));
-            renderCache.put(url, pixels);
-            return RenderOutcome.ok(pixels);
+            var image = reader.read(0);
+            var grid = gridFor(width, height);
+            var canvas = MapArtRenderer.render(image, grid[0] * MapArtRenderer.MAP_SIZE,
+                    grid[1] * MapArtRenderer.MAP_SIZE);
+            var preview = grid[0] == 1 && grid[1] == 1 ? canvas : MapArtRenderer.render(image);
+            var rendered = new Rendered(grid[0], grid[1], canvas, preview);
+            renderCache.put(url, rendered);
+            return RenderOutcome.ok(rendered);
         } catch (IOException e) {
             log.warn("Failed to decode map art image from {}", url, e);
             markFailed(url);
@@ -385,15 +607,31 @@ public class MapArtModule extends ServerModule {
         return Math.max(1, configService.get().mapArt.anvilXpCost);
     }
 
+    /** 按原图宽高比决定铺墙格数 {cols, rows}:长边顶到上限,短边按比例取整(至少 1)。 */
+    private static int[] gridFor(int imageWidth, int imageHeight) {
+        double aspect = (double) imageWidth / imageHeight;
+        if (aspect >= 1.0) {
+            return new int[]{MAX_MAPS_PER_SIDE, Math.max(1, (int) Math.round(MAX_MAPS_PER_SIDE / aspect))};
+        }
+        return new int[]{Math.max(1, (int) Math.round(MAX_MAPS_PER_SIDE * aspect)), MAX_MAPS_PER_SIDE};
+    }
+
     private static boolean isUrlLike(String text) {
         var lower = text.toLowerCase(Locale.ROOT);
         return (lower.startsWith("https://") || lower.startsWith("http://"))
                 && text.chars().noneMatch(Character::isWhitespace);
     }
 
-    private record RenderOutcome(@Nullable byte[] pixels, @Nullable RenderFailure failure, @Nullable String detail) {
-        private static RenderOutcome ok(byte[] pixels) {
-            return new RenderOutcome(pixels, null, null);
+    /**
+     * 一次渲染的产物:canvas 是 cols*128 x rows*128 的整幅调色板像素(行优先铺开,第 0 行为图像顶部);
+     * preview 是 128x128 整图预览,装进"种子"地图;单格时二者同数组。
+     */
+    private record Rendered(int cols, int rows, byte[] canvas, byte[] preview) {
+    }
+
+    private record RenderOutcome(@Nullable Rendered rendered, @Nullable RenderFailure failure, @Nullable String detail) {
+        private static RenderOutcome ok(Rendered rendered) {
+            return new RenderOutcome(rendered, null, null);
         }
 
         private static RenderOutcome fail(RenderFailure failure, @Nullable String detail) {
