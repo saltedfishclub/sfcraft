@@ -1,8 +1,7 @@
 package io.ib67.sfcraft.mixin.gameplay;
 
-import io.ib67.sfcraft.SFCraft;
+import io.ib67.sfcraft.callback.SFCallbacks;
 import io.ib67.sfcraft.module.game.mapart.MapArtAnvilAccess;
-import io.ib67.sfcraft.module.game.mapart.MapArtModule;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -19,8 +18,9 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 /**
- * 地图画的铁砧入口:把(空)地图重命名为 http(s) URL 时,由 {@link MapArtModule#onAnvilResult}
- * 接管结果槽(压制原版重命名结果,下载渲染完成后置入地图画)。
+ * 铁砧钩子:在 {@code createResult} 尾部发布 {@link SFCallbacks#ANVIL_CREATE_RESULT} 事件。
+ * 附带实现 {@link MapArtAnvilAccess}(鸭接口),向监听器暴露输入/命名/结果槽的读写能力——
+ * 地图画模块据此在重命名为图片 URL 时接管结果槽。
  */
 @Mixin(AnvilMenu.class)
 public abstract class AnvilMenuMixin implements MapArtAnvilAccess {
@@ -58,7 +58,7 @@ public abstract class AnvilMenuMixin implements MapArtAnvilAccess {
 
     @Inject(method = "createResult", at = @At("TAIL"))
     private void sfcraft$mapArtResult(CallbackInfo ci) {
-        SFCraft.getInjector().getInstance(MapArtModule.class)
-                .onAnvilResult((AnvilMenu) (Object) this, this.player);
+        SFCallbacks.ANVIL_CREATE_RESULT.invoker()
+                .onAnvilCreateResult((AnvilMenu) (Object) this, this.player);
     }
 }
