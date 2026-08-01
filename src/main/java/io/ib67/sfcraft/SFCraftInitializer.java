@@ -21,6 +21,7 @@ import io.ib67.sfcraft.module.game.cauldron.CauldronModule;
 import io.ib67.sfcraft.module.game.commander.CommanderModule;
 import io.ib67.sfcraft.module.game.crystal.GravityCrystalModule;
 import io.ib67.sfcraft.module.game.lunchbox.LunchBoxModule;
+import io.ib67.sfcraft.module.game.mapart.MapArtModule;
 import io.ib67.sfcraft.module.game.mount.MountModule;
 import io.ib67.sfcraft.module.game.token.TokenModule;
 import io.ib67.sfcraft.module.game.totem.TotemModule;
@@ -103,6 +104,7 @@ public class SFCraftInitializer extends GuiceModInitializer {
         registerFeature(CommanderModule.class);
         registerFeature(MountModule.class);
         registerFeature(TotemModule.class);
+        registerFeature(MapArtModule.class);
         // ItemGroupModule 必须最后注册:它冻结前面各模块被动贡献到 ItemGroupService 的物品,构建创意物品栏
         registerFeature(ItemGroupModule.class);
     }

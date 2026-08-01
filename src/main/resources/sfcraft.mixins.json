@@ -18,6 +18,8 @@
     "common.bridge.ServerWorldBridge",
     "common.fixes.EndermanEntityMixin",
     "common.fixes.LivingEntityMixin",
+    "gameplay.AnvilMenuMixin",
+    "gameplay.ItemFrameMixin",
     "gameplay.MobCommanderMixin",
     "gameplay.TotemProtectionMixin",
     "gameplay.ZombieMixin",

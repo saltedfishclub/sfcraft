@@ -19,6 +19,12 @@ Agent 的主要工作范围**只有**这两个包:
 
 新特性通常必然涉及 `registerFeature` 注册行、mixins.json 条目、lang 键、配方 JSON 这些"例行越界"——请在给出方案时一并列出这些改动点,**打包征得一次同意**后再动手,不要做完了才说。
 
+## 工具使用
+
+- 探索、读写代码**优先使用 IDE 的 MCP 工具**:`list_directory_tree`(代替 `ls`/`find`)、`read_file`(代替 `cat`/`sed`)、`search_text`/`search_regex`/`search_symbol`(代替 `rg`/`grep`)、`get_symbol_info`、`analyze_calls`;编辑用 `apply_patch`/`create_new_file`。
+- 查 26.2 原版类签名**优先用 `read_file` 直接读 loom 缓存 jar 内的类**(会反编译,可读上下文):`~/.gradle/caches/fabric-loom/minecraftMaven/net/minecraft/minecraft-merged-deobf/26.2/minecraft-merged-deobf-26.2.jar!/net/minecraft/.../SomeClass.class`,`javap` 仅作回退。
+- shell 只留给 MCP 做不了的事:gradle 编译/运行、git、文件权限操作等。
+
 ## 构建与验证
 
 仓库**没有** gradlew wrapper,使用系统 gradle + sdkman JDK:

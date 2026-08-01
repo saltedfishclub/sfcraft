@@ -87,5 +87,13 @@
   "command.sfcraft.gps.dimension_changed": "You left the target's dimension, navigation ended",
   "command.sfcraft.gps.wrong_world": "You are not in the target world (%s); navigation refused",
   "command.sfcraft.gps.preview": "Click to preview this location on the web map",
+  "command.sfcraft.mapart.started": "Downloading image from %s...",
+  "command.sfcraft.mapart.success": "Map art created",
+  "message.sfcraft.mapart.failed": "Failed to create map art: %s",
+  "message.sfcraft.mapart.success_inventory": "Map art created; the anvil was closed, so it went straight to your inventory",
+  "message.sfcraft.mapart.error.invalid_url": "Invalid URL; it must start with http:// or https://",
+  "message.sfcraft.mapart.error.not_image": "The downloaded content is not a recognizable image",
+  "message.sfcraft.mapart.error.download_failed": "Download failed: %s",
+  "item.sfcraft.map_art": "Map Art",
   "item.sfcraft.standing_firm_totem": "Totem of Restitution"
 }

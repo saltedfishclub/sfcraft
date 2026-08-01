@@ -16,6 +16,16 @@ public class GameConfig {
     public Mount mount = new Mount();
     public Gps gps = new Gps();
     public StandingFirmTotem standingFirmTotem = new StandingFirmTotem();
+    public MapArt mapArt = new MapArt();
+
+    public static class MapArt {
+        // 单张图片的下载体积上限(字节)
+        public int maxDownloadBytes = 8388608;
+        // HTTP 超时(秒)
+        public int httpTimeoutSeconds = 15;
+        // 铁砧生成地图画的经验等级花费
+        public int anvilXpCost = 1;
+    }
 
     public static class StandingFirmTotem {
         // 可反复使用的图腾变种:触发时扣掉一部分总经验,并进入冷却
