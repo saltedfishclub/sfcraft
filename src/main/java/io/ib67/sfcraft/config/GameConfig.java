@@ -16,6 +16,14 @@ public class GameConfig {
     public Mount mount = new Mount();
     public Gps gps = new Gps();
     public StandingFirmTotem standingFirmTotem = new StandingFirmTotem();
+    public LunchBox lunchBox = new LunchBox();
+
+    public static class LunchBox {
+        // 午餐盒收纳袋式容量:最多容纳的"组数"(同种食物自动并堆,占一组)
+        public int maxStacks = 9;
+        // 只允许收纳带 food 组件的物品(午餐盒语义);false 则任意可入袋物品都行
+        public boolean foodOnly = true;
+    }
 
     public static class StandingFirmTotem {
         // 可反复使用的图腾变种:触发时扣掉一部分总经验,并进入冷却

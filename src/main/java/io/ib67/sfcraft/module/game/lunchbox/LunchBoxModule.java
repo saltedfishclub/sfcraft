@@ -2,6 +2,7 @@ package io.ib67.sfcraft.module.game.lunchbox;
 
 import com.google.inject.Inject;
 import io.ib67.sfcraft.ServerModule;
+import io.ib67.sfcraft.config.GameConfigService;
 import io.ib67.sfcraft.module.game.RegistryHelper;
 import io.ib67.sfcraft.registry.ItemGroupService;
 import lombok.Getter;
@@ -13,12 +14,15 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.component.Consumables;
 
 /**
- * 午餐盒:随身 9 格食物容器,右键直接吃盒内的食物,Shift+右键打开盒子。
+ * 午餐盒:随身食物收纳袋(伪装原版 bundle,按组数计容量,见 gameplay.json lunchBox 节),
+ * 背包/容器 GUI 内点击装取,世界里右键直接吃盒内的食物。
  */
 @Getter
 public class LunchBoxModule extends ServerModule {
     @Inject
     private ItemGroupService itemGroups;
+    @Inject
+    private GameConfigService gameConfig;
 
     private Item lunchBox;
 
@@ -26,7 +30,7 @@ public class LunchBoxModule extends ServerModule {
     public void onInitialize() {
         lunchBox = RegistryHelper.registerItem(
                 "lunch_box",
-                LunchBoxItem::new,
+                properties -> new LunchBoxItem(properties, gameConfig),
                 new Item.Properties()
                         .stacksTo(1)
                         .modelId(Identifier.fromNamespaceAndPath("sfcraft", "item/lunch_box"))
