@@ -27,6 +27,9 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 public abstract class ItemFrameMixin {
     @Unique
     private boolean sfcraft$wasEmptyBeforeInteract;
+    /** interact HEAD 阶段剪出、RETURN 阶段粘贴的"是不是在放地图画"判定结果,避免同一 tick 里二次解析组件。 */
+    @Unique
+    private boolean sfcraft$placingMapArt;
 
     @Inject(method = "dropItem(Lnet/minecraft/server/level/ServerLevel;Lnet/minecraft/world/entity/Entity;Z)V",
             at = @At("HEAD"), cancellable = true)
@@ -46,14 +49,21 @@ public abstract class ItemFrameMixin {
                                         CallbackInfoReturnable<InteractionResult> cir) {
         var frame = (ItemFrame) (Object) this;
         this.sfcraft$wasEmptyBeforeInteract = frame.getItem().isEmpty();
+        this.sfcraft$placingMapArt = false; // RETURN 总会回到这里,不复用上一跳的结果
         if (frame.level().isClientSide() || !this.sfcraft$wasEmptyBeforeInteract
                 || !(player instanceof ServerPlayer serverPlayer)) {
             return;
         }
-        if (!SFCraft.getInjector().getInstance(MapArtModule.class)
-                .canPlaceMapArt(frame, player.getItemInHand(hand), serverPlayer)) {
-            cir.setReturnValue(InteractionResult.FAIL);
+        var held = player.getItemInHand(hand);
+        if (!MapArtModule.isMapArt(held)) {
+            return; // 非地图画:不打扰原版,也不留 placingMapArt 痕迹
         }
+        if (!SFCraft.getInjector().getInstance(MapArtModule.class)
+                .canPlaceMapArt(frame, held, serverPlayer)) {
+            cir.setReturnValue(InteractionResult.FAIL);
+            return;
+        }
+        this.sfcraft$placingMapArt = true;
     }
 
     // RETURN 而非 TAIL:interact 有多个 return,放画走的是"框空+手上有物品"那条早退分支,
@@ -61,13 +71,19 @@ public abstract class ItemFrameMixin {
     @Inject(method = "interact", at = @At("RETURN"))
     private void sfcraft$onMapArtPlaced(Player player, InteractionHand hand, Vec3 pos,
                                         CallbackInfoReturnable<InteractionResult> cir) {
-        if (((ItemFrame) (Object) this).level().isClientSide()) {
-            return;
-        }
-        if (this.sfcraft$wasEmptyBeforeInteract && !((ItemFrame) (Object) this).getItem().isEmpty()
-                && player instanceof ServerPlayer serverPlayer) {
-            SFCraft.getInjector().getInstance(MapArtModule.class)
-                    .onMapArtPlaced((ItemFrame) (Object) this, serverPlayer);
+        try {
+            if (!this.sfcraft$placingMapArt || ((ItemFrame) (Object) this).level().isClientSide()
+                    || !(player instanceof ServerPlayer serverPlayer)) {
+                return;
+            }
+            // HEAD 里已确认是地图画,这里不再二次解析组件。
+            if (this.sfcraft$wasEmptyBeforeInteract && !((ItemFrame) (Object) this).getItem().isEmpty()) {
+                SFCraft.getInjector().getInstance(MapArtModule.class)
+                        .onMapArtPlaced((ItemFrame) (Object) this, serverPlayer);
+            }
+        } finally {
+            // 单条 interact 调用结束就要擦掉,避免堆栈帧复用到下一跳。
+            this.sfcraft$placingMapArt = false;
         }
     }
 }

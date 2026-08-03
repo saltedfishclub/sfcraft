@@ -27,6 +27,8 @@ public class GameConfig {
     public static class MapArt {
         // 单张图片的下载体积上限(字节)
         public int maxDownloadBytes = 8388608;
+        // 全服同时进行中的图片下载+解码数上限,超出时新请求直接失败提示稍后重试(不排队)
+        public int maxConcurrentRenders = 2;
         // HTTP 超时(秒)
         public int httpTimeoutSeconds = 15;
         // 输入图片单边像素上限(解码像素前按头部尺寸拦截,防爆内存);成品按宽高比在 4x4 格内自动选幅画

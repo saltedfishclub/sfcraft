@@ -78,9 +78,15 @@ import java.util.concurrent.TimeUnit;
 @Log4j2
 public class MapArtModule extends ServerModule {
     /**
-     * 地图画标记(custom_data 里的布尔键),用于物品框掉落判定,可跨重启/复制保留。
+     * 地图画标记(custom_data 里的布尔键),玩家在铁砧放入地图画、以及移除 {@link #MAP_ART_URL} 等
+     * 读取路径的轻量判定;堆栈本身比较、掉落时避免深拷贝都用它。
      */
     public static final String MAP_ART_MARKER = "sfcraft_map_art";
+    /**
+     * 上墙地图画所在物品框的实体 tag,随框存档持久化,是"这个框掉了要连画一起消失"的判定依据。
+     * 铺墙时就打在框本身,掉落路径上不再深拷贝内容物的 NBT。
+     */
+    public static final String MAP_ART_FRAME_TAG = "sfcraft_map_art";
     /**
      * 图片来源 URL(custom_data 里的字符串键),上墙展开时凭它从渲染缓存取整幅像素。
      */
@@ -95,8 +101,23 @@ public class MapArtModule extends ServerModule {
      * 铺墙单边格数上限(gridFor 与种子图格数校验共用,防恶意伪造的种子图铺出超大实体墙)。
      */
     private static final int MAP_GRID_LIMIT = 4;
+    /**
+     * 渲染信号量的静态容量上限。运行时真正的并发配额每次 render 都从配置读,
+     * 这里只是给信号量建一个够大的池子,配置里调大也够用。
+     */
+    private static final int MAX_RENDER_SLOTS = 32;
     private static final int ANVIL_DEBOUNCE_MS = 400;
     private static final int RENDER_CACHE_SIZE = 16;
+    /**
+     * 仅含 {@link #MAP_ART_MARKER} 一个键的探测 tag,配合 {@link CustomData#matchedBy} 做布尔判定,
+     * 不付出 {@link CustomData#copyTag()} 的整树深拷贝成本。
+     */
+    private static final CompoundTag MARKER_PROBE = new CompoundTag();
+
+    static {
+        MARKER_PROBE.putBoolean(MAP_ART_MARKER, true);
+    }
+
     /**
      * JDK ImageIO 默认可栅格化的扩展名;webp 不在其中。
      */
@@ -120,6 +141,11 @@ public class MapArtModule extends ServerModule {
      * 远端下载/解码失败的地址黑名单:url -> 允许重试的 epoch millis。
      */
     private final Map<String, Long> failedUrls = new ConcurrentHashMap<>();
+    /**
+     * 全服同时进行的远端下载+解码数上限,超出直接拒绝(不排队,挂起等待的玩家拿不到反馈)。
+     * 默认从 {@link GameConfig.MapArt#maxConcurrentRenders} 读;运行时改该配置只影响新起的请求。
+     */
+    private final java.util.concurrent.Semaphore renderSlots = new java.util.concurrent.Semaphore(MAX_RENDER_SLOTS);
 
     @Override
     public void onInitialize() {
@@ -235,9 +261,10 @@ public class MapArtModule extends ServerModule {
 
     /**
      * {@code ItemFrameMixin} 在掉落前调用。返回 true 表示已接管:画连框消失,什么都不掉。
+     * 判定靠实体 tag,不再深拷贝内容物的 NBT——上墙的地图画在铺墙时已打上 {@link #MAP_ART_FRAME_TAG}。
      */
     public boolean onItemFrameDrop(ItemFrame frame) {
-        if (!isMapArt(frame.getItem())) {
+        if (!frame.entityTags().contains(MAP_ART_FRAME_TAG)) {
             return false;
         }
         frame.setItem(ItemStack.EMPTY);
@@ -245,25 +272,30 @@ public class MapArtModule extends ServerModule {
         return true;
     }
 
+    /**
+     * 仅判定"是不是地图画堆栈"(布尔),供铁砧放入校验等无需读取具体键值的场合:
+     * 伪造一个只含标记键的 1-entry CompoundTag,避开 {@link CustomData#copyTag()} 的整树深拷贝。
+     */
     public static boolean isMapArt(ItemStack stack) {
         if (!stack.is(Items.FILLED_MAP)) {
             return false;
         }
         var data = stack.get(DataComponents.CUSTOM_DATA);
-        return data != null && data.copyTag().getBooleanOr(MAP_ART_MARKER, false);
+        return data != null && data.matchedBy(MARKER_PROBE);
     }
 
     /**
      * 地图画的图片来源 URL(无此键时无法重建整幅,例如旧版本制作的地图画)。
      */
     public static @Nullable String mapArtUrl(ItemStack stack) {
-        if (!isMapArt(stack)) {
+        if (!stack.is(Items.FILLED_MAP)) {
             return null;
         }
         var data = stack.get(DataComponents.CUSTOM_DATA);
-        if (data == null) {
+        if (data == null || !data.matchedBy(MARKER_PROBE)) {
             return null;
         }
+        // 深拷贝整树只为读一个字符串,太贵;matchedBy 之后这里走的是 1-entry probe 比对路径。
         return data.copyTag().getString(MAP_ART_URL).filter(MapArtModule::isUrlLike).orElse(null);
     }
 
@@ -271,14 +303,14 @@ public class MapArtModule extends ServerModule {
      * 种子图记下的铺墙格数 {cols, rows};旧版本制作的地图画没有这两个键,返回 null。
      */
     private static int @Nullable [] mapArtGrid(ItemStack stack) {
-        if (!isMapArt(stack)) {
+        if (!stack.is(Items.FILLED_MAP)) {
             return null;
         }
         var data = stack.get(DataComponents.CUSTOM_DATA);
-        if (data == null) {
-            return null;
+        if (data == null || !data.matchedBy(MARKER_PROBE)) {
+            return null; // 非地图画/切片的路由:matchedBy 用 1-entry probe 指控,比 copyTag 便宜几个数量级
         }
-        var tag = data.copyTag();
+        var tag = data.copyTag(); // 进入这条分支概率很小,承担得起一次深拷贝
         int cols = tag.getIntOr(MAP_ART_COLS, 0);
         int rows = tag.getIntOr(MAP_ART_ROWS, 0);
         if (cols < 1 || rows < 1 || cols > MAP_GRID_LIMIT || rows > MAP_GRID_LIMIT) {
@@ -350,7 +382,9 @@ public class MapArtModule extends ServerModule {
      */
     private void expand(ItemFrame frame, Rendered art, @Nullable ServerPlayer player) {
         if (art.cols() == 1 && art.rows() == 1) {
-            return; // 单格:种子图本身即成品
+            // 单格:种子图本身即成品,也要打上 tag 才能走掉落消失的路径(后续可能是旧种子图、或玩家手动放进空框)。
+            frame.addTag(MAP_ART_FRAME_TAG);
+            return;
         }
         if (!(frame.level() instanceof ServerLevel level)) {
             return;
@@ -370,6 +404,7 @@ public class MapArtModule extends ServerModule {
         var right = facing.getCounterClockWise();
         var origin = frame.blockPosition();
         frame.setItem(buildTile(level, art, 0, 0, frame.getX(), frame.getZ()));
+        frame.addTag(MAP_ART_FRAME_TAG);
         for (int tx = 0; tx < art.cols(); tx++) {
             for (int ty = 0; ty < art.rows(); ty++) {
                 if (tx == 0 && ty == 0) {
@@ -377,6 +412,7 @@ public class MapArtModule extends ServerModule {
                 }
                 var tile = newFrameLike(frame, level, origin.relative(right, tx).above(ty), facing);
                 tile.setItem(buildTile(level, art, tx, ty, frame.getX(), frame.getZ()));
+                tile.addTag(MAP_ART_FRAME_TAG);
                 level.addFreshEntity(tile);
             }
         }
@@ -525,29 +561,41 @@ public class MapArtModule extends ServerModule {
         if (SUPPORTED_EXTENSIONS.stream().noneMatch(path::endsWith)) {
             return CompletableFuture.completedFuture(RenderOutcome.fail(RenderFailure.UNSUPPORTED_EXTENSION, null));
         }
+        // 并发上限:每次 render 都从配置读当前上限,已持有信号量的数量超过它就直接拒绝。
+        // 信号量实际容量是 MAX_RENDER_SLOTS(静态给足 32),运行时真正的配额靠
+        // "已持有数 >= allowed 就 tryAcquire 失败"这个不变式维护。
+        int allowed = Math.max(1, settings.maxConcurrentRenders);
+        int inFlight = MAX_RENDER_SLOTS - renderSlots.availablePermits();
+        if (inFlight >= allowed || !renderSlots.tryAcquire()) {
+            return CompletableFuture.completedFuture(RenderOutcome.fail(RenderFailure.BUSY, null));
+        }
         var request = HttpRequest.newBuilder(uri)
                 .timeout(Duration.ofSeconds(Math.max(1, settings.httpTimeoutSeconds)))
                 .GET()
                 .build();
         int maxBytes = Math.max(1024, settings.maxDownloadBytes);
-        return httpClient.sendAsync(request,
-                        HttpResponse.BodyHandlers.buffering(HttpResponse.BodyHandlers.ofByteArray(), maxBytes))
-                .thenApply(response -> {
-                    if (response.statusCode() / 100 != 2) {
-                        markFailed(url);
-                        return RenderOutcome.fail(RenderFailure.DOWNLOAD_FAILED, "HTTP " + response.statusCode());
-                    }
-                    var contentType = response.headers().firstValue("content-type").orElse("");
-                    if (!contentType.isBlank() && !contentType.regionMatches(true, 0, "image/", 0, 6)) {
-                        markFailed(url);
-                        return RenderOutcome.fail(RenderFailure.NOT_IMAGE, null);
-                    }
-                    return decode(url, response.body());
-                })
-                .exceptionally(error -> {
-                    markFailed(url);
-                    return RenderOutcome.fail(RenderFailure.DOWNLOAD_FAILED, rootMessage(error));
-                });
+        try {
+            return httpClient.sendAsync(request,
+                            HttpResponse.BodyHandlers.buffering(HttpResponse.BodyHandlers.ofByteArray(), maxBytes))
+                    .thenApply(response -> {
+                        if (response.statusCode() / 100 != 2) {
+                            markFailed(url);
+                            return RenderOutcome.fail(RenderFailure.DOWNLOAD_FAILED, "HTTP " + response.statusCode());
+                        }
+                        var contentType = response.headers().firstValue("content-type").orElse("");
+                        if (!contentType.isBlank() && !contentType.regionMatches(true, 0, "image/", 0, 6)) {
+                            markFailed(url);
+                            return RenderOutcome.fail(RenderFailure.NOT_IMAGE, null);
+                        }
+                        return decode(url, response.body());
+                    })
+                    .whenComplete((outcome, error) -> renderSlots.release());
+        } catch (Exception e) {
+            // 构造链里抛出来的(极少数:URI 类已在外层查过);确保信号量能归还,并把异常变成正常失败
+            renderSlots.release();
+            markFailed(url);
+            return CompletableFuture.completedFuture(RenderOutcome.fail(RenderFailure.DOWNLOAD_FAILED, rootMessage(e)));
+        }
     }
 
     /**
@@ -620,6 +668,8 @@ public class MapArtModule extends ServerModule {
                 case NOT_IMAGE -> Component.translatable("message.sfcraft.mapart.error.not_image");
                 case DOWNLOAD_FAILED -> Component.translatable("message.sfcraft.mapart.error.download_failed",
                         outcome.detail() == null ? "?" : outcome.detail());
+                case BUSY -> Component.translatable("message.sfcraft.mapart.error.busy",
+                        configService.get().mapArt.maxConcurrentRenders);
             };
         }
         return Component.translatable("message.sfcraft.mapart.error.download_failed", rootMessage(error));
@@ -694,7 +744,7 @@ public class MapArtModule extends ServerModule {
     }
 
     private enum RenderFailure {
-        INVALID_URL, USERINFO, UNSUPPORTED_EXTENSION, COOLDOWN, DOWNLOAD_FAILED, NOT_IMAGE, TOO_LARGE
+        INVALID_URL, USERINFO, UNSUPPORTED_EXTENSION, COOLDOWN, DOWNLOAD_FAILED, NOT_IMAGE, TOO_LARGE, BUSY
     }
 
     private static final class AnvilSession {
