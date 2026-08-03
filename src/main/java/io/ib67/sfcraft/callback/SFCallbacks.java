@@ -12,6 +12,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Unit;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.AnvilMenu;
 import java.util.function.Consumer;
 
 import static io.ib67.sfcraft.callback.Utility.*;
@@ -36,6 +37,13 @@ public interface SFCallbacks {
             l -> (p, t, f) -> forEach(l, i -> i.onFlyingTick(p, t, f)));
     Event<PlayerAFKCallback> PLAYER_AFK = EventFactory.createArrayBacked(PlayerAFKCallback.class,
             l -> (p, s) -> forEach(l, i -> i.onAFKStatus(p, s)));
+    /** 铁砧 createResult 尾部触发:此时原版已算好结果槽,监听器可读取输入/命名并接管结果槽。 */
+    Event<AnvilCreateResultCallback> ANVIL_CREATE_RESULT = EventFactory.createArrayBacked(AnvilCreateResultCallback.class,
+            l -> (m, p) -> forEach(l, i -> i.onAnvilCreateResult(m, p)));
+
+    interface AnvilCreateResultCallback {
+        void onAnvilCreateResult(AnvilMenu menu, Player player);
+    }
 
     interface PlayerAFKCallback {
         void onAFKStatus(ServerPlayer player, boolean inAFK);

@@ -17,10 +17,26 @@ public class GameConfig {
     public Gps gps = new Gps();
     public StandingFirmTotem standingFirmTotem = new StandingFirmTotem();
     public ElytraPortal elytraPortal = new ElytraPortal();
+    public MapArt mapArt = new MapArt();
 
     public static class ElytraPortal {
         // 鞘翅滑翔冲进下界传送门时跳过等待(立即传送)的最低速度,单位米/秒;<= 0 关闭本特性
         public double minSpeedBlocksPerSecond = 25.0;
+    }
+
+    public static class MapArt {
+        // 单张图片的下载体积上限(字节)
+        public int maxDownloadBytes = 8388608;
+        // 全服同时进行中的图片下载+解码数上限,超出时新请求直接失败提示稍后重试(不排队)
+        public int maxConcurrentRenders = 2;
+        // HTTP 超时(秒)
+        public int httpTimeoutSeconds = 15;
+        // 输入图片单边像素上限(解码像素前按头部尺寸拦截,防爆内存);成品按宽高比在 4x4 格内自动选幅画
+        public int maxImageDimension = 2048;
+        // 远端下载/解码失败的 URL 冷却秒数,期间同一地址不再发起请求
+        public int failureCooldownSeconds = 60;
+        // 铁砧生成地图画的经验等级花费
+        public int anvilXpCost = 1;
     }
 
     public static class StandingFirmTotem {
