@@ -17,6 +17,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ClickAction;
 import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.item.BundleItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.ItemStackTemplate;
@@ -24,6 +25,7 @@ import net.minecraft.world.item.ItemUtils;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.component.BundleContents;
+import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.Nullable;
 
@@ -34,7 +36,10 @@ import java.util.List;
  * 午餐盒:伪装成原版收纳袋,背包/容器 GUI 内通过原版袋式交互存取(左键整组装入、右键取出一组、
  * 滚轮/拖拽选中),世界里右键直接吃盒内食物。容量按"组数"计(见 gameplay.json 的 lunchBox 节)。
  */
-public class LunchBoxItem extends Item implements PolymerItem {
+public class LunchBoxItem extends BundleItem implements PolymerItem {
+    private static final int NO_FOOD = -1;
+    private static final int NOT_HUNGRY = -2;
+
     private final GameConfigService gameConfig;
 
     public LunchBoxItem(Properties properties, GameConfigService gameConfig) {
@@ -42,18 +47,60 @@ public class LunchBoxItem extends Item implements PolymerItem {
         this.gameConfig = gameConfig;
     }
 
+    public static final String MODE_TAG_KEY = "LunchBoxMode";
+    public static final String MODE_NORMAL = "normal"; // 世界里:进食
+    public static final String MODE_BAG = "bag";       // 打开背包/容器 GUI 时:收纳袋
+
+    public static boolean isBagMode(ItemStack stack) {
+        var tag = stack.get(DataComponents.CUSTOM_DATA);
+        return tag != null && tag.copyTag().getString(MODE_TAG_KEY).filter(MODE_BAG::equals).isPresent();
+    }
+
+    public static void setBagMode(ItemStack stack, boolean bag) {
+        if (bag) {
+            stack.update(DataComponents.CUSTOM_DATA, CustomData.EMPTY,
+                    d -> d.update(t -> t.putString(MODE_TAG_KEY, MODE_BAG)));
+        } else {
+            stack.update(DataComponents.CUSTOM_DATA, CustomData.EMPTY,
+                    d -> d.update(t -> t.remove(MODE_TAG_KEY)));
+        }
+    }
+
     @Override
     public Item getPolymerItem(ItemStack stack, PacketContext context) {
-        // 恒为原版收纳袋:tooltip 网格、拖拽/滚轮选中、GUI 点击预测全部原生生效
-        return Items.BUNDLE;
+        // 背包/容器界面打开期间伪装成原版收纳袋,客户端的袋式 tooltip 网格、点击预测全部原生生效;
+        // 世界里回到碗,让碗自己的 Item#getUseAnimation 通过我们注入的 CONSUMABLE 跑出 EAT 动画。
+        return isBagMode(stack) ? Items.BUNDLE : Items.BOWL;
     }
 
     @Override
     public ItemStack getPolymerItemStack(ItemStack stack, TooltipFlag tooltipFlag, PacketContext context, HolderLookup.Provider lookup) {
         var clientStack = PolymerItem.super.getPolymerItemStack(stack, tooltipFlag, context, lookup);
-        // 客户端 tooltip 网格/选中靠 BUNDLE_CONTENTS 驱动,必须显式复制给伪装栈
+        // BUNDLE_CONTENTS:客户端 tooltip 网格/选中/拖拽靠它驱动
         var contents = stack.get(DataComponents.BUNDLE_CONTENTS);
         if (contents != null) clientStack.set(DataComponents.BUNDLE_CONTENTS, contents);
+        // FOOD + CONSUMABLE:客户端靠它们才会播进食动画 + 咀嚼音效;
+        // Polymer 默认只搬 ITEM_MODEL,其他都得在这里显式复制,否则看上去像"瞬吞"
+        var food = stack.get(DataComponents.FOOD);
+        if (food != null) clientStack.set(DataComponents.FOOD, food);
+        var consumable = stack.get(DataComponents.CONSUMABLE);
+        if (consumable != null) {
+            // 客户端 stack 是 BUNDLE 类型,而 BundleItem#getUseAnimation 会覆写返回 BUNDLE,
+            // 导致原版客户端播放"袋抽气"而不是"吃"。客户端会用它本地 stack 的 CONSUMABLE.animation 来画手臂;
+            // 强制换成 EAT,其它字段(consumeSeconds/sound/effects 等)原样透传,后端逻辑不受影响。
+            clientStack.set(DataComponents.CONSUMABLE, new net.minecraft.world.item.component.Consumable(
+                    consumable.consumeSeconds(),
+                    net.minecraft.world.item.ItemUseAnimation.EAT,
+                    consumable.sound(),
+                    consumable.hasConsumeParticles(),
+                    consumable.onConsumeEffects()
+            ));
+        }
+
+        DEBUG_LOG.info("[polymer] clientStack item={} hasFOOD={} hasCONSUMABLE={}",
+                clientStack.getItem(),
+                clientStack.has(DataComponents.FOOD),
+                clientStack.has(DataComponents.CONSUMABLE));
         return clientStack;
     }
 
@@ -198,8 +245,8 @@ public class LunchBoxItem extends Item implements PolymerItem {
     }
 
     private boolean canBeInBox(ItemStack stack) {
-        if (!BundleContents.canItemBeInBundle(stack)) return false;
-        if (stack.getItem() instanceof LunchBoxItem) return false; // 禁止套娃
+        if (stack.isEmpty() || !BundleContents.canItemBeInBundle(stack)) return false;
+        if (stack.getItem() instanceof LunchBoxItem || stack.getItem() == Items.BUNDLE) return false; // 禁止套娃
         if (gameConfig.get().lunchBox.foodOnly && !stack.has(DataComponents.FOOD)) return false;
         return true;
     }
@@ -235,26 +282,47 @@ public class LunchBoxItem extends Item implements PolymerItem {
 
     // ---------- 世界内右键进食(服务端权威,营养来自盒内食物) ----------
 
+    private static final org.slf4j.Logger DEBUG_LOG = org.slf4j.LoggerFactory.getLogger("sfcraft.lunchbox.debug");
+
     @Override
     public InteractionResult use(Level level, Player player, InteractionHand hand) {
         var stack = player.getItemInHand(hand);
         if (!(player instanceof ServerPlayer serverPlayer)) return InteractionResult.SUCCESS_SERVER;
+
+        var contents = stack.get(DataComponents.BUNDLE_CONTENTS);
+        DEBUG_LOG.info("[use] stack={} food={} consumable={} bundle_contents.isEmpty={}",
+                stack.getItem(), stack.get(DataComponents.FOOD), stack.get(DataComponents.CONSUMABLE),
+                contents == null ? "null" : contents.isEmpty());
+
         var items = loadItems(stack);
-        int slot = findEdibleSlot(serverPlayer, items);
+        int slot = NO_FOOD;
+        boolean hasAnyFood = false;
+        for (int i = 0; i < items.size(); i++) {
+            var food = items.get(i);
+            if (food.isEmpty() || food.getItem() instanceof LunchBoxItem) continue;
+            var foodProps = food.get(DataComponents.FOOD);
+            if (foodProps == null) continue;
+            hasAnyFood = true;
+            if (player.canEat(foodProps.canAlwaysEat())) { slot = i; break; }
+        }
+        DEBUG_LOG.info("[use] slot={} hasAnyFood={} needsFood={}", slot, hasAnyFood, player.getFoodData().needsFood());
+
         if (slot == NO_FOOD) {
-            serverPlayer.sendOverlayMessage(Component.translatable("message.sfcraft.lunch_box.empty"));
+            serverPlayer.sendOverlayMessage(hasAnyFood
+                    ? Component.translatable("message.sfcraft.lunch_box.not_hungry")
+                    : Component.translatable("message.sfcraft.lunch_box.empty"));
             return InteractionResult.FAIL;
         }
-        if (slot == NOT_HUNGRY) {
-            return InteractionResult.FAIL;
-        }
+
         var consumable = stack.get(DataComponents.CONSUMABLE);
-        if (consumable == null) return InteractionResult.FAIL;
+        if (consumable == null) return InteractionResult.PASS;
         return consumable.startConsuming(player, stack, hand);
     }
 
     @Override
     public ItemStack finishUsingItem(ItemStack stack, Level level, LivingEntity entity) {
+        DEBUG_LOG.info("[finishUsingItem] entity={} useItemRemaining={}", entity,
+                entity instanceof LivingEntity le ? le.getUseItemRemainingTicks() : -1);
         if (!(entity instanceof ServerPlayer player)) return stack;
         var items = loadItems(stack);
         int slot = findEdibleSlot(player, items);
@@ -263,12 +331,10 @@ public class LunchBoxItem extends Item implements PolymerItem {
             var remainder = items.get(slot).finishUsingItem(level, player);
             items.set(slot, remainder);
             saveItems(stack, items);
+            DEBUG_LOG.info("[finishUsingItem] consumed slot={} remainder={}", slot, remainder);
         }
         return stack;
     }
-
-    private static final int NO_FOOD = -1;
-    private static final int NOT_HUNGRY = -2;
 
     // 午餐盒自身也带 food 组件(物品注册里为了进食流程),要排除掉,防止吃盒里套的盒
     private static int findEdibleSlot(ServerPlayer player, List<ItemStack> items) {

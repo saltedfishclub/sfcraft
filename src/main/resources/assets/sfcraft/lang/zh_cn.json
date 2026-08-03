@@ -61,6 +61,7 @@
   "message.sfcraft.schem.saved": "投影 %s 已保存！使用 //schem list 查找它",
   "message.sfcraft.schem.or_click": "或者点击这里",
   "message.sfcraft.lunch_box.empty": "午餐盒是空的",
+  "message.sfcraft.lunch_box.not_hungry": "现在还不饿",
   "message.sfcraft.mount.need_weakness": "它必须处于虚弱状态才能被驯服",
   "message.sfcraft.mount.cannot_here": "无法在此驯服",
   "message.sfcraft.mount.raid_active": "袭击进行中,无法驯服",

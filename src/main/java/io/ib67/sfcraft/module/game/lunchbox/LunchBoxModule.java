@@ -11,6 +11,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.food.FoodProperties;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.component.BundleContents;
 import net.minecraft.world.item.component.Consumables;
 
 /**
@@ -38,6 +39,9 @@ public class LunchBoxModule extends ServerModule {
                         // 0 营养 + canAlwaysEat:仅用于触发原版进食流程,真正的营养来自盒内食物
                         .component(DataComponents.FOOD, new FoodProperties(0, 0.0F, true))
                         .component(DataComponents.CONSUMABLE, Consumables.DEFAULT_FOOD)
+                        // 空盒也要有 bundle_contents;否则客户端/服务端的"是收纳袋吗"判据(null 检查)都过不掉,
+                        // 午餐盒会退化成普通物品(左键变成整组交换, tooltip 网格也不出现)
+                        .component(DataComponents.BUNDLE_CONTENTS, BundleContents.EMPTY)
         );
         itemGroups.add(lunchBox);
     }
