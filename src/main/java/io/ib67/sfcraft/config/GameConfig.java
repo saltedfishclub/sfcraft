@@ -16,7 +16,13 @@ public class GameConfig {
     public Mount mount = new Mount();
     public Gps gps = new Gps();
     public StandingFirmTotem standingFirmTotem = new StandingFirmTotem();
+    public ElytraPortal elytraPortal = new ElytraPortal();
     public MapArt mapArt = new MapArt();
+
+    public static class ElytraPortal {
+        // 鞘翅滑翔冲进下界传送门时跳过等待(立即传送)的最低速度,单位米/秒;<= 0 关闭本特性
+        public double minSpeedBlocksPerSecond = 25.0;
+    }
 
     public static class MapArt {
         // 单张图片的下载体积上限(字节)

@@ -21,6 +21,7 @@
     "gameplay.AnvilMenuMixin",
     "gameplay.ItemFrameMixin",
     "gameplay.MobCommanderMixin",
+    "gameplay.NetherPortalBlockMixin",
     "gameplay.TotemProtectionMixin",
     "gameplay.ZombieMixin",
     "gameplay.mount.HoglinMountMixin",
