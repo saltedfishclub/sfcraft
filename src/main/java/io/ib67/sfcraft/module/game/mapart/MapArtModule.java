@@ -55,6 +55,7 @@ import java.util.UUID;
 import java.util.WeakHashMap;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -76,9 +77,13 @@ import java.util.concurrent.TimeUnit;
  */
 @Log4j2
 public class MapArtModule extends ServerModule {
-    /** 地图画标记(custom_data 里的布尔键),用于物品框掉落判定,可跨重启/复制保留。 */
+    /**
+     * 地图画标记(custom_data 里的布尔键),用于物品框掉落判定,可跨重启/复制保留。
+     */
     public static final String MAP_ART_MARKER = "sfcraft_map_art";
-    /** 图片来源 URL(custom_data 里的字符串键),上墙展开时凭它从渲染缓存取整幅像素。 */
+    /**
+     * 图片来源 URL(custom_data 里的字符串键),上墙展开时凭它从渲染缓存取整幅像素。
+     */
     public static final String MAP_ART_URL = "sfcraft_map_art_url";
     /**
      * 铺墙格数(custom_data 里的整数键),在种子图上随 URL 一起写入。
@@ -86,11 +91,15 @@ public class MapArtModule extends ServerModule {
      */
     public static final String MAP_ART_COLS = "sfcraft_map_art_cols";
     public static final String MAP_ART_ROWS = "sfcraft_map_art_rows";
-    /** 铺墙单边格数上限(gridFor 与种子图格数校验共用,防恶意伪造的种子图铺出超大实体墙)。 */
+    /**
+     * 铺墙单边格数上限(gridFor 与种子图格数校验共用,防恶意伪造的种子图铺出超大实体墙)。
+     */
     private static final int MAP_GRID_LIMIT = 4;
     private static final int ANVIL_DEBOUNCE_MS = 400;
     private static final int RENDER_CACHE_SIZE = 16;
-    /** JDK ImageIO 默认可栅格化的扩展名;webp 不在其中。 */
+    /**
+     * JDK ImageIO 默认可栅格化的扩展名;webp 不在其中。
+     */
     private static final Set<String> SUPPORTED_EXTENSIONS = Set.of(".png", ".jpg", ".jpeg", ".gif", ".bmp");
 
     @Inject
@@ -106,7 +115,10 @@ public class MapArtModule extends ServerModule {
     private final Cache<String, Rendered> renderCache = CacheBuilder.newBuilder()
             .maximumSize(RENDER_CACHE_SIZE)
             .build();
-    /** 远端下载/解码失败的地址黑名单:url -> 允许重试的 epoch millis。 */
+    private final Executor debouncedExecutor = CompletableFuture.delayedExecutor(ANVIL_DEBOUNCE_MS, TimeUnit.MILLISECONDS);
+    /**
+     * 远端下载/解码失败的地址黑名单:url -> 允许重试的 epoch millis。
+     */
     private final Map<String, Long> failedUrls = new ConcurrentHashMap<>();
 
     @Override
@@ -145,7 +157,7 @@ public class MapArtModule extends ServerModule {
                         describe(outcome, error)));
                 return;
             }
-            give(target, buildMap((ServerLevel) target.level(), outcome.rendered(), url,
+            give(target, buildMap(target.level(), outcome.rendered(), url,
                     target.getX(), target.getZ()));
             target.sendSystemMessage(Component.translatable("command.sfcraft.mapart.success"));
         }));
@@ -154,7 +166,9 @@ public class MapArtModule extends ServerModule {
 
     // ============================== 铁砧 ==============================
 
-    /** 监听 {@link SFCallbacks#ANVIL_CREATE_RESULT}:URL 命名的地图接管结果槽。 */
+    /**
+     * 监听 {@link SFCallbacks#ANVIL_CREATE_RESULT}:URL 命名的地图接管结果槽。
+     */
     public void onAnvilCreateResult(AnvilMenu menu, Player player) {
         var access = (MapArtAnvilAccess) menu;
         var input = access.sfcraft$getInput();
@@ -182,7 +196,7 @@ public class MapArtModule extends ServerModule {
         anvilSessions.put(menu, newSession);
         var future = CompletableFuture
                 .runAsync(() -> {
-                }, CompletableFuture.delayedExecutor(ANVIL_DEBOUNCE_MS, TimeUnit.MILLISECONDS))
+                }, debouncedExecutor)
                 .thenCompose(ignored -> render(name));
         newSession.future = future;
         future.whenComplete((outcome, error) ->
@@ -204,7 +218,7 @@ public class MapArtModule extends ServerModule {
                     describe(outcome, error)));
             return;
         }
-        var stack = buildMap((ServerLevel) player.level(), outcome.rendered(), session.url,
+        var stack = buildMap(player.level(), outcome.rendered(), session.url,
                 player.getX(), player.getZ());
         if (player.containerMenu != menu) {
             // 完成时砧子界面已关:直接发进背包
@@ -219,7 +233,9 @@ public class MapArtModule extends ServerModule {
 
     // ============================== 物品框 ==============================
 
-    /** {@code ItemFrameMixin} 在掉落前调用。返回 true 表示已接管:画连框消失,什么都不掉。 */
+    /**
+     * {@code ItemFrameMixin} 在掉落前调用。返回 true 表示已接管:画连框消失,什么都不掉。
+     */
     public boolean onItemFrameDrop(ItemFrame frame) {
         if (!isMapArt(frame.getItem())) {
             return false;
@@ -237,7 +253,9 @@ public class MapArtModule extends ServerModule {
         return data != null && data.copyTag().getBooleanOr(MAP_ART_MARKER, false);
     }
 
-    /** 地图画的图片来源 URL(无此键时无法重建整幅,例如旧版本制作的地图画)。 */
+    /**
+     * 地图画的图片来源 URL(无此键时无法重建整幅,例如旧版本制作的地图画)。
+     */
     public static @Nullable String mapArtUrl(ItemStack stack) {
         if (!isMapArt(stack)) {
             return null;
@@ -249,7 +267,9 @@ public class MapArtModule extends ServerModule {
         return data.copyTag().getString(MAP_ART_URL).filter(MapArtModule::isUrlLike).orElse(null);
     }
 
-    /** 种子图记下的铺墙格数 {cols, rows};旧版本制作的地图画没有这两个键,返回 null。 */
+    /**
+     * 种子图记下的铺墙格数 {cols, rows};旧版本制作的地图画没有这两个键,返回 null。
+     */
     private static int @Nullable [] mapArtGrid(ItemStack stack) {
         if (!isMapArt(stack)) {
             return null;
@@ -362,7 +382,9 @@ public class MapArtModule extends ServerModule {
         }
     }
 
-    /** 以 frame 为左下角,cols x rows 的墙面是否都能挂得下框(左下角那格是 frame 自己,跳过)。 */
+    /**
+     * 以 frame 为左下角,cols x rows 的墙面是否都能挂得下框(左下角那格是 frame 自己,跳过)。
+     */
     private static boolean hasRoom(ItemFrame frame, ServerLevel level, Direction facing, int cols, int rows) {
         var right = facing.getCounterClockWise();
         var origin = frame.blockPosition();
@@ -410,14 +432,18 @@ public class MapArtModule extends ServerModule {
 
     // ============================== 生成 ==============================
 
-    /** 在主线程调用:产出"种子"地图画——整幅 128x128 预览,记下来源 URL 供上墙展开。 */
-    public ItemStack buildMap(ServerLevel level, Rendered art, String url, double originX, double originZ) {
+    /**
+     * 在主线程调用:产出"种子"地图画——整幅 128x128 预览,记下来源 URL 供上墙展开。
+     */
+    private ItemStack buildMap(ServerLevel level, Rendered art, String url, double originX, double originZ) {
         var data = MapItemSavedData.createFresh(originX, originZ, (byte) 0, false, false, level.dimension());
         MapArtRenderer.copyToMapColors(art.canvas(), art.cols(), art.rows(), data.colors);
         return finishMap(level, data, url, art.cols(), art.rows());
     }
 
-    /** 在主线程调用:产出整幅墙画的一格切片(tx/ty 以左下角为原点),不带来源 URL(不再二次展开)。 */
+    /**
+     * 在主线程调用:产出整幅墙画的一格切片(tx/ty 以左下角为原点),不带来源 URL(不再二次展开)。
+     */
     private ItemStack buildTile(ServerLevel level, Rendered art, int tx, int ty, double originX, double originZ) {
         var data = MapItemSavedData.createFresh(originX, originZ, (byte) 0, false, false, level.dimension());
         int canvasWidth = art.cols() * MapArtRenderer.MAP_SIZE;
@@ -433,7 +459,9 @@ public class MapArtModule extends ServerModule {
         return stack;
     }
 
-    /** 锁定画布、申请 map id 并打包成带地图画标记的填充地图。url 为 null 时不写来源/格数(切片不再展开)。 */
+    /**
+     * 锁定画布、申请 map id 并打包成带地图画标记的填充地图。url 为 null 时不写来源/格数(切片不再展开)。
+     */
     private static ItemStack finishMap(ServerLevel level, MapItemSavedData data, @Nullable String url,
                                        int cols, int rows) {
         var locked = data.locked(); // 锁定:不可再被制图台改图/缩放
@@ -522,7 +550,9 @@ public class MapArtModule extends ServerModule {
                 });
     }
 
-    /** 先读图片头部尺寸(不解码像素)拦截超大图,通过后再栅格化到整幅墙画画布。 */
+    /**
+     * 先读图片头部尺寸(不解码像素)拦截超大图,通过后再栅格化到整幅墙画画布。
+     */
     private RenderOutcome decode(String url, byte[] body) {
         int maxDimension = configService.get().mapArt.maxImageDimension;
         ImageReader reader = null;
@@ -569,7 +599,9 @@ public class MapArtModule extends ServerModule {
         }
     }
 
-    /** 远端失败(网络/非图片/超大)后进入短时黑名单,避免玩家反复触发下载。 */
+    /**
+     * 远端失败(网络/非图片/超大)后进入短时黑名单,避免玩家反复触发下载。
+     */
     private void markFailed(String url) {
         long cooldownMillis = Math.max(0, configService.get().mapArt.failureCooldownSeconds) * 1000L;
         failedUrls.put(url, System.currentTimeMillis() + cooldownMillis);
@@ -586,9 +618,8 @@ public class MapArtModule extends ServerModule {
                 case TOO_LARGE -> Component.translatable("message.sfcraft.mapart.error.too_large",
                         outcome.detail(), configService.get().mapArt.maxImageDimension);
                 case NOT_IMAGE -> Component.translatable("message.sfcraft.mapart.error.not_image");
-                case DOWNLOAD_FAILED ->
-                        Component.translatable("message.sfcraft.mapart.error.download_failed",
-                                outcome.detail() == null ? "?" : outcome.detail());
+                case DOWNLOAD_FAILED -> Component.translatable("message.sfcraft.mapart.error.download_failed",
+                        outcome.detail() == null ? "?" : outcome.detail());
             };
         }
         return Component.translatable("message.sfcraft.mapart.error.download_failed", rootMessage(error));
@@ -596,7 +627,7 @@ public class MapArtModule extends ServerModule {
 
     private static String rootMessage(Throwable error) {
         Throwable cause = error;
-        while (cause != null && (cause instanceof java.util.concurrent.CompletionException
+        while ((cause instanceof java.util.concurrent.CompletionException
                 || cause instanceof java.util.concurrent.ExecutionException) && cause.getCause() != null) {
             cause = cause.getCause();
         }
@@ -645,11 +676,14 @@ public class MapArtModule extends ServerModule {
                 && text.chars().noneMatch(Character::isWhitespace);
     }
 
-    /** 一次渲染的产物:cols*128 x rows*128 的整幅调色板像素(行优先铺开,第 0 行为图像顶部)。1x1 时 canvas=preview。 */
+    /**
+     * 一次渲染的产物:cols*128 x rows*128 的整幅调色板像素(行优先铺开,第 0 行为图像顶部)。1x1 时 canvas=preview。
+     */
     private record Rendered(int cols, int rows, byte[] canvas) {
     }
 
-    private record RenderOutcome(@Nullable Rendered rendered, @Nullable RenderFailure failure, @Nullable String detail) {
+    private record RenderOutcome(@Nullable Rendered rendered, @Nullable RenderFailure failure,
+                                 @Nullable String detail) {
         private static RenderOutcome ok(Rendered rendered) {
             return new RenderOutcome(rendered, null, null);
         }
