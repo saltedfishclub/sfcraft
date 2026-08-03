@@ -100,6 +100,6 @@
   "message.sfcraft.mapart.error.download_failed": "下载失败: %s",
   "message.sfcraft.mapart.expand.wall_only": "地图画只能挂在竖直墙面上",
   "message.sfcraft.mapart.expand.no_space": "墙面空间不足,这幅画需要 %s x %s 格空墙",
-  "item.sfcraft.map_art": "地图画",
+  "block.sfcraft.map_art": "地图画",
   "item.sfcraft.standing_firm_totem": "代偿图腾"
 }

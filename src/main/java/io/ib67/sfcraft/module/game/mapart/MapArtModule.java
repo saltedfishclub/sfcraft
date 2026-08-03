@@ -32,6 +32,7 @@ import net.minecraft.world.inventory.AnvilMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.component.CustomData;
+import net.minecraft.world.item.component.TooltipDisplay;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import org.jspecify.annotations.Nullable;
 
@@ -61,8 +62,8 @@ import java.util.concurrent.TimeUnit;
  * <ul>
  *   <li>铁砧:把(空)地图重命名为图片 URL 即可,结果槽直接产出地图画(防抖后才真正下载)。</li>
  *   <li>{@code /mapfor <url>}:OP 直接获得成品。</li>
- *   <li>把地图画放入墙上的物品框时,以该框为左下角自动铺满整幅图片(最多 {@link #MAX_MAPS_PER_SIDE}x
- *       {@link #MAX_MAPS_PER_SIDE} 格,按原图宽高比取整)。墙面铺不下、或框朝上/朝下时,
+ *   <li>把地图画放入墙上的物品框时,以该框为左下角自动铺满整幅图片(按原图宽高比在 4x4 格内
+ *       取最贴合的 cols × rows 切片,详见 {@link #gridFor})。墙面铺不下、或框朝上/朝下时,
  *       这次放入会被直接拒绝——宁可放不进,也不留一张孤零零的低清种子图。</li>
  *   <li>放进物品框的地图画一旦掉出,会连框一起消失(不掉落任何物品),见 {@code ItemFrameMixin}。</li>
  * </ul>
@@ -70,6 +71,8 @@ import java.util.concurrent.TimeUnit;
  * 输入单边像素上限见
  * {@code GameConfig.MapArt#maxImageDimension},在解码像素前先读头部尺寸拦截,防止解压炸弹。
  * 生成物是普通 {@code FILLED_MAP}+{@code MAP_ID}/{@code CUSTOM_DATA} 组件,纯原版物品,无需 Polymer。
+ * 名称走 {@code ITEM_NAME}(玩家不再看到每格"地图画"名牌,也不能再被铁砧重命名);
+ * 上墙的切片用 {@code TOOLTIP_DISPLAY} 隐藏 {@code MAP_ID},工具提示只剩名称一行。
  */
 @Log4j2
 public class MapArtModule extends ServerModule {
@@ -83,8 +86,8 @@ public class MapArtModule extends ServerModule {
      */
     public static final String MAP_ART_COLS = "sfcraft_map_art_cols";
     public static final String MAP_ART_ROWS = "sfcraft_map_art_rows";
-    /** 自动铺墙的最大边格数。TODO: 应移入 GameConfig.MapArt(io.ib67.sfcraft.config 越界,待许可)。 */
-    private static final int MAX_MAPS_PER_SIDE = 3;
+    /** 铺墙单边格数上限(gridFor 与种子图格数校验共用,防恶意伪造的种子图铺出超大实体墙)。 */
+    private static final int MAP_GRID_LIMIT = 4;
     private static final int ANVIL_DEBOUNCE_MS = 400;
     private static final int RENDER_CACHE_SIZE = 16;
     /** JDK ImageIO 默认可栅格化的扩展名;webp 不在其中。 */
@@ -258,7 +261,7 @@ public class MapArtModule extends ServerModule {
         var tag = data.copyTag();
         int cols = tag.getIntOr(MAP_ART_COLS, 0);
         int rows = tag.getIntOr(MAP_ART_ROWS, 0);
-        if (cols < 1 || rows < 1 || cols > MAX_MAPS_PER_SIDE || rows > MAX_MAPS_PER_SIDE) {
+        if (cols < 1 || rows < 1 || cols > MAP_GRID_LIMIT || rows > MAP_GRID_LIMIT) {
             return null;
         }
         return new int[]{cols, rows};
@@ -407,11 +410,10 @@ public class MapArtModule extends ServerModule {
 
     // ============================== 生成 ==============================
 
-    /** 在主线程调用:产出"种子"地图画——128x128 整图预览,记下来源 URL 供上墙展开。 */
+    /** 在主线程调用:产出"种子"地图画——整幅 128x128 预览,记下来源 URL 供上墙展开。 */
     public ItemStack buildMap(ServerLevel level, Rendered art, String url, double originX, double originZ) {
         var data = MapItemSavedData.createFresh(originX, originZ, (byte) 0, false, false, level.dimension());
-        System.arraycopy(art.preview(), 0, data.colors, 0,
-                MapArtRenderer.MAP_SIZE * MapArtRenderer.MAP_SIZE);
+        MapArtRenderer.copyToMapColors(art.canvas(), art.cols(), art.rows(), data.colors);
         return finishMap(level, data, url, art.cols(), art.rows());
     }
 
@@ -425,7 +427,10 @@ public class MapArtModule extends ServerModule {
                             + tx * MapArtRenderer.MAP_SIZE, data.colors,
                     y * MapArtRenderer.MAP_SIZE, MapArtRenderer.MAP_SIZE);
         }
-        return finishMap(level, data, null, 0, 0);
+        var stack = finishMap(level, data, null, 0, 0);
+        stack.set(DataComponents.TOOLTIP_DISPLAY,
+                TooltipDisplay.DEFAULT.withHidden(DataComponents.MAP_ID, true));
+        return stack;
     }
 
     /** 锁定画布、申请 map id 并打包成带地图画标记的填充地图。url 为 null 时不写来源/格数(切片不再展开)。 */
@@ -437,7 +442,8 @@ public class MapArtModule extends ServerModule {
         level.setMapData(mapId, locked);
         var stack = new ItemStack(Items.FILLED_MAP);
         stack.set(DataComponents.MAP_ID, mapId);
-        stack.set(DataComponents.CUSTOM_NAME, Component.translatable("item.sfcraft.map_art"));
+        stack.set(DataComponents.ITEM_NAME,
+                Component.translatable("block.sfcraft.map_art").withStyle(style -> style.withItalic(false)));
         var marker = new CompoundTag();
         marker.putBoolean(MAP_ART_MARKER, true);
         if (url != null) {
@@ -544,10 +550,12 @@ public class MapArtModule extends ServerModule {
             }
             var image = reader.read(0);
             var grid = gridFor(width, height);
-            var canvas = MapArtRenderer.render(image, grid[0] * MapArtRenderer.MAP_SIZE,
-                    grid[1] * MapArtRenderer.MAP_SIZE);
-            var preview = grid[0] == 1 && grid[1] == 1 ? canvas : MapArtRenderer.render(image);
-            var rendered = new Rendered(grid[0], grid[1], canvas, preview);
+            int canvasWidth = grid[0] * MapArtRenderer.MAP_SIZE;
+            int canvasHeight = grid[1] * MapArtRenderer.MAP_SIZE;
+            var canvas = grid[0] == 1 && grid[1] == 1
+                    ? MapArtRenderer.render(image)
+                    : MapArtRenderer.render(image, canvasWidth, canvasHeight);
+            var rendered = new Rendered(grid[0], grid[1], canvas);
             renderCache.put(url, rendered);
             return RenderOutcome.ok(rendered);
         } catch (IOException e) {
@@ -607,13 +615,28 @@ public class MapArtModule extends ServerModule {
         return Math.max(1, configService.get().mapArt.anvilXpCost);
     }
 
-    /** 按原图宽高比决定铺墙格数 {cols, rows}:长边顶到上限,短边按比例取整(至少 1)。 */
+    /**
+     * 按原图宽高比决定铺墙格数 {cols, rows}。
+     * 在 {@code MAP_GRID_LIMIT} 内枚举所有 cols × rows 组合,取 {@code |ln((cols/rows) / 图片宽高比)|}
+     * 最小的——让目标画布比例在原图比例的最近对数邻域里落位。整数离散化后常见输入的落位:
+     * 1:1 → 1x1;3:2 / 16:9 → 3x2;用户那张 1.34 ≈ 4:3 → 4x3;明显长条(≥ ~2.4)封顶到 4x1~4x4 里的最贴比。
+     * 装得下过去的旧版 3xN 种子图(格数源自 3 上限)依然能铺。
+     */
     private static int[] gridFor(int imageWidth, int imageHeight) {
-        double aspect = (double) imageWidth / imageHeight;
-        if (aspect >= 1.0) {
-            return new int[]{MAX_MAPS_PER_SIDE, Math.max(1, (int) Math.round(MAX_MAPS_PER_SIDE / aspect))};
+        double logAspect = Math.log((double) imageWidth / imageHeight);
+        int bestCols = 1, bestRows = 1;
+        double bestDistortion = Double.MAX_VALUE;
+        for (int cols = 1; cols <= MAP_GRID_LIMIT; cols++) {
+            for (int rows = 1; rows <= MAP_GRID_LIMIT; rows++) {
+                double distortion = Math.abs(Math.log((double) cols / rows) - logAspect);
+                if (distortion < bestDistortion - 1e-9) { // eps:失真度并列时保持靠前的组合,结果稳定
+                    bestDistortion = distortion;
+                    bestCols = cols;
+                    bestRows = rows;
+                }
+            }
         }
-        return new int[]{Math.max(1, (int) Math.round(MAX_MAPS_PER_SIDE * aspect)), MAX_MAPS_PER_SIDE};
+        return new int[]{bestCols, bestRows};
     }
 
     private static boolean isUrlLike(String text) {
@@ -622,11 +645,8 @@ public class MapArtModule extends ServerModule {
                 && text.chars().noneMatch(Character::isWhitespace);
     }
 
-    /**
-     * 一次渲染的产物:canvas 是 cols*128 x rows*128 的整幅调色板像素(行优先铺开,第 0 行为图像顶部);
-     * preview 是 128x128 整图预览,装进"种子"地图;单格时二者同数组。
-     */
-    private record Rendered(int cols, int rows, byte[] canvas, byte[] preview) {
+    /** 一次渲染的产物:cols*128 x rows*128 的整幅调色板像素(行优先铺开,第 0 行为图像顶部)。1x1 时 canvas=preview。 */
+    private record Rendered(int cols, int rows, byte[] canvas) {
     }
 
     private record RenderOutcome(@Nullable Rendered rendered, @Nullable RenderFailure failure, @Nullable String detail) {

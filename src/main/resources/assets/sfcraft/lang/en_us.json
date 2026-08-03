@@ -100,6 +100,6 @@
   "message.sfcraft.mapart.error.download_failed": "Download failed: %s",
   "message.sfcraft.mapart.expand.wall_only": "Map art can only be hung on a vertical wall",
   "message.sfcraft.mapart.expand.no_space": "Not enough room; this art needs a clear %s x %s wall",
-  "item.sfcraft.map_art": "Map Art",
+  "block.sfcraft.map_art": "Map Art",
   "item.sfcraft.standing_firm_totem": "Totem of Restitution"
 }

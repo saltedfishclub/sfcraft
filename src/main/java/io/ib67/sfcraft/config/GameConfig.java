@@ -23,7 +23,7 @@ public class GameConfig {
         public int maxDownloadBytes = 8388608;
         // HTTP 超时(秒)
         public int httpTimeoutSeconds = 15;
-        // 输入图片单边像素上限(解码像素前按头部尺寸拦截,防爆内存);无论原图多大,成品恒为 128x128 一张地图
+        // 输入图片单边像素上限(解码像素前按头部尺寸拦截,防爆内存);成品按宽高比在 4x4 格内自动选幅画
         public int maxImageDimension = 2048;
         // 远端下载/解码失败的 URL 冷却秒数,期间同一地址不再发起请求
         public int failureCooldownSeconds = 60;

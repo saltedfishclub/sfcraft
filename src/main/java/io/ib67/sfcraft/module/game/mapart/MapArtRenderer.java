@@ -5,6 +5,7 @@ import net.minecraft.world.level.material.MapColor;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
+import java.util.Arrays;
 
 /**
  * 把任意尺寸的图片来源伸缩为指定尺寸画布(单张地图 128x128,多格墙画画布为 128 的整数倍)的像素缓冲(MapColor 打包 id)。
@@ -45,6 +46,29 @@ public final class MapArtRenderer {
         return render(source, MAP_SIZE, MAP_SIZE);
     }
 
+    /**
+     * 把 cols*128 x rows*128 的整幅画布等比缩到 {@value #MAP_SIZE}x{@value #MAP_SIZE} 地图像素
+     * (保持比例、两侧填透明黑,即打包 id 0)。供"种子"地图作整图 preview 用——宽图画布是 256x128,
+     * 原样铺进 128x128 会丢一半。
+     */
+    public static void copyToMapColors(byte[] canvas, int cols, int rows, byte[] target) {
+        int canvasWidth = cols * MAP_SIZE;
+        int canvasHeight = rows * MAP_SIZE;
+        double scale = Math.min((double) MAP_SIZE / canvasWidth, (double) MAP_SIZE / canvasHeight);
+        int fitWidth = (int) Math.round(canvasWidth * scale);
+        int fitHeight = (int) Math.round(canvasHeight * scale);
+        int offsetX = (MAP_SIZE - fitWidth) / 2;
+        int offsetY = (MAP_SIZE - fitHeight) / 2;
+        Arrays.fill(target, (byte) 0);
+        for (int y = 0; y < fitHeight; y++) {
+            for (int x = 0; x < fitWidth; x++) {
+                int sx = Math.min((int) (x / scale), canvasWidth - 1);
+                int sy = Math.min((int) (y / scale), canvasHeight - 1);
+                target[(offsetY + y) * MAP_SIZE + offsetX + x] = canvas[sy * canvasWidth + sx];
+            }
+        }
+    }
+
     /** 拉伸至 width x height(行优先铺平,第 0 行为图像顶部)并映射为地图画像素。 */
     public static byte[] render(BufferedImage source, int width, int height) {
         var canvas = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
@@ -61,21 +85,6 @@ public final class MapArtRenderer {
             }
         }
         return pixels;
-    }
-
-    /**
-     * 从整幅画布(cols x rows 格,行优先铺平)中切出单格 128x128 像素;
-     * 格坐标 (tx, ty) 以<b>左下角</b>为原点,与墙画铺设方向一致。
-     */
-    public static byte[] sliceTile(byte[] canvas, int cols, int rows, int tx, int ty) {
-        int canvasWidth = cols * MAP_SIZE;
-        int rowFromTop = rows - 1 - ty; // 画布像素第 0 行在图像顶部,墙上第 0 格在最底部
-        var tile = new byte[MAP_SIZE * MAP_SIZE];
-        for (int y = 0; y < MAP_SIZE; y++) {
-            System.arraycopy(canvas, ((rowFromTop * MAP_SIZE + y) * canvasWidth) + tx * MAP_SIZE,
-                    tile, y * MAP_SIZE, MAP_SIZE);
-        }
-        return tile;
     }
 
     private static byte closestColor(int argb) {
