@@ -176,7 +176,7 @@ public class CreativeRoomModule extends ServerModule {
                 .append(Component.translatable("message.sfcraft.playground.features_list").withColor(Color.MAGENTA.getRGB())));
         player.sendSystemMessage(Component.nullToEmpty("    "));
         player.sendSystemMessage(Component.translatable("message.sfcraft.playground.upload_hint").withColor(CommonColors.GRAY)
-                .append(Component.literal("https://github.com/saltedfishclub/sfcraft-schematics").withColor(CommonColors.GRAY).withStyle(it -> it.withUnderlined(true))));
+                .append(Component.literal("/upload schematic").withColor(CommonColors.BLUE).withStyle(it -> it.withUnderlined(true))));
         player.sendSystemMessage(Component.translatable("message.sfcraft.playground.mobs_no_escape").withColor(CommonColors.GRAY));
         player.sendSystemMessage(Component.translatable("message.sfcraft.playground.how_to_leave").withColor(CommonColors.GRAY));
         player.setGameMode(GameType.CREATIVE);

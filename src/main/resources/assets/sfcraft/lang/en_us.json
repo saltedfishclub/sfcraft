@@ -53,7 +53,7 @@
   "message.sfcraft.playground.only_here": "You can only use this in playground!",
   "message.sfcraft.playground.welcome": "You are now in the creative playground. Use //schem list to view available schematics.",
   "message.sfcraft.playground.features_available": "The following features are now available: ",
-  "message.sfcraft.playground.features_list": "/player /track /summon /setblock /gamerule and all WorldEdit commands.",
+  "message.sfcraft.playground.features_list": "/player /track /summon /setblock /gm (gamemode) /pt (teleport) /polymer creative and all WorldEdit commands.",
   "message.sfcraft.playground.upload_hint": "How to upload schematics to the playground: ",
   "message.sfcraft.playground.mobs_no_escape": "Mobs in the playground cannot escape to other dimensions.",
   "message.sfcraft.playground.how_to_leave": "Use /reco or rejoin the game to leave.",

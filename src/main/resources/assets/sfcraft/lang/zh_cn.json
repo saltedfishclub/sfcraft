@@ -53,7 +53,7 @@
   "message.sfcraft.playground.only_here": "只能在游乐园中使用此功能！",
   "message.sfcraft.playground.welcome": "你现在正在创造游乐园中，使用 //schem list 查看可用投影。",
   "message.sfcraft.playground.features_available": "以下功能现在可用：",
-  "message.sfcraft.playground.features_list": "/player /track /summon /setblock /gamerule 及 WorldEdit 的所有命令。",
+  "message.sfcraft.playground.features_list": "/player /track /summon /setblock /gm (gamemode) /pt (teleport) 及 WorldEdit 的所有命令。",
   "message.sfcraft.playground.upload_hint": "如何上传投影到游乐场: ",
   "message.sfcraft.playground.mobs_no_escape": "游乐园中的生物不能逃逸到其他维度。",
   "message.sfcraft.playground.how_to_leave": "使用 /reco 或重新加入游戏即可离开。",

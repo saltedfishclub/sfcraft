@@ -12,7 +12,7 @@ public class SFConfig {
     public String domain = "localhost";
     public int port = 25565;
     public String webApiBase = "localhost";
-    public String serverSecret = RandomStringUtils.random(32);
+    public String serverSecret = RandomStringUtils.secure().next(32);
     public int httpPort = 8080;
     public long maxSchematicSize = 10240000;
 }
