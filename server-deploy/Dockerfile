@@ -38,7 +38,7 @@ RUN MC_VERSION="$(grep '^minecraft' /deployment/pack/pack.toml | head -n1 | cut 
     echo "Installing Fabric server (MC=$MC_VERSION, loader=$LOADER_VERSION)" && \
     java -jar /fabric-installer.jar server -mcversion "$MC_VERSION" -loader "$LOADER_VERSION" -downloadMinecraft
 RUN java -jar /packwiz-installer.jar -g -s server /deployment/pack/pack.toml
-COPY ./overrides/* /deployment
+COPY ./overrides /deployment
 COPY --from=sfcraft-builder /sfcraft.jar /deployment/mods/sfcraft.jar
 COPY --from=justbackup-builder /justbackup.jar /deployment/mods/justbackup.jar
 COPY --from=carpet-builder /fabric-carpet.jar /deployment/mods/fabric-carpet.jar
