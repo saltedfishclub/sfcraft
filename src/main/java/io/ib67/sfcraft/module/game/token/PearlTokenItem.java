@@ -1,6 +1,9 @@
 package io.ib67.sfcraft.module.game.token;
 
 import eu.pb4.polymer.core.api.item.PolymerItem;
+import io.ib67.sfcraft.SFCraft;
+import io.ib67.sfcraft.module.hint.FeatureHintModule;
+import io.ib67.sfcraft.module.hint.Hint;
 import io.ib67.sfcraft.module.game.item.ItemLores;
 import net.fabricmc.fabric.api.networking.v1.context.PacketContext;
 import net.minecraft.core.component.DataComponents;
@@ -56,18 +59,25 @@ public class PearlTokenItem extends Item implements PolymerItem {
             return InteractionResult.FAIL;
         }
 
-        var targetLevel = (ServerLevel) serverPlayer.level();
+        var targetLevel = serverPlayer.level();
+        tokenTeleportWithSound(serverPlayer, owner, targetLevel);
+        owner.sendSystemMessage(Component.translatable("message.sfcraft.token.summoned_owner",
+                serverPlayer.getGameProfile().name()));
+        serverPlayer.sendOverlayMessage(Component.translatable("message.sfcraft.token.summon_success", getOwnerName(stack)));
+        stack.consume(1, serverPlayer);
+        // 告诉被召唤的玩家:反向信物能把这个方向反过来
+        FeatureHintModule featureHintModule = SFCraft.getInjector().getInstance(FeatureHintModule.class);
+        featureHintModule.tryEmitHint(owner, Hint.REVERSE_TOKEN_AVAILABLE);
+        return InteractionResult.SUCCESS_SERVER;
+    }
+
+    static void tokenTeleportWithSound(ServerPlayer serverPlayer, ServerPlayer owner, ServerLevel targetLevel) {
         owner.teleportTo(targetLevel, serverPlayer.getX(), serverPlayer.getY(), serverPlayer.getZ(),
                 Set.of(), owner.getYRot(), owner.getXRot(), false);
         targetLevel.sendParticles(ParticleTypes.PORTAL,
                 serverPlayer.getX(), serverPlayer.getY() + 1.0, serverPlayer.getZ(), 32, 0.5, 1.0, 0.5, 0.2);
         targetLevel.playSound(null, serverPlayer.getX(), serverPlayer.getY(), serverPlayer.getZ(),
                 SoundEvents.ENDERMAN_TELEPORT, SoundSource.PLAYERS, 1.0F, 1.0F);
-        owner.sendSystemMessage(Component.translatable("message.sfcraft.token.summoned_owner",
-                serverPlayer.getGameProfile().name()));
-        serverPlayer.sendOverlayMessage(Component.translatable("message.sfcraft.token.summon_success", getOwnerName(stack)));
-        stack.consume(1, serverPlayer);
-        return InteractionResult.SUCCESS_SERVER;
     }
 
     private static void bindOne(ServerPlayer player, InteractionHand hand, ItemStack stack) {

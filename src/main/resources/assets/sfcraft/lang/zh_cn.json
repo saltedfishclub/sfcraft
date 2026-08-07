@@ -102,5 +102,14 @@
   "message.sfcraft.mapart.expand.wall_only": "地图画只能挂在竖直墙面上",
   "message.sfcraft.mapart.expand.no_space": "墙面空间不足,这幅画需要 %s x %s 格空墙",
   "block.sfcraft.map_art": "地图画",
-  "item.sfcraft.standing_firm_totem": "代偿图腾"
+  "item.sfcraft.standing_firm_totem": "代偿图腾",
+  "message.sfcraft.hint.elytra_portal_rush": "TIP: 使用鞘翅飞行可以直接冲进地狱",
+  "message.sfcraft.hint.mount_tame_nearby": "TIP: 或许即使是%s也有办法驯服?",
+  "message.sfcraft.hint.ravager_dash": "TIP: 骑劫掠兽时可以使用胡萝卜钓竿冲撞",
+  "message.sfcraft.hint.lunchbox_eat": "TIP: 使用午餐盒可以更方便的管理食物",
+  "message.sfcraft.hint.reverse_token_available": "TIP: 使用反向珍珠信物可以反转传送的方向",
+  "message.sfcraft.hint.standing_firm_totem": "TIP: 代偿图腾可以以经验为代价反复抵消死亡",
+  "message.sfcraft.hint.dismiss": "  [不再提示]",
+  "message.sfcraft.hint.dismiss.hover": "不再提示此类消息",
+  "message.sfcraft.hint.unknown": "没有这个提示:%s"
 }

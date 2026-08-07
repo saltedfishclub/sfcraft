@@ -18,6 +18,7 @@ public class GameConfig {
     public StandingFirmTotem standingFirmTotem = new StandingFirmTotem();
     public ElytraPortal elytraPortal = new ElytraPortal();
     public MapArt mapArt = new MapArt();
+    public FeatureHint featureHint = new FeatureHint();
 
     public static class ElytraPortal {
         // 鞘翅滑翔冲进下界传送门时跳过等待(立即传送)的最低速度,单位米/秒;<= 0 关闭本特性
@@ -137,5 +138,12 @@ public class GameConfig {
         public float dungeonBombChance = 0.3F;
         public float dungeonObsidianBombChance = 0.15F;
         public float creeperBombChance = 0.1F;
+    }
+
+    public static class FeatureHint {
+        // 服主级总开关;关掉立即静默所有提示
+        public boolean enabled = true;
+        // 同一玩家连续收到两条提示之间的最小间隔(秒),防止被多条特性连环打扰
+        public int globalCooldownSeconds = 120;
     }
 }

@@ -41,6 +41,16 @@ public interface SFCallbacks {
     Event<AnvilCreateResultCallback> ANVIL_CREATE_RESULT = EventFactory.createArrayBacked(AnvilCreateResultCallback.class,
             l -> (m, p) -> forEach(l, i -> i.onAnvilCreateResult(m, p)));
 
+    /** 玩家级低频调度(默认 10s 一次),由 FeatureHintModule 在服务端 tick 里发放;任何模块可订阅,复用同一节拍。 */
+    Event<PlayerSlowTickCallback> PLAYER_SLOW_TICK = EventFactory.createArrayBacked(PlayerSlowTickCallback.class,
+            l -> (p, i) -> forEach(l, it -> it.onPlayerSlowTick(p, i)));
+
+    interface PlayerSlowTickCallback {
+        int INTERVAL_TICKS = 200; // 10 s;写死,不做 gamerule/config,避免每个监听自己做整数除法
+
+        void onPlayerSlowTick(ServerPlayer player, int intervalTicks);
+    }
+
     interface AnvilCreateResultCallback {
         void onAnvilCreateResult(AnvilMenu menu, Player player);
     }

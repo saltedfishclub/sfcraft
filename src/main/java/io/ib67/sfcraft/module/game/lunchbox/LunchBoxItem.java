@@ -1,6 +1,9 @@
 package io.ib67.sfcraft.module.game.lunchbox;
 
 import eu.pb4.polymer.core.api.item.PolymerItem;
+import io.ib67.sfcraft.SFCraft;
+import io.ib67.sfcraft.module.hint.FeatureHintModule;
+import io.ib67.sfcraft.module.hint.Hint;
 import net.fabricmc.fabric.api.networking.v1.context.PacketContext;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
@@ -66,6 +69,8 @@ public class LunchBoxItem extends Item implements PolymerItem {
         var consumable = stack.get(DataComponents.CONSUMABLE);
         if (consumable == null) return InteractionResult.FAIL;
         // 走原版进食流程(动画+咀嚼音效),结束后进入下方 finishUsingItem
+        SFCraft.getInjector().getInstance(FeatureHintModule.class)
+                .markUsed(serverPlayer, Hint.LUNCHBOX_EAT);
         return consumable.startConsuming(player, stack, hand);
     }
 

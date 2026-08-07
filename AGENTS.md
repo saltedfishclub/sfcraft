@@ -51,6 +51,10 @@ javap -cp ~/.gradle/caches/fabric-loom/minecraftMaven/net/minecraft/minecraft-me
 
 另外，如果你注册了新的物品，确保通过依赖注入把他注册到 ItemGroupService 中。
 
+如何区分 gameplay 和一般特性：
+1. 通常来说，和游戏中的内容（物品，方块，实体）直接挂钩的是 gameplay. 而类似聊天，权限以及主要是辅助工具性质的不属于 gameplay
+2. gameplay 通常直接影响游戏逻辑，如果修改并不能让玩家体验到新的世界交互形式，那么不属于 gameplay
+
 6. 编译验证,必要时 runServer 冒烟。
 
 ## 编码约定

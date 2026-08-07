@@ -102,5 +102,14 @@
   "message.sfcraft.mapart.expand.wall_only": "Map art can only be hung on a vertical wall",
   "message.sfcraft.mapart.expand.no_space": "Not enough room; this art needs a clear %s x %s wall",
   "block.sfcraft.map_art": "Map Art",
-  "item.sfcraft.standing_firm_totem": "Totem of Restitution"
+  "item.sfcraft.standing_firm_totem": "Totem of Restitution",
+  "message.sfcraft.hint.elytra_portal_rush": "TIP: Glide in with an elytra — portals let you through instantly",
+  "message.sfcraft.hint.mount_tame_nearby": "TIP: You might actually be able to tame that %s",
+  "message.sfcraft.hint.ravager_dash": "TIP: While riding a ravager, clap the carrot-on-a-stick to charge",
+  "message.sfcraft.hint.lunchbox_eat": "TIP: Keep snacks in a lunch box — easier to manage",
+  "message.sfcraft.hint.reverse_token_available": "TIP: A Reverse Pearl Token flips the direction of the trip",
+  "message.sfcraft.hint.standing_firm_totem": "TIP: The Standfast Totem can also negate death — at the cost of XP",
+  "message.sfcraft.hint.dismiss": "  [dismiss]",
+  "message.sfcraft.hint.dismiss.hover": "Don't show this tip again",
+  "message.sfcraft.hint.unknown": "No such hint: %s"
 }

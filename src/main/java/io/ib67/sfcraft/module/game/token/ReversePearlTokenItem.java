@@ -1,16 +1,16 @@
 package io.ib67.sfcraft.module.game.token;
 
 import eu.pb4.polymer.core.api.item.PolymerItem;
+import io.ib67.sfcraft.SFCraft;
 import io.ib67.sfcraft.config.GameConfigService;
+import io.ib67.sfcraft.module.hint.FeatureHintModule;
+import io.ib67.sfcraft.module.hint.Hint;
 import io.ib67.sfcraft.module.game.item.ItemLores;
 import net.fabricmc.fabric.api.networking.v1.context.PacketContext;
 import net.minecraft.core.component.DataComponents;
-import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.sounds.SoundEvents;
-import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
@@ -22,7 +22,6 @@ import net.minecraft.world.item.component.ItemLore;
 import net.minecraft.world.level.Level;
 
 import java.util.List;
-import java.util.Set;
 import java.util.UUID;
 
 public class ReversePearlTokenItem extends Item implements PolymerItem {
@@ -85,14 +84,12 @@ public class ReversePearlTokenItem extends Item implements PolymerItem {
         }
 
         var targetLevel = (ServerLevel) owner.level();
-        serverPlayer.teleportTo(targetLevel, owner.getX(), owner.getY(), owner.getZ(),
-                Set.of(), serverPlayer.getYRot(), serverPlayer.getXRot(), false);
-        targetLevel.sendParticles(ParticleTypes.PORTAL,
-                owner.getX(), owner.getY() + 1.0, owner.getZ(), 32, 0.5, 1.0, 0.5, 0.2);
-        targetLevel.playSound(null, owner.getX(), owner.getY(), owner.getZ(),
-                SoundEvents.ENDERMAN_TELEPORT, SoundSource.PLAYERS, 1.0F, 1.0F);
+        PearlTokenItem.tokenTeleportWithSound(owner, serverPlayer, targetLevel);
         owner.sendSystemMessage(Component.translatable("message.sfcraft.token.arrived",
                 serverPlayer.getGameProfile().name()));
+        // 玩家自己已使用反向信物,反向信物 hint 永久静默
+        SFCraft.getInjector().getInstance(FeatureHintModule.class)
+                .markUsed(serverPlayer, Hint.REVERSE_TOKEN_AVAILABLE);
 
         // 记录本次使用时间戳(冷却),再扣除耐久(使用次数)
         CustomData.update(DataComponents.CUSTOM_DATA, stack, t -> t.putLong(LAST_USE_KEY, now));

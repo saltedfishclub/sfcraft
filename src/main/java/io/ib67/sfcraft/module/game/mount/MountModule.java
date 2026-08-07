@@ -1,8 +1,11 @@
 package io.ib67.sfcraft.module.game.mount;
 
 import com.google.inject.Inject;
+import io.ib67.sfcraft.SFCraft;
 import io.ib67.sfcraft.ServerModule;
 import io.ib67.sfcraft.config.GameConfigService;
+import io.ib67.sfcraft.module.hint.FeatureHintModule;
+import io.ib67.sfcraft.module.hint.Hint;
 import net.fabricmc.fabric.api.event.player.UseEntityCallback;
 import net.fabricmc.fabric.api.event.player.UseItemCallback;
 import net.minecraft.core.particles.ParticleTypes;
@@ -64,6 +67,11 @@ public class MountModule extends ServerModule {
             if (mob.getRandom().nextFloat() < mountConfig.tameSuccessChance) {
                 mount.sfcraft$setOwner(player.getUUID());
                 mob.setPersistenceRequired();
+                if (player instanceof ServerPlayer serverPlayer) {
+                    // 玩家已掌握驯服,永久静默驯服提示
+                    SFCraft.getInjector().getInstance(FeatureHintModule.class)
+                            .markUsed(serverPlayer, Hint.MOUNT_TAME_NEARBY);
+                }
                 celebrate(mob);
             } else {
                 tameFailed(mob);
@@ -118,6 +126,11 @@ public class MountModule extends ServerModule {
         }
         player.getCooldowns().addCooldown(held, dash.cooldownTicks);
         if (dash.durabilityCost > 0) held.hurtAndBreak(dash.durabilityCost, player, hand);
+        if (player instanceof ServerPlayer serverPlayer) {
+            // 玩家已掌握劫掠兽冲刺,永久静默冲刺提示
+            SFCraft.getInjector().getInstance(FeatureHintModule.class)
+                    .markUsed(serverPlayer, Hint.RAVAGER_DASH);
+        }
         return InteractionResult.SUCCESS_SERVER;
     }
 
