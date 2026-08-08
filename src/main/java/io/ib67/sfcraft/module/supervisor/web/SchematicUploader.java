@@ -10,7 +10,7 @@ import io.ib67.sfcraft.module.SignatureService;
 import io.ib67.sfcraft.module.supervisor.WebHandler;
 import io.ib67.sfcraft.util.Helper;
 import io.ib67.sfcraft.util.SFConsts;
-import io.ib67.sfcraft.util.litematic.LitematicConverterV3;
+import io.ib67.sfcraft.util.litematic.LitematicConverterFactory;
 import io.javalin.config.JavalinConfig;
 import io.javalin.http.Context;
 import io.javalin.http.UploadedFile;
@@ -145,7 +145,7 @@ public class SchematicUploader extends WebHandler {
             log.info("Saved " + fileName + " as a schematic.");
             sendSuccess(player, baseFileName);
         } else if (fileName.endsWith(".litematic")) {
-            try (var converter = new LitematicConverterV3(file.content(), new NbtAccounter(config.maxSchematicSize, 64))) {
+            try (var converter = LitematicConverterFactory.forFile(file.content(), new NbtAccounter(config.maxSchematicSize, 64))) {
                 converter.read((name, nbt) -> {
                     name = baseFileName + "-" + Helper.cleanFileName(name) + ".schematic";
                     try {

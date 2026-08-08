@@ -47,8 +47,19 @@ dependencies {
         exclude group: 'com.google.guava', module: 'listenablefuture'
         exclude group: 'com.google.guava', module: 'failureaccess'
     }
+    testImplementation platform("org.junit:junit-bom:5.10.2")
+    testImplementation "org.junit.jupiter:junit-jupiter"
+    testRuntimeOnly "org.junit.platform:junit-platform-launcher"
 }
 configurations.implementation.extendsFrom(configurations.shadow)
+
+tasks.named('test', Test) {
+    useJUnitPlatform()
+    testLogging {
+        events "passed", "skipped", "failed"
+        exceptionFormat "full"
+    }
+}
 
 shadowJar {
     configurations = [project.configurations.shadow]

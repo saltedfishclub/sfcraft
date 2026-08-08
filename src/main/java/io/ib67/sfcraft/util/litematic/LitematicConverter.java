@@ -1,18 +1,15 @@
 package io.ib67.sfcraft.util.litematic;
 
+import com.google.common.collect.Lists;
 import io.ib67.sfcraft.util.TypedNbtList;
-import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import lombok.SneakyThrows;
 import net.minecraft.nbt.*;
 import net.minecraft.network.FriendlyByteBuf;
-import org.apache.commons.compress.utils.Lists;
 
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.function.BiConsumer;
-import java.util.stream.Collectors;
 
 /**
  * A cleaned up version of https://github.com/GoldenDelicios/Lite2Edit
@@ -21,29 +18,61 @@ import java.util.stream.Collectors;
 public class LitematicConverter implements AutoCloseable {
     protected final InputStream input;
     protected final NbtAccounter sizeTracker;
+    private final CompoundTag preParsedRoot;
 
     public LitematicConverter(InputStream input, NbtAccounter sizeTracker) {
         this.input = input;
         this.sizeTracker = sizeTracker;
+        this.preParsedRoot = null;
+    }
+
+    /**
+     * For converters whose root tag was already parsed and validated (see
+     * {@link LitematicConverterFactory}): {@link #read} uses this root instead of
+     * re-parsing the stream, and {@link #close} leaves the caller's input alone.
+     */
+    protected LitematicConverter(CompoundTag preParsedRoot, NbtAccounter sizeTracker) {
+        this.input = null;
+        this.sizeTracker = sizeTracker;
+        this.preParsedRoot = preParsedRoot;
     }
 
     @SneakyThrows
     public void read(
             BiConsumer<String, CompoundTag> schematicOutput
     ) {
-        var root = NbtIo.readCompressed(input, sizeTracker);
+        var root = preParsedRoot != null ? preParsedRoot : NbtIo.readCompressed(input, sizeTracker);
         var dataVersion = root.getInt("MinecraftDataVersion")
                 .orElseThrow(() -> new IllegalStateException("MinecraftDataVersion not found"));
+        // Template hooks: subclasses may adapt to the input format version
+        // (see LitematicConverterV4) without re-implementing the whole pipeline.
+        readInputVersion(root);
         var regionsNbt = root.getCompound("Regions")
                 .orElseThrow(() -> new IllegalStateException("Regions not found"));
-        var i = 0;
         for (String regionName : regionsNbt.keySet()) {
             var compound = regionsNbt.getCompound(regionName)
                     .orElseThrow(() -> new IllegalStateException("Region " + regionName + " not found"));
-            var j = i++;
-            var schematic = convertRegionToSchematic(dataVersion, compound);
+            var schematic = convertRegionToSchematic(readRegionDataVersion(compound, dataVersion), compound);
             schematicOutput.accept(regionName, schematic);
         }
+    }
+
+    /**
+     * Template hook: the litematic input format version, read from the root tag.
+     * Subclasses may log, validate or reject unsupported versions here.
+     */
+    protected int readInputVersion(CompoundTag root) {
+        return root.getInt("Version").orElse(0);
+    }
+
+    /**
+     * Template hook: the data version to bake into each region's schematic output.
+     * The base implementation always uses the root {@code MinecraftDataVersion};
+     * newer litematic formats store a per-region {@code DataVersion} that takes
+     * precedence (litematica: {@code regionTag.getIntOrDefault("DataVersion", mainDataVersion)}).
+     */
+    protected int readRegionDataVersion(CompoundTag region, int fallback) {
+        return fallback;
     }
 
     protected CompoundTag convertRegionToSchematic(int dataVersion, CompoundTag region) {
@@ -123,9 +152,12 @@ public class LitematicConverter implements AutoCloseable {
             if (_properties.isPresent()) {
                 var properties = _properties.get();
                 name.append("[");
+                // Sort keys so the produced palette string is deterministic
+                // (NbtCompound keySet order is unspecified in modern MC versions)
                 var props = new ArrayList<String>();
-                for (String key : properties.keySet()) {
-                    props.add(key + "=" + properties.getString(key));
+                for (String key : properties.keySet().stream().sorted().toList()) {
+                    props.add(key + "=" + properties.getString(key)
+                            .orElseThrow(() -> new IllegalStateException("Property " + key + " not found")));
                 }
                 name.append(String.join(",", props));
                 name.append("]");
@@ -172,12 +204,20 @@ public class LitematicConverter implements AutoCloseable {
             }
             buffer.writeVarInt(value);
         }
-        return buffer.array();
+        // Only return the bytes actually written: the backing array of an
+        // Unpooled.buffer() is a power-of-two slab that may be larger than the
+        // written data, and trailing garbage would be read back as extra blocks
+        // (as air) by WorldEdit's VarIntIterator.
+        var result = new byte[buffer.writerIndex()];
+        buffer.getBytes(0, result);
+        return result;
     }
 
     @Override
     public void close() throws Exception {
-        input.close();
+        if (input != null) {
+            input.close();
+        }
     }
 
     protected record SizeTuple(

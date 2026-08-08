@@ -17,6 +17,11 @@ public class LitematicConverterV3 extends LitematicConverter {
         super(input, sizeTracker);
     }
 
+    /** See {@link LitematicConverter#LitematicConverter(CompoundTag, NbtAccounter)}. */
+    protected LitematicConverterV3(CompoundTag preParsedRoot, NbtAccounter sizeTracker) {
+        super(preParsedRoot, sizeTracker);
+    }
+
     @Override
     protected CompoundTag convertRegionToSchematic(int dataVersion, CompoundTag region) {
         var schematicsTag = new CompoundTag();
