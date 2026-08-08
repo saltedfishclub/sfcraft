@@ -1,0 +1,11 @@
+§d§lSFCraft 已更新到 2.2。
+
+
+§a主要改动：
+ - 创造游乐园新增时间控制指令 /playgrd time，支持 set/add/query/day/noon/night/midnight，且与主世界时间相互独立
+ - 投影上传现在支持最新版 Litematica 导出的 .litematic 文件
+ - 修复了部分投影转换后在末尾多出空气方块的问题
+ - 修复了「代偿图腾」物品名颜色显示异常的问题
+
+具体信息请查阅我们的更新日志：
+§bhttps://sfclub.cc/~sfcraft/changelog/2026-08-08/
