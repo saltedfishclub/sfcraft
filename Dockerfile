@@ -8,7 +8,7 @@ RUN curl -fsSLo /packwiz-installer.jar https://github.com/packwiz/packwiz-instal
 COPY --from=hengyunabc/arthas:4.1.1-no-jdk /opt/arthas /opt/arthas
 
 FROM base AS sfcraft-builder
-RUN git clone https://github.com/saltedfishclub/sfcraft /mod
+COPY . /mod
 RUN  cd /mod && \
     ./gradlew shadowJar && \
     cp /mod/build/libs/sfcraft-*-all.jar /sfcraft.jar
@@ -29,7 +29,7 @@ RUN cd /mod && \
 
 FROM base
 WORKDIR /deployment
-COPY ./pack /deployment/pack
+COPY server-deploy/pack /deployment/pack
 RUN MC_VERSION="$(grep '^minecraft' /deployment/pack/pack.toml | head -n1 | cut -d'"' -f2)" && \
     LOADER_VERSION="$(grep '^fabric' /deployment/pack/pack.toml | head -n1 | cut -d'"' -f2)" && \
     if [ -z "$MC_VERSION" ] || [ -z "$LOADER_VERSION" ]; then \
@@ -38,7 +38,7 @@ RUN MC_VERSION="$(grep '^minecraft' /deployment/pack/pack.toml | head -n1 | cut 
     echo "Installing Fabric server (MC=$MC_VERSION, loader=$LOADER_VERSION)" && \
     java -jar /fabric-installer.jar server -mcversion "$MC_VERSION" -loader "$LOADER_VERSION" -downloadMinecraft
 RUN java -jar /packwiz-installer.jar -g -s server /deployment/pack/pack.toml
-COPY ./overrides /deployment
+COPY server-deploy/overrides /deployment
 COPY --from=sfcraft-builder /sfcraft.jar /deployment/mods/sfcraft.jar
 COPY --from=justbackup-builder /justbackup.jar /deployment/mods/justbackup.jar
 COPY --from=carpet-builder /fabric-carpet.jar /deployment/mods/fabric-carpet.jar
