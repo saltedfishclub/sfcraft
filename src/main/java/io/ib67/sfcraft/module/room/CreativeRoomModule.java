@@ -1,6 +1,7 @@
 package io.ib67.sfcraft.module.room;
 
 import com.google.inject.Inject;
+import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
@@ -29,10 +30,13 @@ import net.minecraft.commands.Commands;
 import net.minecraft.commands.SharedSuggestionProvider;
 import net.minecraft.commands.arguments.EntityArgument;
 import net.minecraft.commands.arguments.GameModeArgument;
+import net.minecraft.commands.arguments.TimeArgument;
+import net.minecraft.core.Holder;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.CommonColors;
+import net.minecraft.world.clock.WorldClock;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.gamerules.GameRules;
 import org.jetbrains.annotations.NotNull;
@@ -108,6 +112,20 @@ public class CreativeRoomModule extends ServerModule {
                 LiteralArgumentBuilder.<CommandSourceStack>literal("playgrd")
                         .requires(it -> it.isPlayer() && SFConsts.COMMAND_PLAYGROUND.hasPermission(it.getPlayer()))
                         .executes(this::gotoPlayground)
+                        .then(Commands.literal("time")
+                                .requires(it -> it.isPlayer() && SFConsts.COMMAND_PLAYGROUND_TIME.hasPermission(it.getPlayer()))
+                                .then(Commands.literal("set")
+                                        .then(Commands.argument("time", TimeArgument.time())
+                                                .executes(ctx -> onSetTime(ctx, IntegerArgumentType.getInteger(ctx, "time")))))
+                                .then(Commands.literal("add")
+                                        .then(Commands.argument("time", TimeArgument.time(Integer.MIN_VALUE))
+                                                .executes(ctx -> onAddTime(ctx, IntegerArgumentType.getInteger(ctx, "time")))))
+                                .then(Commands.literal("query").executes(this::onQueryTime))
+                                .then(Commands.literal("day").executes(ctx -> onSetNamedTime(ctx, 1000)))
+                                .then(Commands.literal("noon").executes(ctx -> onSetNamedTime(ctx, 6000)))
+                                .then(Commands.literal("night").executes(ctx -> onSetNamedTime(ctx, 13000)))
+                                .then(Commands.literal("midnight").executes(ctx -> onSetNamedTime(ctx, 18000)))
+                        )
         );
         dispatcher.register(
                 Commands.literal("gm")
@@ -170,13 +188,74 @@ public class CreativeRoomModule extends ServerModule {
         return 0;
     }
 
+    // ── /playgrd time ────────────────────────────────────────────────
+    // 只操作游乐场自己的 WorldClock(sfcraft:playground),绝不触碰其它钟;
+    // 必须身处游乐场才能使用。时间值存原始 tick(可超 24000),展示时按 24000 取余。
+
+    private int onSetTime(CommandContext<CommandSourceStack> ctx, int ticks) {
+        var player = requirePlaygroundPlayer(ctx);
+        if (player == null) return Command.SINGLE_SUCCESS;
+        ctx.getSource().getServer().clockManager().setTotalTicks(playgroundClock(ctx.getSource()), ticks);
+        player.sendSystemMessage(Component.translatable("message.sfcraft.playground.time_set", wrapTime(ticks)));
+        return Command.SINGLE_SUCCESS;
+    }
+
+    private int onAddTime(CommandContext<CommandSourceStack> ctx, int ticks) {
+        var player = requirePlaygroundPlayer(ctx);
+        if (player == null) return Command.SINGLE_SUCCESS;
+        ctx.getSource().getServer().clockManager().addTicks(playgroundClock(ctx.getSource()), ticks);
+        player.sendSystemMessage(Component.translatable("message.sfcraft.playground.time_added", wrapTime(ticks)));
+        return Command.SINGLE_SUCCESS;
+    }
+
+    private int onQueryTime(CommandContext<CommandSourceStack> ctx) {
+        var player = requirePlaygroundPlayer(ctx);
+        if (player == null) return Command.SINGLE_SUCCESS;
+        long ticks = ctx.getSource().getServer().clockManager().getTotalTicks(playgroundClock(ctx.getSource()));
+        player.sendSystemMessage(Component.translatable("message.sfcraft.playground.time_query", wrapTime(ticks)));
+        return Command.SINGLE_SUCCESS;
+    }
+
+    private int onSetNamedTime(CommandContext<CommandSourceStack> ctx, int ticks) {
+        var player = requirePlaygroundPlayer(ctx);
+        if (player == null) return Command.SINGLE_SUCCESS;
+        ctx.getSource().getServer().clockManager().setTotalTicks(playgroundClock(ctx.getSource()), ticks);
+        player.sendSystemMessage(Component.translatable("message.sfcraft.playground.time_set", wrapTime(ticks)));
+        return Command.SINGLE_SUCCESS;
+    }
+
+    /** 游乐场世界钟;必须身处游乐场(此时世界必然已加载),从维度类型解析。 */
+    private Holder<WorldClock> playgroundClock(CommandSourceStack source) {
+        var level = source.getServer().getLevel(CreativeSpaceRoom.WORLD);
+        if (level == null) {
+            throw new IllegalStateException("playground level not loaded");
+        }
+        return level.dimensionType().defaultClock()
+                .orElseThrow(() -> new IllegalStateException("playground dimension type has no default clock"));
+    }
+
+    private ServerPlayer requirePlaygroundPlayer(CommandContext<CommandSourceStack> ctx) {
+        var p = ctx.getSource().getPlayer();
+        if (p == null || !p.level().dimension().equals(CreativeSpaceRoom.WORLD)) {
+            if (p != null) {
+                p.sendSystemMessage(Component.translatable("message.sfcraft.playground.only_here"));
+            }
+            return null;
+        }
+        return p;
+    }
+
+    private static int wrapTime(long ticks) {
+        return (int) Math.floorMod(ticks, 24000L);
+    }
+
     public void onPlayerJoin(ServerPlayer player) {
         player.sendSystemMessage(Component.translatable("message.sfcraft.playground.welcome"));
         player.sendSystemMessage(Component.translatable("message.sfcraft.playground.features_available").withColor(CommonColors.WHITE)
                 .append(Component.translatable("message.sfcraft.playground.features_list").withColor(Color.MAGENTA.getRGB())));
         player.sendSystemMessage(Component.nullToEmpty("    "));
         player.sendSystemMessage(Component.translatable("message.sfcraft.playground.upload_hint").withColor(CommonColors.GRAY)
-                .append(Component.literal("/upload schematic").withColor(CommonColors.BLUE).withStyle(it -> it.withUnderlined(true))));
+                .append(Component.literal("/upload schematic").withColor(CommonColors.SOFT_YELLOW).withStyle(it -> it.withUnderlined(true))));
         player.sendSystemMessage(Component.translatable("message.sfcraft.playground.mobs_no_escape").withColor(CommonColors.GRAY));
         player.sendSystemMessage(Component.translatable("message.sfcraft.playground.how_to_leave").withColor(CommonColors.GRAY));
         player.setGameMode(GameType.CREATIVE);

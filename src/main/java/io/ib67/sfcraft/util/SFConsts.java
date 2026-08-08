@@ -24,6 +24,7 @@ public class SFConsts {
     public static final Permission<Player> COMMAND_PLAYGROUND = ofSFCPermission("command.playground", true);
     public static final Permission<Player> COMMAND_PLAYGROUND_GAMEMODE = ofSFCPermission("command.playground.gamemode", true);
     public static final Permission<Player> COMMAND_PLAYGROUND_TELEPORT = ofSFCPermission("command.playground.teleport", true);
+    public static final Permission<Player> COMMAND_PLAYGROUND_TIME = ofSFCPermission("command.playground.time", true);
     public static final Permission<Player> COMMAND_RECO = ofSFCPermission("command.reco", true);
 
     public static Permission<Player> ofSFCPermission(String key, boolean byDefault) {

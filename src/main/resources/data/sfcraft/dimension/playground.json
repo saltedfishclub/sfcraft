@@ -1,5 +1,5 @@
 {
-  "type": "overworld",
+  "type": "sfcraft:playground",
   "generator": {
     "type": "flat",
     "settings": {
