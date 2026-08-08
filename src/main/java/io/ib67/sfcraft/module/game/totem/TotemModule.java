@@ -21,6 +21,7 @@ import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.Rarity;
 import net.minecraft.world.item.component.DeathProtection;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.stats.Stats;
@@ -65,6 +66,10 @@ public class TotemModule extends ServerModule {
                 properties -> new SimplePolymerItem(properties, Items.TOTEM_OF_UNDYING),
                 new Item.Properties()
                         .stacksTo(1)
+                        // 与原版不死图腾一致的金色(UNCOMMON)名字;26.2 的 ItemStack.getRarity 只读
+                        // RARITY 组件(默认 COMMON 白色),不设的话 Polymer 会把客户端栈里的
+                        // RARITY 组件剥掉,名字会显示成白色
+                        .rarity(Rarity.UNCOMMON)
                         .modelId(Identifier.fromNamespaceAndPath("sfcraft", "item/standing_firm_totem"))
                         // 刻意不挂 DEATH_PROTECTION 组件:否则原版死亡保护会识别它、在本图腾失效(冷却/
                         // 经验不足)时把它当普通图腾消耗,或连带取消掉玩家另一只手里的原版图腾。
