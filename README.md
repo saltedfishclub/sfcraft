@@ -1,23 +1,19 @@
-# SFCraft
+# Welcome to SFCraft
 
-SFCraft is a fabric mod tailored for the Minecraft server of the same name, including many fixes, features and other functionality.
+Salted Fish (Club) Craft is a whitelisted, vanilla flavour Minecraft Server.
 
-**It is not recommended to use this mod on your server without proper configuration!!**
+[Wiki](https://sfclub.cc/~sfcraft/vanilla/) | [How-to Join](https://sfclub.cc/~sfcraft/guide/join/) | [Web Map](https://mc.sfclub.cc/map/)
 
-This project is open source to allow players to contribute. [Contribution GUIDE](./CONTRIBUTING.md)
+This repository contains the server mod implementing most of our features and server publish pipeline.
 
-You may also need our source if you're implementing some of the features listed below.
+Contributions are welcomed. A roughly written contributing guide can be found at [CONTRIBUTING.md](./CONTRIBUTING.md). Not only for agents, AGENTS.md and ARCHITECTURE.md are helpful to new-comers human too.
 
-# Features
+# About the server
 
-1. Hybrid offline & online authentication: Check [ServerLoginNetworkHandlerMixin](src/main/java/io/ib67/sfcraft/mixin/server/ServerLoginNetworkHandlerMixin.java)
-2. Worldwide regions, which divide the server into multiple "rooms" with data strictly isolated: See [this blog](https://blog.0w0.ing/2024/07/17/multiserver-based-on-one-utilizing-transfer/)
-  The implementation is mainly in [subserver](src/main/java/io/ib67/sfcraft/mixin/server/subserver/)
-3. Server-side entities, the custom entities, but tied to the vanilla module: Check and look for references to [SFEntityType] (src/main/java/io/ib67/sfcraft/SFEntityType.java)
-4. .. and more.
+Custom features are often generously opened to every players without complex anti-abuse mechanism. We only accept new players that wouldn't destroy, steal other players' assets or exploit severe bugs in our server. 
 
-Besides the above, there are also many tiny features in the [module](src/main/java/io/ib67/sfcraft/module/) package.
+If you want to apply to join our server, write a introduction of yourself to [iceBear67](mailto:icebear67@sfclub.cc) and we'll reply soon.
 
-# About our server
+# License
 
-SFCraft is a whitelisted Minecraft server. To join us, contact [@ib67_pm_bot](https://t.me/ib67_pm_bot) in telegram (We chat in Chinese.)
+Our original art assets are all right reserved, which are located at src/main/resources/assets. Beside those are licensed under MIT.
