@@ -28,7 +28,7 @@ import java.util.Map;
 import java.util.Optional;
 
 /**
- * 斩首附魔:持有该附魔的武器击杀敌怪(含玩家)时有概率掉落对应头颅。
+ * 斩首附魔:用带该附魔的武器打出致命一击击杀敌怪(含玩家)时有概率掉落对应头颅。
  * 掉头逻辑纯服务端,附魔本身为数据驱动内容(data/sfcraft/enchantment/beheading.json),
  * 无需代码注册,仅作等级标记。
  */
@@ -58,15 +58,20 @@ public class BeheadingModule extends ServerModule {
     private void onDeath(LivingEntity victim, DamageSource source) {
         if (!(victim.level() instanceof ServerLevel serverLevel)) return;
 
-        var killer = source.getEntity() instanceof LivingEntity le ? le : victim.getKillCredit();
-        if (killer == null) return;
+        // 只认「致命一击本身」用的武器:getWeaponItem() 取自伤害的直接来源实体
+        // (近战=攻击者主手,投射物=发射它的弓弩)。摔落/火焰/岩浆/爆炸/溺水等没有直接来源
+        // 或来源不持武器,一律返回 null/空,不会掉头。
+        // 旧写法退化到 getKillCredit() + 主手物品,导致玩家只要手持斩首武器,
+        // 生物死于摔落、着火、被别的怪打死等情况也会掉头。
+        var weapon = source.getWeaponItem();
+        if (weapon == null || weapon.isEmpty()) return;
 
         var head = headFor(victim);
         if (head == null) return;
 
         var holder = getBeheading(serverLevel.registryAccess());
         if (holder.isEmpty()) return;
-        int level = EnchantmentHelper.getItemEnchantmentLevel(holder.get(), killer.getMainHandItem());
+        int level = EnchantmentHelper.getItemEnchantmentLevel(holder.get(), weapon);
         if (level <= 0) return;
 
         var beheading = config.get().beheading;
