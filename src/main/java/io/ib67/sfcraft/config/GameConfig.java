@@ -26,14 +26,16 @@ public class GameConfig {
     }
 
     public static class MapArt {
-        // 单张图片的下载体积上限(字节)
-        public int maxDownloadBytes = 8388608;
+        // 单张图片的下载体积上限(字节),边收边计、超限立刻断开连接并提示玩家。
+        // 16 MiB:4K JPEG 通常 1~5 MB,照片类 4K PNG 约 12 MB;只有不可压缩的极端 PNG(~24 MB)会被拒
+        public int maxDownloadBytes = 16777216;
         // 全服同时进行中的图片下载+解码数上限,超出时新请求直接失败提示稍后重试(不排队)
         public int maxConcurrentRenders = 2;
         // HTTP 超时(秒)
         public int httpTimeoutSeconds = 15;
-        // 输入图片单边像素上限(解码像素前按头部尺寸拦截,防爆内存);成品按宽高比在 4x4 格内自动选幅画
-        public int maxImageDimension = 2048;
+        // 输入图片单边像素上限(解码像素前按头部尺寸拦截,防解压炸弹);4096 覆盖 4K 素材。
+        // 成品按宽高比在 4x4 格内自动选幅画;解码时按目标画布降采样,故调高此值不会等比推高解码内存
+        public int maxImageDimension = 4096;
         // 远端下载/解码失败的 URL 冷却秒数,期间同一地址不再发起请求
         public int failureCooldownSeconds = 60;
         // 铁砧生成地图画的经验等级花费

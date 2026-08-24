@@ -99,6 +99,7 @@
   "message.sfcraft.mapart.error.unsupported_extension": "URL 需以受支持的图片扩展名结尾(png/jpg/jpeg/gif/bmp)",
   "message.sfcraft.mapart.error.cooldown": "该地址刚请求失败过,%s 秒后可重试",
   "message.sfcraft.mapart.error.too_large": "图片尺寸过大(%s,单边上限 %s 像素)",
+  "message.sfcraft.mapart.error.body_too_large": "图片体积过大,上限 %s",
   "message.sfcraft.mapart.error.not_image": "下载的内容不是可识别的图片",
   "message.sfcraft.mapart.error.download_failed": "下载失败: %s",
   "message.sfcraft.mapart.error.busy": "当前全服并发渲染已达上限(%s),请稍后再试",

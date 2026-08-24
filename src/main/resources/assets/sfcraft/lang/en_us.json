@@ -99,6 +99,7 @@
   "message.sfcraft.mapart.error.unsupported_extension": "The URL must end with a supported image extension (png/jpg/jpeg/gif/bmp)",
   "message.sfcraft.mapart.error.cooldown": "This URL failed recently; retry in %s seconds",
   "message.sfcraft.mapart.error.too_large": "Image too large (%s; max %s pixels per side)",
+  "message.sfcraft.mapart.error.body_too_large": "Image file too large; the limit is %s",
   "message.sfcraft.mapart.error.not_image": "The downloaded content is not a recognizable image",
   "message.sfcraft.mapart.error.download_failed": "Download failed: %s",
   "message.sfcraft.mapart.error.busy": "The server is already rendering %s map art(s) concurrently; please try again later",

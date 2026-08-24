@@ -38,6 +38,7 @@ import org.jspecify.annotations.Nullable;
 
 import javax.imageio.ImageIO;
 import javax.imageio.ImageReader;
+import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.URI;
@@ -45,8 +46,11 @@ import java.net.URISyntaxException;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.nio.ByteBuffer;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
@@ -54,8 +58,10 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.WeakHashMap;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
+import java.util.concurrent.Flow;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -70,7 +76,8 @@ import java.util.concurrent.TimeUnit;
  * </ul>
  * 玩家拿到的是单张"种子"地图(128x128 整图预览);上墙后每格替换为 128x128 的局部清晰切片。
  * 输入单边像素上限见
- * {@code GameConfig.MapArt#maxImageDimension},在解码像素前先读头部尺寸拦截,防止解压炸弹。
+ * {@code GameConfig.MapArt#maxImageDimension}(默认 4096,覆盖 4K 素材),在解码像素前先读头部尺寸
+ * 拦截,防止解压炸弹;放行后按目标画布降采样解码({@link #readSubsampled}),峰值内存与该上限脱钩。
  * 生成物是普通 {@code FILLED_MAP}+{@code MAP_ID}/{@code CUSTOM_DATA} 组件,纯原版物品,无需 Polymer。
  * 名称走 {@code ITEM_NAME}(玩家不再看到每格"地图画"名牌,也不能再被铁砧重命名);
  * 上墙的切片用 {@code TOOLTIP_DISPLAY} 隐藏 {@code MAP_ID},工具提示只剩名称一行。
@@ -575,19 +582,22 @@ public class MapArtModule extends ServerModule {
                 .build();
         int maxBytes = Math.max(1024, settings.maxDownloadBytes);
         try {
-            return httpClient.sendAsync(request,
-                            HttpResponse.BodyHandlers.buffering(HttpResponse.BodyHandlers.ofByteArray(), maxBytes))
+            return httpClient.sendAsync(request, info -> new BoundedBodySubscriber(maxBytes))
                     .thenApply(response -> {
                         if (response.statusCode() / 100 != 2) {
                             markFailed(url);
                             return RenderOutcome.fail(RenderFailure.DOWNLOAD_FAILED, "HTTP " + response.statusCode());
+                        }
+                        if (response.body().overflow()) {
+                            markFailed(url);
+                            return RenderOutcome.fail(RenderFailure.BODY_TOO_LARGE, formatBytes(maxBytes));
                         }
                         var contentType = response.headers().firstValue("content-type").orElse("");
                         if (!contentType.isBlank() && !contentType.regionMatches(true, 0, "image/", 0, 6)) {
                             markFailed(url);
                             return RenderOutcome.fail(RenderFailure.NOT_IMAGE, null);
                         }
-                        return decode(url, response.body());
+                        return decode(url, response.body().bytes());
                     })
                     .whenComplete((outcome, error) -> renderSlots.release());
         } catch (Exception e) {
@@ -599,7 +609,8 @@ public class MapArtModule extends ServerModule {
     }
 
     /**
-     * 先读图片头部尺寸(不解码像素)拦截超大图,通过后再栅格化到整幅墙画画布。
+     * 先读图片头部尺寸(不解码像素)拦截超大图,通过后按目标画布降采样解码
+     * (见 {@link #readSubsampled}),再栅格化到整幅墙画画布。
      */
     private RenderOutcome decode(String url, byte[] body) {
         int maxDimension = configService.get().mapArt.maxImageDimension;
@@ -626,10 +637,10 @@ public class MapArtModule extends ServerModule {
                 markFailed(url);
                 return RenderOutcome.fail(RenderFailure.TOO_LARGE, width + "x" + height);
             }
-            var image = reader.read(0);
             var grid = gridFor(width, height);
             int canvasWidth = grid[0] * MapArtRenderer.MAP_SIZE;
             int canvasHeight = grid[1] * MapArtRenderer.MAP_SIZE;
+            var image = readSubsampled(reader, width, height, canvasWidth, canvasHeight);
             var canvas = grid[0] == 1 && grid[1] == 1
                     ? MapArtRenderer.render(image)
                     : MapArtRenderer.render(image, canvasWidth, canvasHeight);
@@ -645,6 +656,33 @@ public class MapArtModule extends ServerModule {
                 reader.dispose();
             }
         }
+    }
+
+    /**
+     * 按目标画布尺寸降采样解码。目标画布最大也只有 512x512,而 4K 输入全分辨率解码要 64 MiB 的
+     * ARGB 缓冲——解码期每 step 个像素取一个就够,峰值内存与输入边长上限脱钩。
+     * 刻意留 2 倍余量交给 {@link MapArtRenderer#render} 的双线性缩放:恰好 2 倍下采样的双线性
+     * 等价于 2x2 盒式平均,比一路点采样到目标尺寸的锯齿少得多。
+     */
+    private static BufferedImage readSubsampled(ImageReader reader, int width, int height,
+                                                int canvasWidth, int canvasHeight) throws IOException {
+        int step = Math.max(1, Math.min(width / (canvasWidth * 2), height / (canvasHeight * 2)));
+        if (step == 1) {
+            return reader.read(0); // 本就接近画布尺寸,不必绕 ImageReadParam
+        }
+        var param = reader.getDefaultReadParam();
+        param.setSourceSubsampling(step, step, 0, 0);
+        return reader.read(0, param);
+    }
+
+    /**
+     * 人类可读的体积上限,拼进玩家提示。单位符号留在代码里(不是需要翻译的散文),
+     * lang 那边只留 "%s" 的位置。
+     */
+    private static String formatBytes(int bytes) {
+        return bytes >= 1024 * 1024
+                ? (bytes / (1024 * 1024)) + " MiB"
+                : Math.max(1, bytes / 1024) + " KiB";
     }
 
     /**
@@ -665,6 +703,8 @@ public class MapArtModule extends ServerModule {
                 case COOLDOWN -> Component.translatable("message.sfcraft.mapart.error.cooldown", outcome.detail());
                 case TOO_LARGE -> Component.translatable("message.sfcraft.mapart.error.too_large",
                         outcome.detail(), configService.get().mapArt.maxImageDimension);
+                case BODY_TOO_LARGE ->
+                        Component.translatable("message.sfcraft.mapart.error.body_too_large", outcome.detail());
                 case NOT_IMAGE -> Component.translatable("message.sfcraft.mapart.error.not_image");
                 case DOWNLOAD_FAILED -> Component.translatable("message.sfcraft.mapart.error.download_failed",
                         outcome.detail() == null ? "?" : outcome.detail());
@@ -732,6 +772,87 @@ public class MapArtModule extends ServerModule {
     private record Rendered(int cols, int rows, byte[] canvas) {
     }
 
+    /**
+     * 收完的响应体。{@code overflow} 为真表示超过了 {@code GameConfig.MapArt#maxDownloadBytes},
+     * 上游已取消、字节已丢弃,{@code bytes} 为空。
+     */
+    private record Downloaded(byte[] bytes, boolean overflow) {
+        private static final Downloaded OVERFLOW = new Downloaded(new byte[0], true);
+    }
+
+    /**
+     * 真正封顶的响应体收集器。
+     * <p>
+     * 注意 {@code BodyHandlers.buffering(downstream, size)} 的 size <b>不是</b>体积上限,只是"攒够多少
+     * 字节再往下游递"的缓冲块大小;下游 {@code ofByteArray} 依旧会把整个响应体收进内存。铁砧那条路径
+     * 不需要 OP 权限(任何玩家把地图改名成 URL 就能触发下载),所以这里必须自己数字节:一超上限就
+     * {@code cancel} 上游、丢掉已收分片,让下游拿到 {@link Downloaded#OVERFLOW}。
+     * <p>
+     * 全程非阻塞(不在 HttpClient 的 executor 上做阻塞读),因此不需要额外线程池。
+     */
+    private static final class BoundedBodySubscriber implements HttpResponse.BodySubscriber<Downloaded> {
+        private final int maxBytes;
+        private final CompletableFuture<Downloaded> body = new CompletableFuture<>();
+        private final List<ByteBuffer> chunks = new ArrayList<>();
+        private Flow.Subscription subscription;
+        /** long:配置若被填成接近 Integer.MAX_VALUE,int 累加会绕回负数而永远测不出超限。 */
+        private long received;
+
+        private BoundedBodySubscriber(int maxBytes) {
+            this.maxBytes = maxBytes;
+        }
+
+        @Override
+        public CompletionStage<Downloaded> getBody() {
+            return body;
+        }
+
+        @Override
+        public void onSubscribe(Flow.Subscription subscription) {
+            this.subscription = subscription;
+            subscription.request(Long.MAX_VALUE);
+        }
+
+        @Override
+        public void onNext(List<ByteBuffer> buffers) {
+            if (body.isDone()) {
+                return; // cancel 之后仍可能收到在途分片
+            }
+            for (var buffer : buffers) {
+                received += buffer.remaining();
+                if (received > maxBytes) {
+                    chunks.clear();
+                    subscription.cancel();
+                    body.complete(Downloaded.OVERFLOW);
+                    return;
+                }
+                chunks.add(buffer);
+            }
+        }
+
+        @Override
+        public void onError(Throwable throwable) {
+            chunks.clear();
+            body.completeExceptionally(throwable); // 已 complete 时是空操作,保持首个结果
+        }
+
+        @Override
+        public void onComplete() {
+            if (body.isDone()) {
+                return;
+            }
+            var bytes = new byte[(int) received]; // 走到这里必有 received <= maxBytes
+            int offset = 0;
+            for (var chunk : chunks) {
+                int length = chunk.remaining();
+                chunk.get(bytes, offset, length);
+                offset += length;
+            }
+            chunks.clear();
+            body.complete(new Downloaded(bytes, false));
+        }
+    }
+
     private record RenderOutcome(@Nullable Rendered rendered, @Nullable RenderFailure failure,
                                  @Nullable String detail) {
         private static RenderOutcome ok(Rendered rendered) {
@@ -744,7 +865,8 @@ public class MapArtModule extends ServerModule {
     }
 
     private enum RenderFailure {
-        INVALID_URL, USERINFO, UNSUPPORTED_EXTENSION, COOLDOWN, DOWNLOAD_FAILED, NOT_IMAGE, TOO_LARGE, BUSY
+        INVALID_URL, USERINFO, UNSUPPORTED_EXTENSION, COOLDOWN, DOWNLOAD_FAILED, NOT_IMAGE,
+        TOO_LARGE, BODY_TOO_LARGE, BUSY
     }
 
     private static final class AnvilSession {
