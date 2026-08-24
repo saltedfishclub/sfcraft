@@ -19,6 +19,7 @@
     "common.fixes.EndermanEntityMixin",
     "common.fixes.LivingEntityMixin",
     "gameplay.AnvilMenuMixin",
+    "gameplay.ElytraRushMixin",
     "gameplay.ItemFrameMixin",
     "gameplay.MobCommanderMixin",
     "gameplay.NetherPortalBlockMixin",

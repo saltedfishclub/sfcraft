@@ -14,8 +14,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 /**
  * 鞘翅冲出下界传送门时跳过等待:本方法每 tick 被 {@code PortalProcessor} 调用来决定
- * 「还要在门里待多久」,命中条件时覆写为 1 tick(与原版创造模式一致),下一 tick 即跨维度;
- * 否则不动 cir。判定逻辑见 {@link ElytraPortalModule#shouldTeleportNow}。
+ * 「还要在门里待多久」,命中条件时覆写成 0,本次 {@code handlePortal} 就跨维度;否则不动 cir。
+ * 判定逻辑见 {@link ElytraPortalModule#shouldTeleportNow}。
  */
 @Mixin(NetherPortalBlock.class)
 public abstract class NetherPortalBlockMixin {
@@ -27,6 +27,8 @@ public abstract class NetherPortalBlockMixin {
         }
         var module = SFCraft.getInjector().getInstance(ElytraPortalModule.class);
         if (module.shouldTeleportNow(entity)) {
+            // 门后有遮挡时玩家早被墙撞停了,趁传送前把速度补回去,出门那侧才能继续滑翔
+            module.restoreRushVelocity(entity);
             cir.setReturnValue(module.getInstantTransitionTicks());
         }
     }
