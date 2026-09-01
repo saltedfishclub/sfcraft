@@ -10,6 +10,7 @@ import io.ib67.kiwi.tuple.Tuple2;
 import io.ib67.sfcraft.ServerModule;
 import io.ib67.sfcraft.config.SFConfig;
 import io.ib67.sfcraft.inject.MinecraftServerSupplier;
+import io.ib67.sfcraft.network.HandshakeAddress;
 import io.ib67.sfcraft.registry.RoomRegistry;
 import lombok.extern.log4j.Log4j2;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
@@ -20,7 +21,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.network.PacketSendListener;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.common.ClientboundStoreCookiePacket;
-import net.minecraft.network.protocol.common.ClientboundTransferPacket;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.TicketType;
@@ -83,8 +83,9 @@ public class RoomModule extends ServerModule {
             return 0;
         }
         var networkHandler = player.connection;
+        var transfer = HandshakeAddress.transferPacketFor(player, config);
         networkHandler.send(new ClientboundStoreCookiePacket(ROOM_COOKIE, EMPTY), PacketSendListener.thenRun(() -> {
-            networkHandler.send(new ClientboundTransferPacket(config.domain, config.port));
+            networkHandler.send(transfer);
         }));
         return 1;
     }

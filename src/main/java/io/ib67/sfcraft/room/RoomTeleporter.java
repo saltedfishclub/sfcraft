@@ -6,13 +6,13 @@ import io.ib67.sfcraft.config.SFConfig;
 import io.ib67.sfcraft.inject.MinecraftServerSupplier;
 import io.ib67.sfcraft.module.RoomModule;
 import io.ib67.sfcraft.module.SignatureService;
+import io.ib67.sfcraft.network.HandshakeAddress;
 import io.ib67.sfcraft.registry.RoomRegistry;
 import io.ib67.sfcraft.subserver.Room;
 import io.netty.buffer.Unpooled;
 import net.minecraft.network.PacketSendListener;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.common.ClientboundStoreCookiePacket;
-import net.minecraft.network.protocol.common.ClientboundTransferPacket;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.CommonColors;
@@ -44,6 +44,8 @@ public class RoomTeleporter {
             throw new IllegalStateException("world isn't exist");
         }
         var networkHandler = player.connection;
+        // 趁连接还在 play 阶段先取好目标地址
+        var transfer = HandshakeAddress.transferPacketFor(player, config);
         networkHandler.switchToConfig();
         var request = new RequestedRoom(room.getServerIdentifier(), name, finalUuid);
         var requestBuf = Unpooled.buffer();
@@ -58,7 +60,7 @@ public class RoomTeleporter {
                 )
         );
         networkHandler.send(new ClientboundStoreCookiePacket(ROOM_COOKIE, cookie), PacketSendListener.thenRun(() -> {
-            networkHandler.send(new ClientboundTransferPacket(config.domain, config.port));
+            networkHandler.send(transfer);
         }));
     }
 }

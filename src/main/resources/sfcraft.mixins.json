@@ -9,11 +9,13 @@
   "client": [
   ],
   "server": [
+    "common.ConnectionMixin",
     "common.EntityMixin",
     "common.MobEntityMixin",
     "common.PlayerEntityMixin",
     "common.bridge.EntityBridge",
     "common.bridge.ServerChunkManagerBridge",
+    "common.bridge.ServerCommonNetworkHandlerBridge",
     "common.bridge.ServerPlayerBridge",
     "common.bridge.ServerWorldBridge",
     "common.fixes.EndermanEntityMixin",
