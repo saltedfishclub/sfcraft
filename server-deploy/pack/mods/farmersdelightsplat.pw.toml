@@ -1,0 +1,8 @@
+name = "FarmersDelightSplat"
+filename = "FarmersDelightSplat-0.1.0.jar"
+side = "server"
+
+[download]
+url = "https://github.com/wsyzxjn/FarmersDelightSplat/releases/download/v0.1.0/FarmersDelightSplat-0.1.0.jar"
+hash-format = "sha512"
+hash = "5e9eb4227855d3acf21ed7cee47d25533f7128ae0f9da8a886c36ef75e38ea1d675360708a8b959914d340133f066c2cf9c63a499f04ef48542e8496d2b5790a"

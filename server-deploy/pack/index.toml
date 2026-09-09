@@ -21,6 +21,11 @@ hash = "1500f8fc3792a46226c0559af0925cf4da5f11b7224ec2dcaad8b66bc0c5ca4d"
 metafile = true
 
 [[files]]
+file = "mods/farmersdelightsplat.pw.toml"
+hash = "1802c6e09c71d2490be3eacf012acc263c187455857af715f17d6c23b968a749"
+metafile = true
+
+[[files]]
 file = "mods/ferrite-core.pw.toml"
 hash = "069d81cab53c0141459ad4d70bcf3e10f17652f24cc62d3b4a0fc2cd2b700871"
 metafile = true
