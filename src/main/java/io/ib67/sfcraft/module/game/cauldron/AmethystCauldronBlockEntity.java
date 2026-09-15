@@ -25,6 +25,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.AABB;
+import net.minecraft.util.Prediction;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -124,7 +125,7 @@ public class AmethystCauldronBlockEntity extends BlockEntity {
         if (contents.isEmpty()) return InteractionResult.PASS;
         var stack = contents.removeLast();
         if (!player.getInventory().add(stack)) {
-            player.drop(stack, false);
+            player.drop(stack, false, Prediction.SERVER_ONLY);
         }
         level.playSound(null, getBlockPos(), SoundEvents.ITEM_FRAME_REMOVE_ITEM, SoundSource.BLOCKS, 0.6F, 1.0F);
         setChanged();

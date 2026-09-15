@@ -22,6 +22,7 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.item.component.ItemLore;
 import net.minecraft.world.level.Level;
+import net.minecraft.util.Prediction;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -93,7 +94,7 @@ public class PearlTokenItem extends Item implements PolymerItem {
         } else {
             stack.shrink(1);
             if (!player.getInventory().add(bound)) {
-                player.drop(bound, false);
+                player.drop(bound, false, Prediction.SERVER_ONLY);
             }
         }
         player.sendOverlayMessage(Component.translatable("message.sfcraft.token.bound"));

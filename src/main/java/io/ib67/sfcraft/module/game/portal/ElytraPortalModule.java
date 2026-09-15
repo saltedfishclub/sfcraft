@@ -109,7 +109,7 @@ public class ElytraPortalModule extends ServerModule {
         player.setDeltaMovement(recorded);
         // 玩家移动是客户端权威的,而客户端同样预测到了这次撞墙。不补一个速度包的话,
         // 服务端这边写回去的速度会立刻被客户端的位置汇报盖掉。
-        player.hurtMarked = true;
+        player.syncVelocity = true;
     }
 
     public int getInstantTransitionTicks() {

@@ -20,7 +20,7 @@ import net.minecraft.world.level.storage.loot.LootPool;
 import net.minecraft.world.level.storage.loot.entries.LootItem;
 import net.minecraft.world.level.storage.loot.functions.SetItemCountFunction;
 import net.minecraft.world.level.storage.loot.predicates.LootItemRandomChanceCondition;
-import net.minecraft.world.level.storage.loot.providers.number.UniformGenerator;
+import net.minecraft.world.level.storage.loot.providers.number.ints.ContextIntProviders;
 
 /**
  * 三种投掷炸弹(普通/黑曜石/烈焰)与它们的战利品注入(地牢箱、苦力怕掉落)。
@@ -76,11 +76,11 @@ public class BombModule extends ServerModule {
                 tableBuilder.withPool(LootPool.lootPool()
                         .when(LootItemRandomChanceCondition.randomChance(loot.dungeonBombChance))
                         .add(LootItem.lootTableItem(bomb)
-                                .apply(SetItemCountFunction.setCount(UniformGenerator.between(1.0F, 3.0F)))));
+                                .apply(SetItemCountFunction.setCount(ContextIntProviders.between(1, 3)))));
                 tableBuilder.withPool(LootPool.lootPool()
                         .when(LootItemRandomChanceCondition.randomChance(loot.dungeonObsidianBombChance))
                         .add(LootItem.lootTableItem(obsidianBomb)
-                                .apply(SetItemCountFunction.setCount(UniformGenerator.between(1.0F, 2.0F)))));
+                                .apply(SetItemCountFunction.setCount(ContextIntProviders.between(1, 2)))));
             }
             EntityTypes.CREEPER.getDefaultLootTable().ifPresent(creeperTable -> {
                 if (creeperTable.equals(key)) {

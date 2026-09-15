@@ -1,6 +1,6 @@
 # SFCraft 架构
 
-Fabric **纯服务端** mod(`fabric.mod.json` 中 `environment: "server"`),Minecraft **26.2**,Java 25,**官方 Mojang 映射**。所有自定义内容通过 [Polymer](https://polymer.pb4.eu) 伪装成原版内容;玩家使用原版客户端 + 服务器发布的材质包即可游玩。
+Fabric **纯服务端** mod(`fabric.mod.json` 中 `environment: "server"`),Minecraft **26.3**,Java 25,**官方 Mojang 映射**。所有自定义内容通过 [Polymer](https://polymer.pb4.eu) 伪装成原版内容;玩家使用原版客户端 + 服务器发布的材质包即可游玩。
 
 ## 分层
 

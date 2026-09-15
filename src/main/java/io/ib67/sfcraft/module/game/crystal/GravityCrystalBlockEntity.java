@@ -56,7 +56,7 @@ public class GravityCrystalBlockEntity extends BlockEntity {
                 boosted = boosted.normalize().scale(maxSpeed);
             }
             entity.setDeltaMovement(boosted);
-            entity.hurtMarked = true;
+            entity.syncVelocity = true;
         }
     }
 

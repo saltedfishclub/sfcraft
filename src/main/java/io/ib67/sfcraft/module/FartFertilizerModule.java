@@ -16,6 +16,7 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.block.BonemealableBlock;
+import net.minecraft.world.level.block.BonemealSource;
 
 public class FartFertilizerModule extends ServerModule {
     private final Object2LongMap<Player> lastSneaked = new Object2LongOpenHashMap<>();
@@ -63,7 +64,7 @@ public class FartFertilizerModule extends ServerModule {
                                 }
                                 if (player.getRandom().nextInt(10) < 3) {
                                     ((BonemealableBlock) block).performBonemeal(wld,
-                                            wld.getRandom(), blockPos, state);
+                                            wld.getRandom(), blockPos, state, BonemealSource.INTERACTION);
                                 }
                             }
                         }

@@ -211,7 +211,7 @@ public class CreativeRoomModule extends ServerModule {
     private int onQueryTime(CommandContext<CommandSourceStack> ctx) {
         var player = requirePlaygroundPlayer(ctx);
         if (player == null) return Command.SINGLE_SUCCESS;
-        long ticks = ctx.getSource().getServer().clockManager().getTotalTicks(playgroundClock(ctx.getSource()));
+        long ticks = ctx.getSource().getServer().clockManager().getInstance(playgroundClock(ctx.getSource())).totalTicks();
         player.sendSystemMessage(Component.translatable("message.sfcraft.playground.time_query", wrapTime(ticks)));
         return Command.SINGLE_SUCCESS;
     }

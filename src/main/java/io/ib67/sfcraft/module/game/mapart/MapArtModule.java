@@ -34,6 +34,7 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.item.component.TooltipDisplay;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
+import net.minecraft.util.Prediction;
 import org.jspecify.annotations.Nullable;
 
 import javax.imageio.ImageIO;
@@ -528,7 +529,7 @@ public class MapArtModule extends ServerModule {
 
     private static void give(ServerPlayer player, ItemStack stack) {
         if (!player.getInventory().add(stack)) {
-            player.drop(stack, false);
+            player.drop(stack, false, Prediction.SERVER_ONLY);
         }
     }
 

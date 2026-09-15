@@ -1,6 +1,5 @@
 package io.ib67.sfcraft.module.game.cauldron;
 
-import com.mojang.serialization.MapCodec;
 import eu.pb4.polymer.core.api.block.PolymerBlock;
 import eu.pb4.polymer.virtualentity.api.BlockWithElementHolder;
 import eu.pb4.polymer.virtualentity.api.ElementHolder;
@@ -37,7 +36,6 @@ import java.util.function.BiFunction;
 
 public class AmethystCauldronBlock extends BaseEntityBlock implements PolymerBlock, BlockWithElementHolder {
     public static final BooleanProperty HAS_WATER = BooleanProperty.create("has_water");
-    public static final MapCodec<AmethystCauldronBlock> CODEC = simpleCodec(AmethystCauldronBlock::new);
     // Polymer 会把该偏移加到方块中心(Vec3.atCenterOf), 因此这里是相对中心的偏移:
     // 结果约为 (x+0.5, y+0.55, z+0.5), 即锅内水中、锅沿以下、水平居中。
     private static final Vec3 ELEMENT_HOLDER_OFFSET = new Vec3(0.0, 0.05, 0.0);
@@ -55,11 +53,6 @@ public class AmethystCauldronBlock extends BaseEntityBlock implements PolymerBlo
                          BiFunction<BlockPos, BlockState, AmethystCauldronBlockEntity> factory) {
         this.blockEntityType = type;
         this.blockEntityFactory = factory;
-    }
-
-    @Override
-    protected @NonNull MapCodec<? extends BaseEntityBlock> codec() {
-        return CODEC;
     }
 
     @Override

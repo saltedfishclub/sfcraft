@@ -2,7 +2,7 @@ hash-format = "sha256"
 
 [[files]]
 file = "mods/fabric-api.pw.toml"
-hash = "dc5490cc1a9231b0d32ec3e72f9d34279fc1d1ff6fb5a7d288b1f36faec0a6a0"
+hash = "e3a8b560330802ec556f34a7de7a73bc712202359a657a36b39e6f85598bf8b8"
 metafile = true
 
 [[files]]
@@ -47,12 +47,12 @@ metafile = true
 
 [[files]]
 file = "mods/polymer.pw.toml"
-hash = "2a5626a6d9b61f968f294466e9756fbafa1c1208b4fb53c53cfc8d2afb42a857"
+hash = "2dec8c17d9d6fdf6dd93e2dc458c8d30ead86b2efc292490142841aacd4d3e95"
 metafile = true
 
 [[files]]
 file = "mods/simple-voice-chat.pw.toml"
-hash = "be7369da963f5326a771bbfa360365ac6ed939b01c2c268f4dd4a922718cd4a3"
+hash = "e55e25489644c7297a7f4cda6618437891fd0aba88e7f670a0439c3eadc14fc0"
 metafile = true
 
 [[files]]

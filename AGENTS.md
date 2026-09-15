@@ -1,6 +1,6 @@
 # sfcraft Agent 工作指南
 
-Fabric **纯服务端** mod,Minecraft **26.2**,Java 25,官方 Mojang 映射,自定义内容经 [Polymer](https://polymer.pb4.eu) 伪装成原版内容。整体结构见 [ARCHITECTURE.md](./ARCHITECTURE.md),先读它再动代码。
+Fabric **纯服务端** mod,Minecraft **26.3**,Java 25,官方 Mojang 映射,自定义内容经 [Polymer](https://polymer.pb4.eu) 伪装成原版内容。整体结构见 [ARCHITECTURE.md](./ARCHITECTURE.md),先读它再动代码。
 
 ## ⚠️ 工作范围(最高优先级规则)
 
@@ -22,23 +22,22 @@ Agent 的主要工作范围**只有**这两个包:
 ## 工具使用
 
 - 探索、读写代码**优先使用 IDE 的 MCP 工具**:`list_directory_tree`(代替 `ls`/`find`)、`read_file`(代替 `cat`/`sed`)、`search_text`/`search_regex`/`search_symbol`(代替 `rg`/`grep`)、`get_symbol_info`、`analyze_calls`;编辑用 `apply_patch`/`create_new_file`。
-- 查 26.2 原版类签名**优先用 `read_file` 直接读 loom 缓存 jar 内的类**(会反编译,可读上下文):`~/.gradle/caches/fabric-loom/minecraftMaven/net/minecraft/minecraft-merged-deobf/26.2/minecraft-merged-deobf-26.2.jar!/net/minecraft/.../SomeClass.class`,`javap` 仅作回退。
+- 查 26.3 原版类签名**优先用 `read_file` 直接读 loom 缓存 jar 内的类**(会反编译,可读上下文):`~/.gradle/caches/fabric-loom/minecraftMaven/net/minecraft/minecraft-merged-deobf/26.3/minecraft-merged-deobf-26.3.jar!/net/minecraft/.../SomeClass.class`,`javap` 仅作回退。
 - shell 只留给 MCP 做不了的事:gradle 编译/运行、git、文件权限操作等。
 
 ## 构建与验证
 
-仓库**没有** gradlew wrapper,使用系统 gradle + sdkman JDK:
+仓库自带 gradlew wrapper(**9.7.1** —— loom 1.18.x 要求 Gradle ≥ 9.7,Dockerfile 也走 `./gradlew`):
 
 ```bash
-export JAVA_HOME=~/.sdkman/candidates/java/25.0.1-amzn
-~/.sdkman/candidates/gradle/9.6.0/bin/gradle compileJava --console=plain   # 编译(mixin AP 会校验注入目标)
-~/.sdkman/candidates/gradle/9.6.0/bin/gradle runServer --console=plain    # dev 服务器(run/ 目录,EULA 已接受)
+./gradlew compileJava --console=plain   # 编译(mixin AP 会校验注入目标)
+./gradlew runServer --console=plain     # dev 服务器(run/ 目录,EULA 已接受)
 ```
 
-查 26.2 真实签名(解决 cannot find symbol 的最快办法):
+查 26.3 真实签名(解决 cannot find symbol 的最快办法):
 
 ```bash
-javap -cp ~/.gradle/caches/fabric-loom/minecraftMaven/net/minecraft/minecraft-merged-deobf/26.2/minecraft-merged-deobf-26.2.jar <类全名>
+javap -cp ~/.gradle/caches/fabric-loom/minecraftMaven/net/minecraft/minecraft-merged-deobf/26.3/minecraft-merged-deobf-26.3.jar <类全名>
 ```
 
 ## 新增/修改玩法特性的套路
@@ -65,6 +64,17 @@ javap -cp ~/.gradle/caches/fabric-loom/minecraftMaven/net/minecraft/minecraft-me
 
 ## 踩过的坑
 
+**26.3 变更**(相对 26.2,本次移植踩到的;写代码前先 javap 确认):
+
+- **方块 codec 体系整个删了**:`Block` 不再有 `MapCodec CODEC` / `codec()`,`simpleCodec()` 也没了 —— 自定义方块直接删掉这两段即可(原版 `LayeredCauldronBlock` 同样已无 codec)
+- `Entity.hurtMarked` 字段 → **`Entity.syncVelocity`**(仍是 public 字段,纯改名);`markHurt()` 照旧 protected
+- `LivingEntity.drop(ItemStack, boolean)` → **`drop(ItemStack, boolean, Prediction)`**(`net.minecraft.util.Prediction`,枚举 `PREDICTED`/`SERVER_ONLY`)。服务端逻辑自己发起的掉落用 `SERVER_ONLY`,客户端没预测过
+- `Entity.canSimulateMovement()` 变 **final**,改写点移到 **`getMoveSimulationType()`**(返回 `MoveSimulationType`,默认 `AUTHORITATIVE_SIDE`)。想让服务端始终模拟(纯服务端坐骑)返回 `AUTHORITATIVE_SIDE_AND_SERVER`
+- 战利品数字提供器拆成 `providers.number.ints` / `.floats` 两个子包,且全部 `Holder` 化:`UniformGenerator.between(1.0F, 3.0F)` → **`ContextIntProviders.between(1, 3)`**(返回 `Holder<ContextIntProvider>`,`SetItemCountFunction.setCount` 现在收的就是它)
+- `BonemealableBlock` 三个方法都多了一个 **`BonemealSource`** 参数(`INTERACTION`/`MOB`)
+- `MinecraftServer.clockManager()` 的 `getTotalTicks(clock)` 没了 → **`clockManager().getInstance(clock).totalTicks()`**(`ClockInstance` 接口:`totalTicks/partialTick/rate/isPaused`);`addTicks`/`setTotalTicks` 等写操作仍在 manager 上
+- `EnderMan` → **`Enderman`**(只是大小写,包没动)
+
 **26.2 Mojmap 重命名**(相对 1.21.x,写代码前先 javap 确认):
 
 - `ResourceLocation` → `net.minecraft.resources.Identifier`(`Identifier.fromNamespaceAndPath`)
@@ -76,7 +86,7 @@ javap -cp ~/.gradle/caches/fabric-loom/minecraftMaven/net/minecraft/minecraft-me
 - `MobEffects.SLOWNESS`(不是 MOVEMENT_SLOWDOWN);`SimpleContainer` 没有 addListener 了(覆写 `setChanged()` 持久化)
 - `GameProfile` 是 record(`name()`/`id()`);`sendOverlayMessage`/`sendSystemMessage` 取代 `displayClientMessage`;命令权限 `Commands.LEVEL_GAMEMASTERS.check(source.permissions())`
 
-**Polymer(0.17.3+26.2)**:
+**Polymer(0.18.0+26.3-rc-1 —— 上游还没出 26.3 正式版构建,先用 rc-1 那版)**:
 
 - `PacketContext` 在 `net.fabricmc.fabric.api.networking.v1.context.PacketContext`
 - BE 类型必须 `PolymerBlockUtils.registerBlockEntity`,实体类型必须 `PolymerEntityUtils.registerType`(`RegistryHelper` 已封装)

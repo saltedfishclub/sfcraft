@@ -1,6 +1,5 @@
 package io.ib67.sfcraft.module.game.crystal;
 
-import com.mojang.serialization.MapCodec;
 import eu.pb4.polymer.core.api.block.PolymerBlock;
 import net.fabricmc.fabric.api.networking.v1.context.PacketContext;
 import net.minecraft.core.BlockPos;
@@ -29,7 +28,6 @@ import java.util.function.BiFunction;
 
 public class GravityCrystalBlock extends BaseEntityBlock implements PolymerBlock {
     public static final IntegerProperty CHARGE = RespawnAnchorBlock.CHARGE;
-    public static final MapCodec<GravityCrystalBlock> CODEC = simpleCodec(GravityCrystalBlock::new);
 
     // GravityCrystalModule 注册方块实体类型后回填(方块与其方块实体类型互相引用,无法在构造器闭合)
     private BlockEntityType<GravityCrystalBlockEntity> blockEntityType;
@@ -44,11 +42,6 @@ public class GravityCrystalBlock extends BaseEntityBlock implements PolymerBlock
                          BiFunction<BlockPos, BlockState, GravityCrystalBlockEntity> factory) {
         this.blockEntityType = type;
         this.blockEntityFactory = factory;
-    }
-
-    @Override
-    protected MapCodec<? extends BaseEntityBlock> codec() {
-        return CODEC;
     }
 
     @Override

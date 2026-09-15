@@ -2,7 +2,7 @@ plugins {
     id 'maven-publish'
     id("io.freefair.lombok") version "9.5.0"
     id("com.gradleup.shadow") version "9.3.1"
-    id 'net.fabricmc.fabric-loom' version '1.17-SNAPSHOT'
+    id 'net.fabricmc.fabric-loom' version '1.18.1'
 }
 
 version = project.mod_version
@@ -37,7 +37,7 @@ dependencies {
     shadow("org.apache.commons:commons-compress:1.28.0")
     shadow("io.ib67.kiwi:lang:1.2.3-SNAPSHOT")
     shadow('com.github.houbb:pinyin:0.4.0')
-    def polymerVersion = "0.17.3+26.2"
+    def polymerVersion = "0.18.0+26.3-rc-1"
     implementation include("eu.pb4:polymer-core:$polymerVersion")
     implementation include("eu.pb4:polymer-virtual-entity:$polymerVersion")
     implementation include("eu.pb4:polymer-resource-pack:$polymerVersion")

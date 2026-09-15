@@ -12,6 +12,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.entity.MoveSimulationType;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
@@ -82,10 +83,12 @@ public abstract class RavagerMountMixin extends Raider implements MountAccess {
     }
 
     @Override
-    public boolean canSimulateMovement() {
-        // 骑手是 Player 时会被判为客户端权威,但纯服务端坐骑客户端不会模拟 → 强制服务端模拟
-        if (!level().isClientSide() && getControllingPassenger() != null) return true;
-        return super.canSimulateMovement();
+    public MoveSimulationType getMoveSimulationType() {
+        // 骑手是 Player 时会被判为客户端权威,但纯服务端坐骑客户端不会模拟 → 强制服务端模拟。
+        // 26.3 起 canSimulateMovement() 变 final,改写点移到这里:AUTHORITATIVE_SIDE_AND_SERVER
+        // 的语义就是"服务端永远模拟 + 权威端模拟",等价于原来的 !isClientSide 分支。
+        if (getControllingPassenger() != null) return MoveSimulationType.AUTHORITATIVE_SIDE_AND_SERVER;
+        return super.getMoveSimulationType();
     }
 
     @Override
