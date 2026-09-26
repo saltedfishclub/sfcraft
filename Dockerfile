@@ -14,20 +14,14 @@ RUN  cd /mod && \
     cp /mod/build/libs/sfcraft-*-all.jar /sfcraft.jar
 
 FROM base AS justbackup-builder
-# 跟随 MC 版本的分支(默认分支仍是 26.2,fabric.mod.json 要求 minecraft ~26.2)。
-# 分支不存在时这里会直接失败——刻意如此,比把 26.2 的 mod 打进 26.3 镜像、到加载时才报错好。
-ARG JUSTBACKUP_REF=26.3
-RUN git clone -b "$JUSTBACKUP_REF" https://github.com/saltedfishclub/justbackup /mod
+RUN git clone https://github.com/saltedfishclub/justbackup /mod
 RUN cd /mod && \
     ./gradlew build && \
     rm -f /mod/build/libs/*sources.jar /mod/build/libs/*dev.jar && \
     cp /mod/build/libs/justbackup-*.jar /justbackup.jar
 
 FROM base AS carpet-builder
-# 同上。carpet 的 depends 写的是 minecraft >26.2,旧分支能装上但 mixin 是按旧版编译的,
-# 跑在 26.3 上会在 mixin apply 阶段炸,所以同样必须切到 26.3 分支(= 我们的补丁 + 合入上游 v26.3)。
-ARG CARPET_REF=26.3
-RUN git clone -b "$CARPET_REF" https://github.com/saltedfishclub/fabric-carpet /mod
+RUN git clone https://github.com/saltedfishclub/fabric-carpet /mod
 RUN cd /mod && \
     ./gradlew build && \
     rm -f /mod/build/libs/*sources.jar /mod/build/libs/*dev.jar && \
