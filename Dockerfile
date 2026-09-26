@@ -14,9 +14,8 @@ RUN  cd /mod && \
     cp /mod/build/libs/sfcraft-*-all.jar /sfcraft.jar
 
 FROM base AS justbackup-builder
-# 跟随 MC 版本的分支。26.3 分支需先在上游仓库建好，否则此处会直接失败——
-# 这是刻意的:默认分支仍是 26.2(fabric.mod.json 要求 minecraft ~26.2),
-# 构建进 26.3 镜像只会在加载时才报错,不如在构建期暴露。
+# 跟随 MC 版本的分支(默认分支仍是 26.2,fabric.mod.json 要求 minecraft ~26.2)。
+# 分支不存在时这里会直接失败——刻意如此,比把 26.2 的 mod 打进 26.3 镜像、到加载时才报错好。
 ARG JUSTBACKUP_REF=26.3
 RUN git clone -b "$JUSTBACKUP_REF" https://github.com/saltedfishclub/justbackup /mod
 RUN cd /mod && \
@@ -25,11 +24,8 @@ RUN cd /mod && \
     cp /mod/build/libs/justbackup-*.jar /justbackup.jar
 
 FROM base AS carpet-builder
-# 同上。carpet 的 depends 写的是 minecraft >26.2,能装上但 mixin 是按旧版编译的,
-# 跑在 26.3 上会在 mixin apply 阶段炸,所以同样必须切到 26.3 分支。
-# ⚠️ 注意:26.3 分支目前只是合了上游 master,而上游自己还停在 26.3-snapshot-9
-# (对 26.3 正式版有 100+ 处编译错误)。等 gnembon 跟上 26.3 正式版、我们再合一次
-# 之前,这一层产出的 carpet 装进 26.3 服务器大概率仍然会崩。
+# 同上。carpet 的 depends 写的是 minecraft >26.2,旧分支能装上但 mixin 是按旧版编译的,
+# 跑在 26.3 上会在 mixin apply 阶段炸,所以同样必须切到 26.3 分支(= 我们的补丁 + 合入上游 v26.3)。
 ARG CARPET_REF=26.3
 RUN git clone -b "$CARPET_REF" https://github.com/saltedfishclub/fabric-carpet /mod
 RUN cd /mod && \

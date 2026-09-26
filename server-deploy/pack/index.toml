@@ -2,7 +2,7 @@ hash-format = "sha256"
 
 [[files]]
 file = "mods/fabric-api.pw.toml"
-hash = "e3a8b560330802ec556f34a7de7a73bc712202359a657a36b39e6f85598bf8b8"
+hash = "6b342a83e9736f0832e750c8d631273cf600305d73b32c8bd6a977811f6972ee"
 metafile = true
 
 [[files]]
@@ -12,12 +12,12 @@ metafile = true
 
 [[files]]
 file = "mods/farmers-delight-polymer.pw.toml"
-hash = "ce231450983fd9afc2fef902a368394e9eea69b3c2772e5cdcabf777e8a2662c"
+hash = "c4a9d832bf4d80391d4914ff520602a00fb55710cf6ec2e02fc4a21a19dea3ad"
 metafile = true
 
 [[files]]
 file = "mods/farmers-delight-refabricated.pw.toml"
-hash = "1500f8fc3792a46226c0559af0925cf4da5f11b7224ec2dcaad8b66bc0c5ca4d"
+hash = "f4040aeb20676a8eafdeef154891acb2e236ab4a97632b76fac4750824df9f1e"
 metafile = true
 
 [[files]]
@@ -27,7 +27,7 @@ metafile = true
 
 [[files]]
 file = "mods/jei.pw.toml"
-hash = "6ed45647ca366b832d80de4f02d16dd5899ba165459b1870729be04a260515d1"
+hash = "cbe64d3867ec3f88c771fafaaa9f9a03febdee27d02b58096371357e9f643f58"
 metafile = true
 
 [[files]]
@@ -37,7 +37,7 @@ metafile = true
 
 [[files]]
 file = "mods/lithium.pw.toml"
-hash = "3b4ab92dd5c39fbe0f5af3d73f0d7f3df3e2450842055353b0a5dc8fb9dae534"
+hash = "3a00db6d12bebcafc8a38bde195dcd05a96509a9d563b53c9e0c098b299f2550"
 metafile = true
 
 [[files]]
@@ -47,7 +47,7 @@ metafile = true
 
 [[files]]
 file = "mods/polymer.pw.toml"
-hash = "2dec8c17d9d6fdf6dd93e2dc458c8d30ead86b2efc292490142841aacd4d3e95"
+hash = "4559bae692a7d7b5c675f0ea199c4dd3506b9f14889748dc029abbfb605e5f7a"
 metafile = true
 
 [[files]]
@@ -57,15 +57,15 @@ metafile = true
 
 [[files]]
 file = "mods/squaremap.pw.toml"
-hash = "798b2e1aeee88e52cc70cca4c51134639cebd214a3f52e0a0913e51b0b1adbe3"
+hash = "014c8f8c8defcda9f7a6f1bd4a970d57828f9cd17ab131d5296f49a18dbb85c1"
 metafile = true
 
 [[files]]
 file = "mods/syncmatica.pw.toml"
-hash = "a8cfd56f9a2a99a9b93e05e41decad8c4b245bba7ed0b27a3032e5d6d1a09e23"
+hash = "1063819c4a7de56b72384a52615bc2dc7818c44b5791072b5b315ca372308fca"
 metafile = true
 
 [[files]]
 file = "mods/worldedit.pw.toml"
-hash = "3754793742766dd72246e1a57abfa5c2d57e8a9d7dfecd1e9adc26251fac0b36"
+hash = "bf86a568e9d9c647113d3be42de02b4490aa62fd5c61b7e24a86f3ddb57e9e62"
 metafile = true

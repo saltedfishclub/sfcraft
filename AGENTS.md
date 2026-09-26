@@ -60,7 +60,7 @@ javap -cp ~/.gradle/caches/fabric-loom/minecraftMaven/net/minecraft/minecraft-me
 
 - **配置**:数值参数进 `GameConfig`(`io.ib67.sfcraft.config`)对应特性的嵌套类,运行期通过注入的 `GameConfigService#get()` **每次现读,不要缓存**(否则 `/sfcraft reload` 不生效)。注册时烘焙进组件的值(如耐久)天然不可热重载,属已知限制。需要在重载时重建的东西(如炼药锅配方)监听 `callback.SFConfigReload`。
 - **i18n**:玩家可见文本一律 `Component.translatable`,键加进 `assets/sfcraft/lang/zh_cn.json` **和** `en_us.json`(⚠️ 越界,需许可)。**禁止**硬编码中文/英文 literal。不要引入 server-translations 依赖——玩家装服务器材质包,lang 由客户端解析。物品显示名 = `ITEM_NAME` 组件挂 translatable。
-- **纯服务端**:假设代码总在服务端运行;玩家移动是客户端权威,服务端改玩家速度矢量要置 `entity.hurtMarked = true`。
+- **纯服务端**:假设代码总在服务端运行;玩家移动是客户端权威,服务端改玩家速度矢量要置 `entity.syncVelocity = true`(26.2 及以前叫 `hurtMarked`)。
 
 ## 踩过的坑
 
@@ -86,7 +86,7 @@ javap -cp ~/.gradle/caches/fabric-loom/minecraftMaven/net/minecraft/minecraft-me
 - `MobEffects.SLOWNESS`(不是 MOVEMENT_SLOWDOWN);`SimpleContainer` 没有 addListener 了(覆写 `setChanged()` 持久化)
 - `GameProfile` 是 record(`name()`/`id()`);`sendOverlayMessage`/`sendSystemMessage` 取代 `displayClientMessage`;命令权限 `Commands.LEVEL_GAMEMASTERS.check(source.permissions())`
 
-**Polymer(0.18.0+26.3-rc-1 —— 上游还没出 26.3 正式版构建,先用 rc-1 那版)**:
+**Polymer(0.18.2+26.3)**:
 
 - `PacketContext` 在 `net.fabricmc.fabric.api.networking.v1.context.PacketContext`
 - BE 类型必须 `PolymerBlockUtils.registerBlockEntity`,实体类型必须 `PolymerEntityUtils.registerType`(`RegistryHelper` 已封装)
