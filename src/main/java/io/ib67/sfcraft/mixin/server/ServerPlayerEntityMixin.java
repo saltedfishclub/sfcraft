@@ -5,8 +5,11 @@ import io.ib67.sfcraft.callback.SFCallbacks;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Unit;
+import net.minecraft.world.attribute.BedRule;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.block.AbstractBedBlock;
+import net.minecraft.world.level.block.state.BlockState;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
@@ -25,7 +28,7 @@ public class ServerPlayerEntityMixin {
     }
 
     @Inject(method = "startSleepInBed", at = @At("HEAD"), cancellable = true)
-    public void onSleep(BlockPos pos, CallbackInfoReturnable<Either<Player.BedSleepingProblem, Unit>> cir) {
+    public void onSleep(AbstractBedBlock bed, BlockState bedBlockState, BedRule bedRule, BlockPos pos, CallbackInfoReturnable<Either<Player.BedSleepingProblem, Unit>> cir) {
         var result = SFCallbacks.PLAYER_SLEEP.invoker().onPlayerSleep((ServerPlayer) (Object) this, pos);
         if (result.left().isPresent()) {
             cir.setReturnValue(result);
