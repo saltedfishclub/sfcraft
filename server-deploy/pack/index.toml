@@ -27,22 +27,12 @@ metafile = true
 
 [[files]]
 file = "mods/jei.pw.toml"
-hash = "cbe64d3867ec3f88c771fafaaa9f9a03febdee27d02b58096371357e9f643f58"
-metafile = true
-
-[[files]]
-file = "mods/krypton.pw.toml"
-hash = "e922d7300eba8cfbd9aa31ba475cf6fcbcf11d74e89a0314ada18d58f08a2634"
+hash = "aad63a1901b14426c0aa6c794657f259db07f4aea38ae79eaf98c8a728b86ddd"
 metafile = true
 
 [[files]]
 file = "mods/lithium.pw.toml"
 hash = "3a00db6d12bebcafc8a38bde195dcd05a96509a9d563b53c9e0c098b299f2550"
-metafile = true
-
-[[files]]
-file = "mods/no-chat-reports.pw.toml"
-hash = "00129db538fe3591d87ba64731ca1f9daf3e538185657ee0fcf56b52f0715e5b"
 metafile = true
 
 [[files]]
@@ -52,7 +42,7 @@ metafile = true
 
 [[files]]
 file = "mods/simple-voice-chat.pw.toml"
-hash = "e55e25489644c7297a7f4cda6618437891fd0aba88e7f670a0439c3eadc14fc0"
+hash = "538084be8eddcd5e682ab52c5d2a8d7ba956e1a25cd540389430c25d0eaa513d"
 metafile = true
 
 [[files]]
